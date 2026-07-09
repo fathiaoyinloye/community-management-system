@@ -1,0 +1,137 @@
+@startuml Community_Management_System_UseCase_Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+skinparam rectangle {
+  BorderColor Black
+  BackgroundColor White
+}
+
+actor "Platform\nAdministrator" as PA
+actor "Community\nAdministrator" as CA
+actor "Community\nStaff" as CS
+actor "Resident" as RES
+
+rectangle "Community Management System" {
+
+  package "Authentication" {
+    usecase "Login" as UC_Login
+    usecase "Activate Account" as UC_Activate
+  }
+
+  package "Platform Management" {
+    usecase "Create Community" as UC_CreateCommunity
+    usecase "Update Community" as UC_UpdateCommunity
+    usecase "Activate Community" as UC_ActivateCommunity
+    usecase "Deactivate Community" as UC_DeactivateCommunity
+    usecase "Assign Community\nAdministrator" as UC_AssignCommAdmin
+    usecase "View All Communities" as UC_ViewAllCommunities
+    usecase "View Platform Dashboard" as UC_PlatformDashboard
+  }
+
+  package "Community Management" {
+    usecase "Manage Community Profile" as UC_ManageProfile
+    usecase "Invite Community Staff" as UC_InviteStaff
+    usecase "Manage Staff" as UC_ManageStaff
+    usecase "Assign Roles and\nPermissions" as UC_AssignRoles
+    usecase "View Community Dashboard" as UC_CommDashboard
+  }
+
+  package "House Management" {
+    usecase "Register House" as UC_RegisterHouse
+    usecase "Update House" as UC_UpdateHouse
+    usecase "Search House" as UC_SearchHouse
+  }
+
+  package "Levy Management" {
+    usecase "Create Levy Type" as UC_CreateLevy
+    usecase "Assign Levy" as UC_AssignLevy
+  }
+
+  package "Billing" {
+    usecase "Generate Bills" as UC_GenerateBills
+    usecase "Calculate Outstanding\nBalance" as UC_CalcBalance
+  }
+
+  package "Payment Management" {
+    usecase "Record Payments" as UC_RecordPayment
+    usecase "Update Outstanding\nBalance" as UC_UpdateBalance
+    usecase "Generate Receipts" as UC_GenerateReceipt
+    usecase "Send Notifications" as UC_SendNotification
+  }
+
+  package "Reporting" {
+    usecase "View Reports" as UC_ViewReports
+  }
+
+  package "Resident Portal" {
+    usecase "View Dashboard" as UC_ResDashboard
+    usecase "View Outstanding Bills" as UC_ViewOutstanding
+    usecase "View Payment History" as UC_ViewPaymentHistory
+    usecase "Download Receipts" as UC_DownloadReceipt
+    usecase "View Notifications" as UC_ViewNotifications
+    usecase "Update Profile" as UC_UpdateProfile
+  }
+}
+
+' ---------------- Platform Administrator ----------------
+PA --> UC_Login
+PA --> UC_CreateCommunity
+PA --> UC_UpdateCommunity
+PA --> UC_ActivateCommunity
+PA --> UC_DeactivateCommunity
+PA --> UC_AssignCommAdmin
+PA --> UC_ViewAllCommunities
+PA --> UC_PlatformDashboard
+
+' ---------------- Community Administrator ----------------
+CA --> UC_Login
+CA --> UC_ManageProfile
+CA --> UC_InviteStaff
+CA --> UC_ManageStaff
+CA --> UC_AssignRoles
+CA --> UC_RegisterHouse
+CA --> UC_UpdateHouse
+CA --> UC_SearchHouse
+CA --> UC_CreateLevy
+CA --> UC_AssignLevy
+CA --> UC_GenerateBills
+CA --> UC_RecordPayment
+CA --> UC_GenerateReceipt
+CA --> UC_SendNotification
+CA --> UC_ViewReports
+CA --> UC_CommDashboard
+
+' ---------------- Community Staff ----------------
+CS --> UC_Login
+CS --> UC_RegisterHouse
+CS --> UC_UpdateHouse
+CS --> UC_SearchHouse
+CS --> UC_RecordPayment
+CS --> UC_GenerateReceipt
+CS --> UC_SendNotification
+CS --> UC_ViewReports
+
+' ---------------- Resident ----------------
+RES --> UC_Activate
+RES --> UC_Login
+RES --> UC_ResDashboard
+RES --> UC_ViewOutstanding
+RES --> UC_ViewPaymentHistory
+RES --> UC_DownloadReceipt
+RES --> UC_ViewNotifications
+RES --> UC_UpdateProfile
+
+' ---------------- Include Relationships ----------------
+UC_RecordPayment ..> UC_UpdateBalance : <<include>>
+UC_RecordPayment ..> UC_GenerateReceipt : <<include>>
+UC_RecordPayment ..> UC_SendNotification : <<include>>
+UC_GenerateBills ..> UC_CalcBalance : <<include>>
+UC_AssignLevy ..> UC_GenerateBills : <<include>>
+
+@enduml

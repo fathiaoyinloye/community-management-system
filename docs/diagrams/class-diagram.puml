@@ -1,0 +1,146 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+'==========================
+' ENUMS
+'==========================
+
+enum Role {
+  PLATFORM_ADMIN
+  COMMUNITY_ADMIN
+  COMMUNITY_STAFF
+  RESIDENT
+}
+
+enum LevyStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum LevyFrequency {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+'==========================
+' CLASSES
+'==========================
+
+class Community {
+  +UUID id
+  +String name
+  +String type
+  +String address
+  +String lga
+  +String state
+  +String phone
+  +String email
+  +String description
+  +String logo
+  +LocalDateTime createdAt
+  +LocalDateTime updatedAt
+  --
+  +updateProfile()
+}
+
+class User {
+  +UUID id
+  +String firstName
+  +String lastName
+  +String email
+  +String phone
+  +String password
+  +Role role
+  +Boolean accountSetupCompleted
+  +LocalDateTime createdAt
+  +LocalDateTime updatedAt
+  --
+  +completeAccountSetup()
+  +changePassword()
+}
+
+class House {
+  +UUID id
+  +String houseNumber
+  +String street
+  +LocalDateTime createdAt
+  +LocalDateTime updatedAt
+  --
+  +assignResponsiblePerson()
+  +changeResponsiblePerson()
+}
+
+class LevyType {
+  +UUID id
+  +String name
+  +BigDecimal amount
+  +LevyFrequency frequency
+  +Boolean active
+  +LocalDateTime createdAt
+  +LocalDateTime updatedAt
+  --
+  +updateAmount()
+  +activate()
+  +deactivate()
+}
+
+class HouseLevy {
+  +UUID id
+  +BigDecimal amount
+  +BigDecimal balance
+  +LocalDate dueDate
+  +LevyStatus status
+  +LocalDateTime createdAt
+  +LocalDateTime updatedAt
+  --
+  +calculateBalance()
+  +markAsPaid()
+  +markAsOverdue()
+}
+
+class Payment {
+  +UUID id
+  +BigDecimal amount
+  +String paymentReference
+  +String proofOfPaymentUrl
+  +PaymentStatus status
+  +LocalDateTime paymentDate
+  +LocalDateTime verifiedDate
+  +LocalDateTime createdAt
+  --
+  +verify()
+  +reject()
+}
+
+'==========================
+' RELATIONSHIPS
+'==========================
+
+Community "1" -- "0..*" User : has
+
+Community "1" -- "0..*" House : contains
+
+Community "1" -- "0..*" LevyType : defines
+
+House "1" -- "1" User : responsiblePerson
+
+House "1" -- "0..*" HouseLevy : has
+
+LevyType "1" -- "0..*" HouseLevy : generates
+
+HouseLevy "1" -- "0..*" Payment : receives
+
+User "1" -- "0..*" Payment : verifies
+
+@enduml
