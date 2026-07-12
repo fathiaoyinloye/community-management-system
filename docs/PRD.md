@@ -91,73 +91,93 @@ The platform is designed for:
 
 ## Platform Administrator
 
-Responsible for managing the entire platform.
+The Platform Administrator manages the Community Management System platform. This role is responsible for onboarding communities and assigning Community Administrators. The Platform Administrator does not participate in the day-to-day operations of any community.
 
-### Responsibilities
+Responsibilities
 
-- Register communities
-- Manage communities
-- Create Community Administrator accounts
-- Activate or deactivate communities
-- Provide technical support
+- Create Community
+- View Communities
+- View Community Details
+- Update Community Information (when necessary)
+- Assign Community Administrator
 
----
 
 ## Community Administrator
 
-Responsible for managing a specific community.
+The Community Administrator is responsible for managing a specific community. This role oversees community operations by managing staff accounts and maintaining community information but does not perform daily operational tasks such as registering houses or verifying payments.
 
-This role may be assigned to the Chairman, Estate Manager, or any executive designated by the community.
+Responsibilities
 
-### Responsibilities
+- View Community Information
+- Update Community Information
+- Invite Community Staff
+- View Community Staff
+- Update Community Staff Role
+- Remove Community Staff
 
-- Manage community information
-- Create community staff accounts
-- Assign staff roles
-- Manage levies
-- View reports
-- Monitor community activities
-
----
 
 ## Community Staff
 
-Community staff are appointed by the Community Administrator.
+Community Staff perform the day-to-day operational activities within a community. They manage houses, create levies, verify payments, and maintain resident financial records.
 
-Examples include:
+Responsibilities
 
-- Secretary
-- Treasurer
-- Financial Secretary
-- Estate Manager
-- Committee Members
+### House Management
 
-Depending on permissions, Community Staff can:
+- Register House
+- Update House Information
+- Search House
+- View House Details
 
-- Register houses
-- Update house information
-- Upload outstanding balances
-- Record payments
-- Generate receipts
-- Send notifications
-- View reports
+### Levy Management
 
----
+- Create Levy
+
+Creating a levy automatically generates the levy for every active house within the community.
+
+### Payment Management
+
+- Verify Payment
+- Reject Payment
+
+Residents submit proof of payment, and Community Staff review and verify or reject the submission.
+
+### Financial Records
+
+- View Payment Report
+- View Outstanding Levies
+- View House Account
+
+The House Account provides:
+
+- Responsible Resident
+- Current Outstanding Balance
+- Levy History
+- Payment History
+
 
 ## Resident
 
-Represents the person responsible for a registered house.
+A Resident represents the person responsible for a registered house. Each house has only one responsible resident.
 
-Residents can:
+Residents cannot modify community records or financial data. They can only access information relating to their own house.
 
-- Activate account
-- Login securely
-- View outstanding balances
-- View payment history
-- Download receipts
-- Receive notifications
+Responsibilities
 
-Residents cannot modify community records.
+### Account Management
+
+- Complete Account Setup
+- Login
+- Change Password
+
+### Financial Activities
+
+- View Outstanding Balance
+- View Levy History
+- View Payment History
+- Upload Proof of Payment
+- Download Receipt
+
 
 ---
 
@@ -185,10 +205,11 @@ Each house has a single account managed by one responsible resident.
 
 ## Levy Management
 
-- Create Levy Types
-- Edit Levy Types
-- Assign Levies
-- Upload Existing Outstanding Balances
+Levy Management
+
+- Create Levy
+- View Levies
+- View Outstanding Levies
 
 ---
 
