@@ -1,0 +1,108 @@
+@startuml
+hide methods
+hide stereotypes
+skinparam linetype ortho
+
+entity Community {
+    * id : UUID <<PK>>
+    --
+    name : String
+    type : String
+    address : String
+    lga : String
+    state : String
+    phone : String
+    email : String
+    description : String
+    logo : String
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity User {
+    * id : UUID <<PK>>
+    --
+    community_id : UUID <<FK>>
+    first_name : String
+    last_name : String
+    email : String
+    phone : String
+    password : String
+    role : Enum
+    account_setup_completed : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+
+entity House {
+    * id : UUID <<PK>>
+    --
+    community_id : UUID <<FK>>
+    resident_id : UUID <<FK>>
+    house_number : String
+    street : String
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity LevyType {
+    * id : UUID <<PK>>
+    --
+    community_id : UUID <<FK>>
+    name : String
+    amount : Decimal
+    frequency : Enum
+    active : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity HouseLevy {
+    * id : UUID <<PK>>
+    --
+    house_id : UUID <<FK>>
+    levy_type_id : UUID <<FK>>
+    amount : Decimal
+    balance : Decimal
+    billing_period : String
+    due_date : Date
+    status : Enum
+    created_at : DateTime
+    updated_at : DateTime
+}
+
+entity Payment {
+    * id : UUID <<PK>>
+    --
+    house_levy_id : UUID <<FK>>
+    verified_by : UUID <<FK>>
+    amount : Decimal
+    payment_reference : String
+    proof_of_payment_url : String
+    status : Enum
+    remarks : String
+    payment_date : DateTime
+    verified_date : DateTime
+    created_at : DateTime
+}
+
+Community ||--o{ User
+
+Community ||--o{ House
+
+Community ||--o{ LevyType
+
+Community ||--o{ Invitation
+
+House ||--o{ HouseLevy
+
+LevyType ||--o{ HouseLevy
+
+HouseLevy ||--o{ Payment
+
+User ||--o{ Payment : verifies
+
+House }o--|| User : responsible resident
+
+@enduml

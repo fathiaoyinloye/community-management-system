@@ -159,6 +159,19 @@ Residents can:
 
 Residents cannot modify community records.
 
+
+
+| Entity     | Purpose                                                       | Owning Module  |
+| ---------- | ------------------------------------------------------------- | -------------- |
+| User       | Represents every system user regardless of role               | Authentication |
+| Invitation | Handles onboarding for Community Admins, Staff, and Residents | Authentication |
+| Community  | Represents a residential community                            | Community      |
+| House      | Represents a registered property within a community           | House          |
+| LevyType   | Defines reusable levy templates                               | Levy           |
+| HouseLevy  | Represents a levy assigned to a specific house                | Levy           |
+| Payment    | Records resident payments and verification                    | Payment        |
+
+
 ---
 
 # 7. MVP Scope
