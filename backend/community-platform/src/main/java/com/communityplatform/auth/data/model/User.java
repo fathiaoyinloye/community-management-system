@@ -5,11 +5,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
+import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -18,17 +19,22 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
+@SuperBuilder
 @Table(name = "users")
 public class User extends BaseEntity implements UserDetails {
 
     @Column(name = "community_id")
-    private UUID community;
+    private UUID communityId;
 
     @Column(nullable = false)
     private String firstName;
 
     @Column(nullable = false)
     private String lastName;
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -37,7 +43,6 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -51,6 +56,12 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(nullable = false)
     private int tokenVersion = 0;
+
+
+    @Column(unique = true)
+    private String activationToken;
+
+    private LocalDateTime activationTokenExpiry;
 
 
     @Override
