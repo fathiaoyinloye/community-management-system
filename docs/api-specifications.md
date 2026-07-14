@@ -1,478 +1,327 @@
 # Community Management System API Specification
 
-**Version:** 1.0 (MVP)
-
-**Base URL**
-
-```
-/api/v1
-```
+**Version:** 1.0 (MVP — Phases 1–6)
+**Base URL:** `http://localhost:8080/api/v1` (dev)
 
 ---
 
-# Authentication
+## ⚠️ Authentication — read this first
 
-## Login
+This API does **NOT** use a Bearer token in headers. Auth is via an **HttpOnly cookie** named `jwt`, set automatically on login.
 
-| Method | Endpoint |
-|---------|----------|
-| POST | /auth/login |
+**What this means for the frontend:**
+- Do not store any token in localStorage/sessionStorage — there isn't one to store. The browser handles it.
+- Every request to a protected endpoint must include credentials:
+  - fetch: `fetch(url, { credentials: 'include', ... })`
+  - axios: `axios.defaults.withCredentials = true;` (or per-request `{ withCredentials: true }`)
+- No manual `Authorization` header needed anywhere.
+- In dev, the cookie is not `Secure` (works over plain `http://localhost`). In production it will be `Secure` + `SameSite=Strict` (HTTPS only).
 
-Description
+---
 
-Authenticate a user and return a JWT.
+## Standard Error Shape
 
-Authentication
-
-None
-
-Request
+Every error (validation, auth, not-found, conflict, server error) returns this shape:
 
 ```json
 {
-  "email": "admin@example.com",
-  "password": "Password123"
+  "status": 401,
+  "message": "Authentication required",
+  "timestamp": "2026-07-14T07:25:59.013"
 }
 ```
-
-Response
-
-```json
-{
-  "accessToken": "jwt-token",
-  "tokenType": "Bearer",
-  "expiresIn": 3600,
-  "role": "COMMUNITY_ADMIN"
-}
-```
-
-Status Codes
-
-- 200 OK
-- 400 Bad Request
-- 401 Unauthorized
-
----
-
-## Complete Account Setup
-
-| Method | Endpoint |
-|---------|----------|
-| POST | /auth/complete-account-setup |
-
-Authentication
-
-None (Invitation Token)
-
-Request
-
-```json
-{
-  "token": "invitation-token",
-  "password": "Password123"
-}
-```
-
-Response
-
-```json
-{
-  "message": "Account setup completed successfully."
-}
-```
-
----
-
-## Logout
-
-| Method | Endpoint |
-|---------|----------|
-| POST | /auth/logout |
-
-Authentication
-
-Bearer Token
-
----
-
-# Community
-
-## Create Community
-
-POST
-
-```
-/communities
-```
-
-Authentication
-
-Platform Administrator
-
-Request
-
-```json
-{
-  "name": "Green Estate",
-  "type": "Residential Estate",
-  "address": "Lekki",
-  "lga": "Eti-Osa",
-  "state": "Lagos",
-  "phone": "08012345678",
-  "email": "admin@greenestate.com"
-}
-```
-
-Response
-
-```json
-{
-  "id": "UUID",
-  "message": "Community created successfully."
-}
-```
-
----
-
-## Get Communities
-
-GET
-
-```
-/communities
-```
-
----
-
-## Get Community
-
-GET
-
-```
-/communities/{id}
-```
-
----
-
-## Update Community
-
-PUT
-
-```
-/communities/{id}
-```
-
----
-
-# Community Staff
-
-## Invite Staff
-
-POST
-
-```
-/communities/{communityId}/staff
-```
-
----
-
-## Get Staff
-
-GET
-
-```
-/communities/{communityId}/staff
-```
-
----
-
-## Update Staff Role
-
-PUT
-
-```
-/communities/{communityId}/staff/{staffId}
-```
-
----
-
-# Houses
-
-## Register House
-
-POST
-
-```
-/houses
-```
-
-Request
-
-```json
-{
-  "communityId":"UUID",
-  "houseNumber":"A12",
-  "street":"Main Street",
-  "resident":{
-      "firstName":"John",
-      "lastName":"Doe",
-      "email":"john@email.com",
-      "phone":"08012345678"
-  }
-}
-```
-
----
-
-## Get Houses
-
-GET
-
-```
-/houses
-```
-
----
-
-## Search House
-
-GET
-
-```
-/houses/search?keyword=A12
-```
-
----
-
-## Get House
-
-GET
-
-```
-/houses/{id}
-```
-
----
-
-## Update House
-
-PUT
-
-```
-/houses/{id}
-```
-
----
-
-# Levy Types
-
-## Create Levy Type
-
-POST
-
-```
-/levy-types
-```
-
-Request
-
-```json
-{
-  "name":"Security Levy",
-  "amount":5000,
-  "frequency":"MONTHLY"
-}
-```
-
----
-
-## Get Levy Types
-
-GET
-
-```
-/levy-types
-```
-
----
-
-## Update Levy Type
-
-PUT
-
-```
-/levy-types/{id}
-```
-
----
-
-## Generate House Levies
-
-POST
-
-```
-/levies/generate
-```
-
-Description
-
-Generate levies for all active houses within a community.
-
----
-
-## Get House Levies
-
-GET
-
-```
-/levies
-```
-
----
-
-## Get House Levy
-
-GET
-
-```
-/levies/{id}
-```
-
----
-
-# Payments
-
-## Upload Payment Proof
-
-POST
-
-```
-/payments
-```
-
-Request
-
-```json
-{
-    "houseLevyId":"UUID",
-    "amount":5000,
-    "paymentReference":"ABC123XYZ",
-    "proofOfPaymentUrl":"https://..."
-}
-```
-
----
-
-## Get Payments
-
-GET
-
-```
-/payments
-```
-
----
-
-## Verify Payment
-
-PUT
-
-```
-/payments/{paymentId}/verify
-```
-
----
-
-## Reject Payment
-
-PUT
-
-```
-/payments/{paymentId}/reject
-```
-
----
-
-# Resident Portal
-
-## View Dashboard
-
-GET
-
-```
-/resident/dashboard
-```
-
-Returns
-
-- Outstanding Balance
-- Recent Payments
-- Active Levies
-
----
-
-## View Outstanding Levies
-
-GET
-
-```
-/resident/levies
-```
-
----
-
-## View Payment History
-
-GET
-
-```
-/resident/payments
-```
-
----
-
-## Download Receipt
-
-GET
-
-```
-/resident/payments/{paymentId}/receipt
-```
-
----
-
-# Notifications
-
-## Get Notifications
-
-GET
-
-```
-/notifications
-```
-
----
-
-## Mark Notification As Read
-
-PUT
-
-```
-/notifications/{id}/read
-```
-
----
-
-# Standard Response Codes
 
 | Code | Meaning |
 |------|---------|
 | 200 | Success |
 | 201 | Resource Created |
 | 204 | No Content |
-| 400 | Validation Error |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Resource Not Found |
-| 409 | Conflict |
-| 500 | Internal Server Error |
+| 400 | Validation error / malformed request |
+| 401 | Not authenticated (missing/invalid/expired cookie) |
+| 403 | Authenticated but not permitted (wrong role) |
+| 404 | Resource not found |
+| 409 | Conflict (duplicate, already-processed, business rule) |
+| 500 | Unexpected server error |
+
+---
+
+# Auth
+
+## Login
+`POST /auth/login` — Auth: none
+
+Request:
+```json
+{ "username": "admin", "password": "Password123" }
+```
+
+Response `200`:
+```json
+{
+  "id": "UUID",
+  "username": "admin",
+  "firstName": "Platform",
+  "lastName": "Admin",
+  "role": "PLATFORM_ADMIN"
+}
+```
+Also sets the `jwt` HttpOnly cookie. No token appears in the JSON body — intentional. Login is by **username**, not email.
+
+## Complete Account Setup (Activation)
+`POST /auth/activate` — Auth: none (uses one-time token from invite)
+
+Request:
+```json
+{
+  "token": "activation-token-from-invite",
+  "password": "Password123",
+  "confirmPassword": "Password123"
+}
+```
+
+Response `200`:
+```json
+{ "username": "bola.adeyemi", "message": "Account activated successfully. You may now log in." }
+```
+Same endpoint/shape for Community Admin, Community Staff, and Resident — no separate flows.
+
+## Logout
+`POST /auth/logout` — Auth: cookie
+Response `204 No Content`. Clears the `jwt` cookie.
+
+---
+
+# Community
+
+## Create Community
+`POST /communities` — Auth: **PLATFORM_ADMIN** only
+
+Request:
+```json
+{
+  "name": "Green Estate",
+  "type": "Residential Estate",
+  "address": "12 Palm Street, Lekki",
+  "lga": "Eti-Osa",
+  "state": "Lagos",
+  "phone": "08011112222",
+  "email": "info@greenestate.com",
+  "description": "optional"
+}
+```
+
+Response `201`:
+```json
+{
+  "id": "UUID",
+  "name": "Green Estate",
+  "type": "Residential Estate",
+  "address": "12 Palm Street, Lekki",
+  "lga": "Eti-Osa",
+  "state": "Lagos",
+  "phone": "08011112222",
+  "email": "info@greenestate.com",
+  "description": "optional",
+  "createdAt": "2026-07-14T07:25:59.013"
+}
+```
+
+## Assign Community Administrator
+`POST /communities/{communityId}/assign-admin` — Auth: **PLATFORM_ADMIN** only
+
+Request:
+```json
+{
+  "firstName": "Bola",
+  "lastName": "Adeyemi",
+  "phone": "08033334444",
+  "email": "bola@example.com"
+}
+```
+`phone` mandatory, `email` optional.
+
+Response `201`:
+```json
+{
+  "userId": "UUID",
+  "email": "bola@example.com",
+  "username": "bola.adeyemi",
+  "role": "COMMUNITY_ADMIN",
+  "activationLink": "http://localhost:5173/activate-account?token=...",
+  "expiresAt": "2026-07-15T07:25:59.013"
+}
+```
+⚠️ Email sending is **mocked** — the link is logged to the backend console, not actually emailed yet.
+
+## Invite Community Staff
+`POST /communities/staff/invite` — Auth: **COMMUNITY_ADMIN** only
+
+Request:
+```json
+{
+  "firstName": "Tunde",
+  "lastName": "Bello",
+  "phone": "08012345678",
+  "email": "tunde@example.com"
+}
+```
+No `communityId` in the body — derived from the logged-in admin's own community.
+
+Response `201`: same shape as Assign Community Administrator above.
+
+---
+
+# Houses
+
+## Register House
+`POST /houses` — Auth: **COMMUNITY_STAFF** only
+
+Request:
+```json
+{ "houseNumber": "Block A, House 12", "street": "Palm Street" }
+```
+No `communityId` needed — derived from the logged-in staff member's community.
+
+Response `201`:
+```json
+{
+  "id": "UUID",
+  "communityId": "UUID",
+  "residentId": null,
+  "houseNumber": "Block A, House 12",
+  "street": "Palm Street",
+  "createdAt": "2026-07-14T07:25:59.013"
+}
+```
+
+## Assign Responsible Resident
+`POST /houses/{houseId}/assign-resident` — Auth: **COMMUNITY_STAFF** only
+
+Request:
+```json
+{
+  "firstName": "Chidi",
+  "lastName": "Nwosu",
+  "phone": "08055556666",
+  "email": "chidi@example.com"
+}
+```
+
+Response `201`: same shape as invite/assign-admin (activation link + username). Returns `409` if the house already has a resident.
+
+---
+
+# Levies
+
+## Create Levy
+`POST /levies` — Auth: **COMMUNITY_STAFF** only
+
+Request:
+```json
+{ "name": "Security Levy", "amount": 15000, "frequency": "MONTHLY" }
+```
+`frequency`: `ONE_TIME` | `MONTHLY` | `QUARTERLY` | `ANNUALLY`
+
+Response `201`:
+```json
+{ "id": "UUID", "name": "Security Levy", "amount": 15000, "frequency": "MONTHLY", "housesBilled": 4 }
+```
+Creating a levy **automatically bills every house currently registered** in that community — no separate "generate" step.
+
+## View My Outstanding Balance
+`GET /levies/my-balance` — Auth: **RESIDENT** only
+
+Response `200`:
+```json
+[
+  {
+    "id": "UUID",
+    "levyName": "Security Levy",
+    "amount": 15000,
+    "balance": 15000,
+    "dueDate": "2026-08-13",
+    "status": "PENDING"
+  }
+]
+```
+`status`: `PENDING` | `PARTIALLY_PAID` | `PAID` | `OVERDUE`
+
+---
+
+# Payments
+
+## Upload Proof of Payment
+`POST /payments` — Auth: **RESIDENT** only
+
+Request:
+```json
+{
+  "houseLevyId": "UUID",
+  "amount": 15000,
+  "paymentReference": "TXN-882910",
+  "proofOfPaymentUrl": "https://example.com/proof.jpg"
+}
+```
+
+Response `201`:
+```json
+{
+  "id": "UUID",
+  "houseLevyId": "UUID",
+  "amount": 15000,
+  "paymentReference": "TXN-882910",
+  "status": "PENDING_REVIEW",
+  "remarks": null,
+  "paymentDate": "2026-07-14T07:25:59.013",
+  "verifiedDate": null
+}
+```
+
+## Verify Payment
+`POST /payments/{paymentId}/verify` — Auth: **COMMUNITY_STAFF** only
+
+No request body. Response `200` — returns the generated receipt directly:
+```json
+{
+  "id": "UUID",
+  "receiptNumber": "RCT-1752480000000",
+  "communityName": "Green Estate",
+  "houseNumber": "Block A, House 12",
+  "residentName": "Chidi Nwosu",
+  "levyName": "Security Levy",
+  "amount": 15000,
+  "datePaid": "2026-07-14T07:25:59.013"
+}
+```
+Also updates the house levy's balance/status and logs a mock notification to the resident. Returns `409` if already processed.
+
+## Reject Payment
+`POST /payments/{paymentId}/reject` — Auth: **COMMUNITY_STAFF** only
+
+Request:
+```json
+{ "remarks": "Proof of payment image is unreadable" }
+```
+
+Response `200`: same shape as payment upload, with `status: "REJECTED"` and `remarks` populated.
+
+## Download Receipt
+`GET /payments/{paymentId}/receipt` — Auth: **RESIDENT** or **COMMUNITY_STAFF**
+
+Response `200`: same shape as the receipt from Verify Payment.
+
+Note: returns receipt **data as JSON**, not a rendered PDF — PDF generation is post-MVP.
+
+---
+
+# Not Yet Implemented (don't wire the frontend to these yet)
+
+- `GET /communities`, `GET /communities/{id}`, `PUT /communities/{id}`
+- `GET /communities/{communityId}/staff`, `PUT .../staff/{staffId}`
+- `GET /houses`, `GET /houses/search`, `GET /houses/{id}`, `PUT /houses/{id}`
+- `GET /levy-types`, `PUT /levy-types/{id}`
+- `GET /payments` (list all)
+- `/resident/dashboard`, `/resident/levies`, `/resident/payments`
+- `/notifications`, `/notifications/{id}/read` — notifications are logged to the console only, not persisted
+
+Flag it if the frontend needs any of these for the demo — some are quick additions.
