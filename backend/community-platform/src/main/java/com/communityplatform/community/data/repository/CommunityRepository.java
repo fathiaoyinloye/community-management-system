@@ -1,6 +1,6 @@
-package com.communityplatform.auth.data.repositories;
+package com.communityplatform.community.data.repository;
 
-import com.communityplatform.auth.data.model.Community;
+import com.communityplatform.community.data.model.Community;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

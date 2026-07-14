@@ -58,8 +58,6 @@ public class UserServiceImpl implements UserService {
 
         String activationLink = frontendUrl + "/activate-account?token=" + activationToken;
 
-        // Email sending mocked for demo — logging the link instead of an actual send.
-        // If email is absent, this would be an SMS in a real implementation (phone is guaranteed present).
         if (StringUtils.hasText(request.getEmail())) {
             log.info("MOCK EMAIL to {}: You've been invited as {}. Activation link: {}",
                     request.getEmail(), request.getRole(), activationLink);

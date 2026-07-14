@@ -1,14 +1,14 @@
-package com.communityplatform.auth.services.implementations;
+package com.communityplatform.community.services.implementations;
 
-import com.communityplatform.auth.data.model.Community;
+import com.communityplatform.community.data.model.Community;
 import com.communityplatform.auth.data.model.Role;
-import com.communityplatform.auth.data.repositories.CommunityRepository;
-import com.communityplatform.auth.dto.request.AssignCommunityAdminRequest;
-import com.communityplatform.auth.dto.request.CreateCommunityRequest;
+import com.communityplatform.community.data.repository.CommunityRepository;
+import com.communityplatform.community.dtos.request.AssignCommunityAdminRequest;
+import com.communityplatform.community.dtos.request.CreateCommunityRequest;
 import com.communityplatform.auth.dto.request.CreatePendingUserRequest;
-import com.communityplatform.auth.dto.response.CommunityResponse;
+import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
-import com.communityplatform.auth.services.interfaces.CommunityService;
+import com.communityplatform.community.services.interfaces.CommunityService;
 import com.communityplatform.auth.services.interfaces.UserService;
 import com.communityplatform.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+
+import static com.communityplatform.community.mapper.CommunityMapper.toResponse;
 
 @Slf4j
 @Service
@@ -68,18 +70,5 @@ public class CommunityServiceImpl implements CommunityService {
         return response;
     }
 
-    private CommunityResponse toResponse(Community community) {
-        return new CommunityResponse(
-                community.getId(),
-                community.getName(),
-                community.getType(),
-                community.getAddress(),
-                community.getLga(),
-                community.getState(),
-                community.getPhone(),
-                community.getEmail(),
-                community.getDescription(),
-                community.getCreatedAt()
-        );
-    }
+
 }

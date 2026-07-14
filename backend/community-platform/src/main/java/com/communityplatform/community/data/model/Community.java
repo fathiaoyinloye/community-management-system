@@ -1,4 +1,4 @@
-package com.communityplatform.auth.data.model;
+package com.communityplatform.community.data.model;
 
 import com.communityplatform.common.base.BaseEntity;
 import jakarta.persistence.Column;

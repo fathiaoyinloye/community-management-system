@@ -1,8 +1,8 @@
-package com.communityplatform.auth.services.interfaces;
+package com.communityplatform.community.services.interfaces;
 
-import com.communityplatform.auth.dto.request.AssignCommunityAdminRequest;
-import com.communityplatform.auth.dto.request.CreateCommunityRequest;
-import com.communityplatform.auth.dto.response.CommunityResponse;
+import com.communityplatform.community.dtos.request.AssignCommunityAdminRequest;
+import com.communityplatform.community.dtos.request.CreateCommunityRequest;
+import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
 
 import java.util.UUID;

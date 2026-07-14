@@ -1,4 +1,4 @@
-package com.communityplatform.auth.dto.request;
+package com.communityplatform.community.dtos.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

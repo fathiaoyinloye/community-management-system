@@ -1,4 +1,4 @@
-package com.communityplatform.auth.dto.response;
+package com.communityplatform.community.dtos.responses;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

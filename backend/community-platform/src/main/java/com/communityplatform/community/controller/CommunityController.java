@@ -1,10 +1,10 @@
-package com.communityplatform.auth.controller;
+package com.communityplatform.community.controller;
 
-import com.communityplatform.auth.dto.request.AssignCommunityAdminRequest;
-import com.communityplatform.auth.dto.request.CreateCommunityRequest;
-import com.communityplatform.auth.dto.response.CommunityResponse;
+import com.communityplatform.community.dtos.request.AssignCommunityAdminRequest;
+import com.communityplatform.community.dtos.request.CreateCommunityRequest;
+import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
-import com.communityplatform.auth.services.interfaces.CommunityService;
+import com.communityplatform.community.services.interfaces.CommunityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
