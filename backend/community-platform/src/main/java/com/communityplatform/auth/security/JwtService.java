@@ -28,6 +28,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(user.getUsername())
                 .claim("userId", user.getId().toString())
+                .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
                 .claim("tokenVersion", user.getTokenVersion())
                 .issuedAt(new Date())

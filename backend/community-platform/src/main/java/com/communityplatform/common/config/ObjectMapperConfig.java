@@ -9,7 +9,6 @@ import tools.jackson.databind.ObjectMapper;
 public class ObjectMapperConfig {
 
     @Bean
-    @Primary // Tells Spring to use this one as the default if other libraries try to inject an ObjectMapper
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }

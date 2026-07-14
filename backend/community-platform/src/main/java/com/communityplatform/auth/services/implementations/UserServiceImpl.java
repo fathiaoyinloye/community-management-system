@@ -3,12 +3,15 @@ package com.communityplatform.auth.services.implementations;
 import com.communityplatform.auth.data.model.Role;
 import com.communityplatform.auth.data.model.User;
 import com.communityplatform.auth.data.repositories.UserRepository;
+import com.communityplatform.auth.dto.request.CompleteAccountSetupRequest;
 import com.communityplatform.auth.dto.request.CreatePendingUserRequest;
+import com.communityplatform.auth.dto.response.AccountActivatedResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
 import com.communityplatform.auth.services.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +32,9 @@ public class UserServiceImpl implements UserService {
     @Value("${app.invitation.expiry-hours:24}")
     private long expiryHours;
 
+
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public UserActivationResponse createPendingUser(CreatePendingUserRequest request) {
         if (StringUtils.hasText(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
@@ -38,20 +44,7 @@ public class UserServiceImpl implements UserService {
         String username = generateUniqueUsername(request.getFirstName(), request.getLastName());
         String activationToken = UUID.randomUUID().toString();
 
-        User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .username(username)
-                .email(request.getEmail())
-                .phoneNumber(request.getPhone())
-                .role(request.getRole())
-                .communityId(request.getCommunityId())
-                .password(null)
-                .enabled(false)
-                .accountSetupCompleted(false)
-                .activationToken(activationToken)
-                .activationTokenExpiry(LocalDateTime.now().plusHours(expiryHours))
-                .build();
+        User user = getUser(request, username, activationToken);
 
         userRepository.save(user);
         log.info("Pending user created: id={} username={} role={}", user.getId(), username, request.getRole());
@@ -76,6 +69,24 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    private User getUser(CreatePendingUserRequest request, String username, String activationToken) {
+        User user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .username(username)
+                .email(request.getEmail())
+                .phoneNumber(request.getPhone())
+                .role(request.getRole())
+                .communityId(request.getCommunityId())
+                .password(null)
+                .enabled(false)
+                .accountSetupCompleted(false)
+                .activationToken(activationToken)
+                .activationTokenExpiry(LocalDateTime.now().plusHours(expiryHours))
+                .build();
+        return user;
+    }
+
     private String generateUniqueUsername(String firstName, String lastName) {
         String base = (firstName + "." + lastName).toLowerCase().replaceAll("\\s+", "");
         String candidate = base;
@@ -87,6 +98,33 @@ public class UserServiceImpl implements UserService {
         }
 
         return candidate;
+    }
+
+
+
+    @Override
+    public AccountActivatedResponse completeAccountSetup(CompleteAccountSetupRequest request) {
+        User user = userRepository.findByActivationToken(request.getToken())
+                .orElseThrow(() -> new IllegalStateException("Invalid or already-used activation token"));
+
+        if (user.getActivationTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("Activation token has expired — please request a new invitation");
+        }
+
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalStateException("Passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEnabled(true);
+        user.setAccountSetupCompleted(true);
+        user.setActivationToken(null);
+        user.setActivationTokenExpiry(null);
+
+        userRepository.save(user);
+        log.info("Account activated: id={} username={} role={}", user.getId(), user.getUsername(), user.getRole());
+
+        return new AccountActivatedResponse(user.getUsername(), "Account activated successfully. You may now log in.");
     }
 }
 
