@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;
 
-public interface HouseLevyRepository extends JpaRepository {
+public interface HouseLevyRepository extends JpaRepository <HouseLevy, UUID>{
     List<HouseLevy> findByHouseId(UUID houseId);
 
 }
