@@ -7,6 +7,7 @@ import com.communityplatform.auth.dto.request.CompleteAccountSetupRequest;
 import com.communityplatform.auth.dto.request.CreatePendingUserRequest;
 import com.communityplatform.auth.dto.response.AccountActivatedResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
+import com.communityplatform.auth.mapper.AuthMapper;
 import com.communityplatform.auth.services.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +44,7 @@ public class UserServiceImpl implements UserService {
 
         String username = generateUniqueUsername(request.getFirstName(), request.getLastName());
         String activationToken = UUID.randomUUID().toString();
-
-        User user = getUser(request, username, activationToken);
-
+        User  user =AuthMapper.mapPendingUserToUser(request, username, expiryHours, activationToken);
         userRepository.save(user);
         log.info("Pending user created: id={} username={} role={}", user.getId(), username, request.getRole());
 
@@ -59,32 +58,7 @@ public class UserServiceImpl implements UserService {
                     request.getPhone(), request.getRole(), activationLink);
         }
 
-        return new UserActivationResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getUsername(),
-                user.getRole().name(),
-                activationLink,
-                user.getActivationTokenExpiry()
-        );
-    }
-
-    private User getUser(CreatePendingUserRequest request, String username, String activationToken) {
-        User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .username(username)
-                .email(request.getEmail())
-                .phoneNumber(request.getPhone())
-                .role(request.getRole())
-                .communityId(request.getCommunityId())
-                .password(null)
-                .enabled(false)
-                .accountSetupCompleted(false)
-                .activationToken(activationToken)
-                .activationTokenExpiry(LocalDateTime.now().plusHours(expiryHours))
-                .build();
-        return user;
+        return AuthMapper.mapUserActivationResponse(user, activationLink);
     }
 
     private String generateUniqueUsername(String firstName, String lastName) {

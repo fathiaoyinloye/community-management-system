@@ -2,6 +2,7 @@ package com.communityplatform.community.controller;
 
 import com.communityplatform.community.dtos.request.AssignCommunityAdminRequest;
 import com.communityplatform.community.dtos.request.CreateCommunityRequest;
+import com.communityplatform.community.dtos.request.InviteStaffRequest;
 import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
 import com.communityplatform.community.services.interfaces.CommunityService;
@@ -35,5 +36,12 @@ public class CommunityController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(communityService.assignCommunityAdministrator(communityId, request));
+    }
+
+
+    @PostMapping("/staff/invite")
+    @PreAuthorize("hasRole('COMMUNITY_ADMIN')")
+    public ResponseEntity<UserActivationResponse> inviteStaff(@Valid @RequestBody InviteStaffRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(communityService.inviteStaff(request));
     }
 }

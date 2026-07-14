@@ -1,8 +1,11 @@
 package com.communityplatform.auth.controller;
 
+import com.communityplatform.auth.dto.request.CompleteAccountSetupRequest;
 import com.communityplatform.auth.dto.request.LoginRequest;
+import com.communityplatform.auth.dto.response.AccountActivatedResponse;
 import com.communityplatform.auth.dto.response.LoginResponse;
 import com.communityplatform.auth.services.interfaces.AuthService;
+import com.communityplatform.auth.services.interfaces.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -31,5 +35,14 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         authService.logout(response);
         return ResponseEntity.noContent().build();
+    }
+
+
+
+    @PostMapping("/activate")
+    public ResponseEntity<AccountActivatedResponse> activateAccount(
+            @Valid @RequestBody CompleteAccountSetupRequest request
+    ) {
+        return ResponseEntity.ok(userService.completeAccountSetup(request));
     }
 }

@@ -36,3 +36,4 @@ build/
 application-dev.properties
 application-prod.properties
 application.properties
+src/main/java/com/communityplatform/common/config/DataSeeder.java
