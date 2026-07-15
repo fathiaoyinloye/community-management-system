@@ -36,3 +36,4 @@ build/
 application-dev.properties
 application.properties
 src/main/java/com/communityplatform/common/config/DataSeeder.java
+docker-compose.ymlbackend/community-platform/docker-compose.yml
