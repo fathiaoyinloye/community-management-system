@@ -1,0 +1,16 @@
+name: Keep Render App Awake
+
+on:
+  schedule:
+    # Runs every 12 minutes to beat Render's 15-minute sleep timer
+    - cron: '*/12 * * * *'
+  # This allows you to manually run the workflow anytime from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  ping-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          curl -I -s https://community-management-system-41c7.onrender.com
