@@ -1,0 +1,14 @@
+services:
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: community-platform:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require
+      - DB_USERNAME=postgres.clfyshuuhpysqyxotinx
+      - DB_PASSWORD=Temitope333@superbase
+      - JWT_SECRET=CHANGE_ME_TO_SOMETHING_SECURE_AND_LONG_1234567890

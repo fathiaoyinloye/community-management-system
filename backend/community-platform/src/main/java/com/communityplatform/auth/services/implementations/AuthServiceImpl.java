@@ -23,7 +23,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    @Value("${jwt.expiration-ms}")
+
+    @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
 
     @Value("${app.cookie.secure:true}")
