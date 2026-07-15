@@ -34,6 +34,5 @@ build/
 
 # Local/prod config with real secrets
 application-dev.properties
-application-prod.properties
 application.properties
 src/main/java/com/communityplatform/common/config/DataSeeder.java
