@@ -1,123 +1,7 @@
-import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { registerResident } from '../../api/auth'
-import { getHouses } from '../../api/house'
-import type { House } from '../../types/house'
-
-interface FieldErrors {
-  firstName?: string
-  lastName?: string
-  email?: string
-  phone?: string
-  houseId?: string
-  password?: string
-  confirmPassword?: string
-}
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
 
 export default function ResidentRegister() {
   const navigate = useNavigate()
-
-  // Form fields
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [houseId, setHouseId] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-
-  // State
-  const [vacantHouses, setVacantHouses] = useState<House[]>([])
-  const [isLoadingHouses, setIsLoadingHouses] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [registrationError, setRegistrationError] = useState<string | null>(null)
-
-  // Fetch vacant houses on mount
-  useEffect(() => {
-    let active = true
-    getHouses(undefined, 'vacant')
-      .then((data) => {
-        if (active) {
-          setVacantHouses(data.houses || [])
-          setIsLoadingHouses(false)
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setIsLoadingHouses(false)
-        }
-      })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  const validate = (): boolean => {
-    const errors: FieldErrors = {}
-    
-    if (!firstName.trim()) errors.firstName = 'First name is required.'
-    if (!lastName.trim()) errors.lastName = 'Last name is required.'
-    
-    if (!email.trim()) {
-      errors.email = 'Email is required.'
-    } else if (!isValidEmail(email)) {
-      errors.email = 'Enter a valid email address.'
-    }
-    
-    if (!phone.trim()) {
-      errors.phone = 'Phone number is required.'
-    }
-    
-    if (!houseId) {
-      errors.houseId = 'Please select your house.'
-    }
-    
-    if (!password) {
-      errors.password = 'Password is required.'
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters.'
-    }
-    
-    if (!confirmPassword) {
-      errors.confirmPassword = 'Confirm your password.'
-    } else if (confirmPassword !== password) {
-      errors.confirmPassword = 'Passwords do not match.'
-    }
-
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setRegistrationError(null)
-    if (!validate()) return
-
-    setIsSubmitting(true)
-    try {
-      // Register resident account
-      await registerResident({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        houseId,
-        password,
-      })
-
-      // Redirect to login screen after successful registration
-      navigate('/resident/login', { replace: true, state: { registrationSuccess: true } })
-    } catch (err) {
-      setRegistrationError(err instanceof Error ? err.message : 'Unable to complete registration. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   return (
     <div className="res-auth">
@@ -131,7 +15,7 @@ export default function ResidentRegister() {
           </div>
           <h2 className="res-auth__panel-title">Welcome to your new community portal.</h2>
           <p className="res-auth__panel-copy">
-            Register your resident account to manage levy statements, upload payment receipts, and stay connected with community executives.
+            Access your resident account to manage levy statements, upload payment receipts, and stay connected with community executives.
           </p>
           <ul className="res-auth__panel-list">
             <li>
@@ -152,143 +36,52 @@ export default function ResidentRegister() {
 
       <div className="res-auth__form-side">
         <div className="res-auth__card">
-          {registrationError && (
-            <div role="alert" className="res-auth__alert">
-              <span className="material-symbols-outlined res-auth__alert-icon">error</span>
-              {registrationError}
+          <div className="res-auth__notice-container">
+            <div className="res-auth__icon-wrap">
+              <span className="material-symbols-outlined res-auth__notice-icon">lock_person</span>
             </div>
-          )}
-
-          <form className="res-auth__form" onSubmit={handleSubmit} noValidate>
-            <h1 className="res-auth__title">Resident Registration</h1>
-            <p className="res-auth__subtitle">
-              Register your account to access resident services.
+            
+            <h1 className="res-auth__title" style={{ textAlign: 'center' }}>Self-Registration Disabled</h1>
+            <p className="res-auth__notice-text">
+              Resident accounts can no longer be self-registered. The Community Administrator is responsible for creating and setting up your resident account.
             </p>
-
-            <div className="res-auth__row">
-              <label className="res-auth__field">
-                <span className="res-auth__label">First Name</span>
-                <input
-                  type="text"
-                  className="res-auth__input"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  disabled={isSubmitting}
-                  aria-invalid={Boolean(fieldErrors.firstName)}
-                />
-                {fieldErrors.firstName && <span className="res-auth__field-error">{fieldErrors.firstName}</span>}
-              </label>
-
-              <label className="res-auth__field">
-                <span className="res-auth__label">Last Name</span>
-                <input
-                  type="text"
-                  className="res-auth__input"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  disabled={isSubmitting}
-                  aria-invalid={Boolean(fieldErrors.lastName)}
-                />
-                {fieldErrors.lastName && <span className="res-auth__field-error">{fieldErrors.lastName}</span>}
-              </label>
+            <div className="res-auth__steps">
+              <div className="res-auth__step">
+                <span className="res-auth__step-num">1</span>
+                <div>
+                  <strong>Contact Admin:</strong> Reach out to your community management office or administrator.
+                </div>
+              </div>
+              <div className="res-auth__step">
+                <span className="res-auth__step-num">2</span>
+                <div>
+                  <strong>Get Credentials:</strong> They will register your unit and provide your secure email and login password.
+                </div>
+              </div>
+              <div className="res-auth__step">
+                <span className="res-auth__step-num">3</span>
+                <div>
+                  <strong>Sign In:</strong> Use the login credentials provided to access your account services.
+                </div>
+              </div>
             </div>
 
-            <label className="res-auth__field">
-              <span className="res-auth__label">Email Address</span>
-              <input
-                type="email"
-                className="res-auth__input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                disabled={isSubmitting}
-                aria-invalid={Boolean(fieldErrors.email)}
-              />
-              {fieldErrors.email && <span className="res-auth__field-error">{fieldErrors.email}</span>}
-            </label>
-
-            <label className="res-auth__field">
-              <span className="res-auth__label">Phone Number</span>
-              <input
-                type="tel"
-                className="res-auth__input"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={isSubmitting}
-                aria-invalid={Boolean(fieldErrors.phone)}
-              />
-              {fieldErrors.phone && <span className="res-auth__field-error">{fieldErrors.phone}</span>}
-            </label>
-
-            <label className="res-auth__field">
-              <span className="res-auth__label">Select Your House</span>
-              <select
-                className="res-auth__select"
-                value={houseId}
-                onChange={(e) => setHouseId(e.target.value)}
-                disabled={isSubmitting || isLoadingHouses}
-                aria-invalid={Boolean(fieldErrors.houseId)}
-              >
-                <option value="">
-                  {isLoadingHouses ? 'Loading vacant houses...' : '-- Select Vacant House --'}
-                </option>
-                {vacantHouses.map((house) => (
-                  <option key={house.id} value={house.id}>
-                    {house.houseNumber} - {house.street} ({house.propertyType.replace('_', ' ')})
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.houseId && <span className="res-auth__field-error">{fieldErrors.houseId}</span>}
-              {!isLoadingHouses && vacantHouses.length === 0 && (
-                <span className="res-auth__field-info">
-                  No vacant houses available. Please contact community admin.
-                </span>
-              )}
-            </label>
-
-            <div className="res-auth__row">
-              <label className="res-auth__field">
-                <span className="res-auth__label">Password</span>
-                <input
-                  type="password"
-                  className="res-auth__input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={isSubmitting}
-                  aria-invalid={Boolean(fieldErrors.password)}
-                />
-                {fieldErrors.password && <span className="res-auth__field-error">{fieldErrors.password}</span>}
-              </label>
-
-              <label className="res-auth__field">
-                <span className="res-auth__label">Confirm Password</span>
-                <input
-                  type="password"
-                  className="res-auth__input"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={isSubmitting}
-                  aria-invalid={Boolean(fieldErrors.confirmPassword)}
-                />
-                {fieldErrors.confirmPassword && (
-                  <span className="res-auth__field-error">{fieldErrors.confirmPassword}</span>
-                )}
-              </label>
-            </div>
-
-            <button type="submit" className="btn btn-primary res-auth__submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Registering...' : 'Register Account'}
+            <button 
+              type="button" 
+              className="btn btn-primary res-auth__submit" 
+              onClick={() => navigate('/resident/login')}
+              style={{ marginTop: '24px' }}
+            >
+              Back to Sign In
             </button>
 
-            <div className="res-auth__footer">
-              <span className="res-auth__footer-text">Already have an account? </span>
-              <Link to="/resident/login" className="res-auth__footer-link">
-                Sign In
+            <div className="res-auth__footer" style={{ marginTop: '24px' }}>
+              <span className="res-auth__footer-text">Are you an administrator? </span>
+              <Link to="/community-admin/login" className="res-auth__footer-link">
+                Admin Sign In
               </Link>
             </div>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -410,124 +203,88 @@ export default function ResidentRegister() {
           max-width: 520px;
           background: #ffffff;
           border-radius: var(--radius-2xl);
-          padding: var(--space-lg) var(--space-md);
+          padding: var(--space-xl) var(--space-lg);
           box-shadow: 0 20px 45px -20px rgba(19, 27, 46, 0.25);
         }
 
-        .res-auth__alert {
-          display: flex;
-          align-items: center;
-          gap: var(--space-xs);
-          background: var(--color-error-container);
-          color: var(--color-on-error-container);
-          padding: var(--space-sm);
-          border-radius: var(--radius-lg);
-          font-size: var(--text-label-md);
-          margin-bottom: var(--space-md);
-        }
-
-        .res-auth__alert-icon {
-          font-size: 20px;
-        }
-
-        .res-auth__form {
+        .res-auth__notice-container {
           display: flex;
           flex-direction: column;
-          gap: var(--space-md);
+          align-items: center;
+        }
+
+        .res-auth__icon-wrap {
+          width: 80px;
+          height: 80px;
+          border-radius: var(--radius-full);
+          background: var(--color-primary-container);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: var(--space-md);
+          color: var(--color-primary);
+        }
+
+        .res-auth__notice-icon {
+          font-size: 40px;
+          font-variation-settings: 'FILL' 1;
         }
 
         .res-auth__title {
           font-family: var(--font-display);
-          font-size: var(--text-headline-lg);
-          font-weight: 600;
+          font-size: var(--text-headline-md);
+          font-weight: 700;
           color: var(--color-primary);
-          margin-bottom: var(--space-xs);
+          margin-bottom: var(--space-sm);
         }
 
-        .res-auth__subtitle {
+        .res-auth__notice-text {
           color: var(--color-on-surface-variant);
-          font-size: var(--text-label-md);
-          margin-bottom: var(--space-xs);
+          font-size: var(--text-body-md);
+          text-align: center;
+          line-height: 1.5;
+          margin-bottom: var(--space-lg);
         }
 
-        .res-auth__row {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: var(--space-md);
-        }
-
-        @media (min-width: 640px) {
-          .res-auth__row {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .res-auth__field {
+        .res-auth__steps {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xs);
-        }
-
-        .res-auth__label {
-          font-size: var(--text-label-md);
-          font-weight: 500;
-          color: var(--color-on-surface);
-        }
-
-        .res-auth__input,
-        .res-auth__select {
-          font-family: var(--font-body);
-          font-size: var(--text-body-md);
-          padding: var(--space-sm);
-          border: 1px solid var(--color-outline-variant);
-          border-radius: var(--radius-lg);
-          color: var(--color-on-surface);
-          background: var(--color-surface-container-lowest);
-          transition: border-color 0.2s ease;
+          gap: var(--space-md);
           width: 100%;
+          background: var(--color-surface-container-lowest);
+          padding: var(--space-md);
+          border-radius: var(--radius-xl);
+          border: 1px solid var(--color-outline-variant);
         }
 
-        .res-auth__select {
-          height: 42px;
-          cursor: pointer;
+        .res-auth__step {
+          display: flex;
+          gap: var(--space-sm);
+          font-size: 14px;
+          color: var(--color-on-surface);
+          line-height: 1.4;
         }
 
-        .res-auth__input:focus,
-        .res-auth__select:focus {
-          outline: none;
-          border-color: var(--color-secondary);
-        }
-
-        .res-auth__input[aria-invalid='true'],
-        .res-auth__select[aria-invalid='true'] {
-          border-color: var(--color-error);
-        }
-
-        .res-auth__input:disabled,
-        .res-auth__select:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .res-auth__field-error {
-          color: var(--color-error);
-          font-size: 13px;
-        }
-
-        .res-auth__field-info {
-          color: var(--color-secondary);
-          font-size: 13px;
-          font-weight: 500;
+        .res-auth__step-num {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          min-width: 24px;
+          border-radius: var(--radius-full);
+          background: var(--color-secondary);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 12px;
         }
 
         .res-auth__submit {
-          margin-top: var(--space-xs);
           padding: var(--space-sm) var(--space-md);
           width: 100%;
         }
 
         .res-auth__footer {
-          margin-top: var(--space-sm);
           text-align: center;
           font-size: 14px;
         }

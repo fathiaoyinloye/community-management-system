@@ -20,14 +20,14 @@ const ACTIVITY_FEED = [
     icon: 'domain_add',
     tone: 'indigo',
     title: 'New Community Onboarded',
-    description: 'Sunrise Meadows (Oyo) was added to the platform.',
+    description: 'Sunrise Meadows was added to the platform.',
     time: '2 hours ago',
   },
   {
     icon: 'mail',
     tone: 'emerald',
     title: 'Admin Invite Sent',
-    description: 'Invitation issued to chidi.umeh@communaltrust.com for Harmony Heights.',
+    description: 'Invitation issued to --- for Harmony Heights.',
     time: '5 hours ago',
   },
   {
@@ -112,7 +112,7 @@ function PlatformAdminDashboard() {
                 <span className="material-symbols-outlined">account_balance</span>
               </div>
             </div>
-            <h3 className="pa-dash__stat-value">94.2%</h3>
+            <h3 className="pa-dash__stat-value">64.2%</h3>
             <div className="pa-dash__stat-foot">
               <Badge variant="success" icon="check_circle">
                 On Target
@@ -163,7 +163,7 @@ function PlatformAdminDashboard() {
                 <div className="pa-dash__metric">
                   <div className="pa-dash__metric-head">
                     <span>Aggregate Levy Collection</span>
-                    <span className="pa-dash__metric-value">88%</span>
+                    <span className="pa-dash__metric-value">76%</span>
                   </div>
                   <div className="pa-dash__meter">
                     <div className="pa-dash__meter-fill" style={{ width: '88%' }} />
@@ -172,7 +172,7 @@ function PlatformAdminDashboard() {
                 <div className="pa-dash__metric">
                   <div className="pa-dash__metric-head">
                     <span>Support Response Efficiency</span>
-                    <span className="pa-dash__metric-value">95%</span>
+                    <span className="pa-dash__metric-value">65%</span>
                   </div>
                   <div className="pa-dash__meter">
                     <div className="pa-dash__meter-fill" style={{ width: '95%' }} />
@@ -222,7 +222,7 @@ function PlatformAdminDashboard() {
           <div className="pa-dash__table-head">
             <div>
               <h4 className="pa-dash__card-title">Communities</h4>
-              <p className="pa-dash__card-subtitle">Manage every community onboarded to the platform.</p>
+              <p className="pa-dash__card-subtitle">Manage every community onboarded to the platform</p>
             </div>
             <div className="pa-dash__tabs">
               {TABS.map((tab) => (

@@ -1,8 +1,7 @@
 import type { House, HouseSummary, RegisterHousePayload } from '../types/house'
 import { mockGetHouses, mockRegisterHouse, mockUpdateHouse } from '../mocks/house.mock'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://community-management-system-41c7.onrender.com'
-const USE_MOCK = false
+const USE_MOCK = true
 
 export async function getHouses(
   keyword?: string,
@@ -16,7 +15,7 @@ export async function getHouses(
   if (keyword) queryParams.append('keyword', keyword)
   if (tab) queryParams.append('tab', tab)
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/houses?${queryParams.toString()}`)
+  const response = await fetch(`/api/v1/houses?${queryParams.toString()}`)
   if (!response.ok) {
     throw new Error('Unable to load houses.')
   }
@@ -29,7 +28,7 @@ export async function registerHouse(payload: RegisterHousePayload): Promise<Hous
     return mockRegisterHouse(payload)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/houses`, {
+  const response = await fetch('/api/v1/houses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -48,7 +47,7 @@ export async function updateHouse(id: string, updates: Partial<House>): Promise<
     return mockUpdateHouse(id, updates)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/houses/${id}`, {
+  const response = await fetch(`/api/v1/houses/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),

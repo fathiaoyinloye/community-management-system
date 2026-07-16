@@ -1,15 +1,14 @@
 import type { AuthUser, LoginPayload, LoginResponse, RegisterResidentPayload } from '../types/auth'
 import { mockLogin, mockRegisterResident } from '../mocks/auth.mock'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://community-management-system-41c7.onrender.com'
-const USE_MOCK = false
+const USE_MOCK = true
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   if (USE_MOCK) {
     return mockLogin(payload)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+  const response = await fetch('/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -28,7 +27,7 @@ export async function registerResident(payload: RegisterResidentPayload): Promis
     return mockRegisterResident(payload)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/register-resident`, {
+  const response = await fetch('/api/v1/auth/register-resident', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

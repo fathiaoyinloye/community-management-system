@@ -6,15 +6,14 @@ import {
   mockUpdateCommunityProfile,
 } from '../mocks/community.mock'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://community-management-system-41c7.onrender.com'
-const USE_MOCK = false
+const USE_MOCK = true
 
 export async function getCommunities(): Promise<Community[]> {
   if (USE_MOCK) {
     return mockGetCommunities()
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/communities`)
+  const response = await fetch('/api/v1/communities')
 
   if (!response.ok) {
     throw new Error('Unable to load communities.')
@@ -28,7 +27,7 @@ export async function createCommunity(payload: CreateCommunityPayload): Promise<
     return mockCreateCommunity(payload)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/communities`, {
+  const response = await fetch('/api/v1/communities', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -47,7 +46,7 @@ export async function getCommunityProfile(id?: string): Promise<CommunityProfile
     return mockGetCommunityProfile()
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/communities/${id || 'c1'}`)
+  const response = await fetch(`/api/v1/communities/${id || 'c1'}`)
 
   if (!response.ok) {
     throw new Error('Unable to load community profile.')
@@ -61,7 +60,7 @@ export async function updateCommunityProfile(profile: CommunityProfile): Promise
     return mockUpdateCommunityProfile(profile)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/communities/${profile.id || 'c1'}`, {
+  const response = await fetch(`/api/v1/communities/${profile.id || 'c1'}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(profile),

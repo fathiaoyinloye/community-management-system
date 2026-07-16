@@ -19,24 +19,24 @@ let levyTypes: LevyType[] = [
     frequency: 'monthly',
     status: 'active',
   },
-  {
-    id: 'lv3',
-    name: 'Road Maintenance',
-    description: 'Annual resurfacing and repairs',
-    icon: 'construction',
-    amount: 1200,
-    frequency: 'yearly',
-    status: 'active',
-  },
-  {
-    id: 'lv4',
-    name: 'Clubhouse Renovation',
-    description: 'Special project completion',
-    icon: 'forest',
-    amount: 300,
-    frequency: 'one_time',
-    status: 'inactive',
-  },
+  // {
+  //   id: 'lv3',
+  //   name: 'Road Maintenance',
+  //   description: 'Annual resurfacing and repairs',
+  //   icon: 'construction',
+  //   amount: 1200,
+  //   frequency: 'yearly',
+  //   status: 'active',
+  // },
+  // {
+  //   id: 'lv4',
+  //   name: 'Clubhouse Renovation',
+  //   description: 'Special project completion',
+  //   icon: 'forest',
+  //   amount: 300,
+  //   frequency: 'one_time',
+  //   status: 'inactive',
+  // },
 ]
 
 const summary: LevySummary = {

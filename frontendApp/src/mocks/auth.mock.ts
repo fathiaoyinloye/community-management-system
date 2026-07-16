@@ -7,12 +7,12 @@ interface StoredAccount {
   password: string
 }
 
-const accounts: StoredAccount[] = [
+export const accounts: StoredAccount[] = [
   {
     user: {
       id: 'platform-admin-1',
       name: 'Ada Obi',
-      email: 'admin@communaltrust.com',
+      email: 'admin@gmail.com',
       role: 'platform_admin',
     },
     password: 'Admin@123',
@@ -20,22 +20,36 @@ const accounts: StoredAccount[] = [
   {
     user: {
       id: 'community-admin-1',
-      name: 'Alex Jordan',
-      email: 'admin@journalist.com',
+      name: 'Nelson Adams',
+      email: 'nelly@gmail.com',
       role: 'community_admin',
     },
-    password: 'Admin@123',
+    password: 'nelly@123',
   },
   {
     user: {
       id: 'resident-1',
-      name: 'Julian Vance',
-      email: 'julian@communaltrust.com',
+      name: 'ekwe emma',
+      email: 'emma@gmail.com',
       role: 'resident',
     },
-    password: 'Resident@123',
+    password: 'ekwe@123',
   },
 ]
+
+export function addMockResidentAccount(resident: { firstName: string; lastName: string; email: string }, password?: string) {
+  const email = resident.email.trim().toLowerCase()
+  if (accounts.some((entry) => entry.user.email === email)) {
+    return
+  }
+  const user: AuthUser = {
+    id: `resident-${accounts.length + 1}`,
+    name: `${resident.firstName.trim()} ${resident.lastName.trim()}`,
+    email,
+    role: 'resident',
+  }
+  accounts.push({ user, password: password || 'password123' })
+}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))

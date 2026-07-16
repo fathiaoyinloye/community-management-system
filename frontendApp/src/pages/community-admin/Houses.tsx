@@ -4,6 +4,7 @@ import Badge from '../../components/ui/Badge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import RegisterHouseModal from '../../components/RegisterHouseModal'
+import AssignResidentModal from '../../components/AssignResidentModal'
 import { getHouses, registerHouse, updateHouse } from '../../api/house'
 import type { House, HouseSummary, PropertyType, RegisterHousePayload } from '../../types/house'
 
@@ -23,6 +24,8 @@ export default function Houses() {
   const [tab, setTab] = useState<'all' | 'residential' | 'commercial' | 'vacant'>('all')
   const [keyword, setKeyword] = useState('')
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
+  const [isAssignOpen, setIsAssignOpen] = useState(false)
+  const [selectedHouseForAssign, setSelectedHouseForAssign] = useState<House | null>(null)
   const [activeActionsId, setActiveActionsId] = useState<string | null>(null)
 
   // Feedback notifications
@@ -79,26 +82,44 @@ export default function Houses() {
   }
 
   const toggleOccupancy = async (house: House) => {
-    try {
-      const nextStatus = house.status === 'occupied' ? 'vacant' : 'occupied'
-      const updates: Partial<House> = { status: nextStatus }
-      if (nextStatus === 'vacant') {
-        updates.resident = undefined
-      } else {
-        updates.resident = {
-          firstName: 'New',
-          lastName: 'Resident',
-          email: 'new.resident@example.com',
-          phone: '08000000000',
-        }
+    if (house.status === 'occupied') {
+      if (!window.confirm(`Are you sure you want to remove the resident from ${house.houseNumber} and mark it as vacant?`)) {
+        setActiveActionsId(null)
+        return
       }
-      await updateHouse(house.id, updates)
-      showToast(`Occupancy status for ${house.houseNumber} changed to ${nextStatus}.`)
+      try {
+        await updateHouse(house.id, { status: 'vacant', resident: undefined })
+        showToast(`House ${house.houseNumber} is now vacant.`)
+        loadData(keyword, tab)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setActiveActionsId(null)
+      }
+    } else {
+      setSelectedHouseForAssign(house)
+      setIsAssignOpen(true)
+      setActiveActionsId(null)
+    }
+  }
+
+  const handleAssignResident = async (residentDetails: {
+    firstName: string
+    lastName: string
+    email: string
+    phone: string
+    password?: string
+  }) => {
+    if (!selectedHouseForAssign) return
+    try {
+      await updateHouse(selectedHouseForAssign.id, {
+        status: 'occupied',
+        resident: residentDetails,
+      })
+      showToast(`Resident assigned to ${selectedHouseForAssign.houseNumber} successfully.`)
       loadData(keyword, tab)
     } catch (err) {
-      console.error(err)
-    } finally {
-      setActiveActionsId(null)
+      alert(err instanceof Error ? err.message : 'Failed to assign resident.')
     }
   }
 
@@ -438,6 +459,17 @@ export default function Houses() {
         isOpen={isRegisterOpen}
         onClose={() => setIsRegisterOpen(false)}
         onRegister={handleRegister}
+      />
+
+      {/* Assign Resident Modal */}
+      <AssignResidentModal
+        isOpen={isAssignOpen}
+        onClose={() => {
+          setIsAssignOpen(false)
+          setSelectedHouseForAssign(null)
+        }}
+        onAssign={handleAssignResident}
+        houseNumber={selectedHouseForAssign?.houseNumber || ''}
       />
 
       <style>{`

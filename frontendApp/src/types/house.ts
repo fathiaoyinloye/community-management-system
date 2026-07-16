@@ -4,6 +4,7 @@ export interface Resident {
   email: string
   phone: string
   avatarUrl?: string
+  password?: string
 }
 
 export type OccupancyStatus = 'occupied' | 'vacant'
@@ -36,6 +37,7 @@ export interface RegisterHousePayload {
     lastName: string
     email: string
     phone: string
+    password?: string
   }
 }
 

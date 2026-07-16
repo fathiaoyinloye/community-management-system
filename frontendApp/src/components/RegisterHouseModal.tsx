@@ -16,6 +16,7 @@ interface FormState {
   lastName: string
   email: string
   phone: string
+  password?: string
 }
 
 const EMPTY_FORM: FormState = {
@@ -27,6 +28,7 @@ const EMPTY_FORM: FormState = {
   lastName: '',
   email: '',
   phone: '',
+  password: '',
 }
 
 export default function RegisterHouseModal({ isOpen, onClose, onRegister }: RegisterHouseModalProps) {
@@ -72,6 +74,10 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
         setError("Please enter the resident's phone number.")
         return
       }
+      if (!form.password || form.password.trim().length < 6) {
+        setError('Please provide a password of at least 6 characters.')
+        return
+      }
     }
 
     const payload: RegisterHousePayload = {
@@ -84,6 +90,7 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
             lastName: form.lastName.trim(),
             email: form.email.trim(),
             phone: form.phone.trim(),
+            password: form.password?.trim(),
           }
         : undefined,
     }
@@ -232,6 +239,19 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
                     disabled={isSubmitting}
                   />
                 </div>
+              </div>
+
+              <div className="rhm__field" style={{ marginTop: '12px' }}>
+                <label htmlFor="password" className="rhm__label">Portal Login Password</label>
+                <input
+                  id="password"
+                  type="text"
+                  className="rhm__input"
+                  placeholder="Set temporary/login password (min 6 chars)"
+                  value={form.password || ''}
+                  onChange={(e) => updateField('password', e.target.value)}
+                  disabled={isSubmitting}
+                />
               </div>
             </div>
           )}

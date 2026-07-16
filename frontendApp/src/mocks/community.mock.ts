@@ -64,7 +64,7 @@ let communityProfile: CommunityProfile = {
   phone: '+234 809 123 4567',
   email: 'admin@journalist.com',
   description:
-    'Journalist Estate is a premium apartment complex nestled in the heart of the Highland District. Founded in 2018, it offers world-class facilities including a smart security system, sustainable energy solutions, and a community-focused management approach.',
+    'Journalist Estate is a premium apartment complex nestled in the heart of the Highland District',
   logoUrl: null,
   profileCompleteness: 65,
   isPublic: true,

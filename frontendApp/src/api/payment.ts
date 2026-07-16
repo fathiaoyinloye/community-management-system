@@ -6,8 +6,7 @@ import {
   mockRejectPayment,
 } from '../mocks/payment.mock'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://community-management-system-41c7.onrender.com'
-const USE_MOCK = false
+const USE_MOCK = true
 
 export async function getPayments(
   page: number,
@@ -23,7 +22,7 @@ export async function getPayments(
     status: filter,
     keyword,
   })
-  const response = await fetch(`${API_BASE_URL}/api/v1/payments?${params}`)
+  const response = await fetch(`/api/v1/payments?${params}`)
 
   if (!response.ok) {
     throw new Error('Unable to load payments.')
@@ -37,7 +36,7 @@ export async function getPaymentSummary(): Promise<PaymentSummary> {
     return mockGetPaymentSummary()
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/payments/summary`)
+  const response = await fetch('/api/v1/payments/summary')
 
   if (!response.ok) {
     throw new Error('Unable to load payment summary.')
@@ -51,7 +50,7 @@ export async function verifyPayment(id: string): Promise<Payment> {
     return mockVerifyPayment(id)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/payments/${id}/verify`, {
+  const response = await fetch(`/api/v1/payments/${id}/verify`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -68,7 +67,7 @@ export async function rejectPayment(id: string): Promise<Payment> {
     return mockRejectPayment(id)
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/payments/${id}/reject`, {
+  const response = await fetch(`/api/v1/payments/${id}/reject`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -91,7 +90,7 @@ export async function uploadPaymentProof(payload: {
     return { message: 'Proof of payment uploaded successfully.' }
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/payments`, {
+  const response = await fetch('/api/v1/payments', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

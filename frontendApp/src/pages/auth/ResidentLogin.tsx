@@ -142,11 +142,10 @@ export default function ResidentLogin() {
             </button>
 
              <div className="res-auth__footer">
-              <div style={{ marginBottom: '8px' }}>
-                <span className="res-auth__footer-text">New resident? </span>
-                <Link to="/resident/register" className="res-auth__footer-link">
-                  Register here
-                </Link>
+              <div style={{ marginBottom: '12px', lineHeight: '1.4' }}>
+                <span className="res-auth__footer-text">
+                  New resident? Please contact your Community Administrator to get your portal login credentials.
+                </span>
               </div>
               <div>
                 <span className="res-auth__footer-text">Are you an administrator? </span>
