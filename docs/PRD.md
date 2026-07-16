@@ -585,7 +585,460 @@ Potential future enhancements include:
 - Community Analytics
 - Housing Search
 - Digital Community Directory
+Community Management Platform (Frontend) — Product Requirements Document (PRD)
 
+Version: 1.0
+Product: Community Management Platform (Frontend)
+Project Type: MVP
+Target Demo: Tomorrow
+Audience: Frontend Developer (React + TypeScript)
+
+1. Overview
+
+The Community Management Platform is a web application designed to help residential communities digitize their daily operations.
+
+For the MVP, the focus is on allowing community administrators to:
+
+Manage communities
+Register houses
+Create custom levy types
+Generate monthly levies
+Verify resident payments
+Allow residents to view and pay their levies
+
+The frontend should be built using mock data first, with the ability to switch seamlessly to backend APIs as they become available.
+
+2. Goal
+
+Deliver a working frontend that demonstrates the complete user journey during the MVP demo.
+
+The backend will be integrated incrementally.
+
+3. User Roles
+Community Admin
+
+Responsible for managing the community.
+
+Capabilities:
+
+Manage community profile
+Register houses
+Create levy types
+Generate monthly levies
+Community Staff
+
+Responsible for payment verification.
+
+Capabilities:
+
+View submitted payments
+Verify payment
+Reject payment
+Resident
+
+Responsible for paying levies.
+
+Capabilities:
+
+Login
+View dashboard
+View outstanding levies
+Upload payment proof
+View payment history
+Download receipts
+4. Functional Requirements
+Module 1 — Authentication
+Screens
+Login
+
+Features
+
+Email
+Password
+Login button
+Validation messages
+Loading state
+
+API
+
+POST /api/v1/auth/login
+Complete Account Setup
+
+Features
+
+New Password
+Confirm Password
+Submit
+
+API
+
+POST /api/v1/auth/complete-account-setup
+Authentication Requirements
+Store JWT securely
+Store authenticated user
+Redirect based on role
+Logout
+Protected routes
+Module 2 — Community Management
+Screen
+Create Community
+
+Fields
+
+Community Name
+State
+LGA
+Address
+Description
+
+API
+
+POST /api/v1/communities
+Community Details
+
+Display
+
+Community Name
+Address
+State
+LGA
+Description
+
+API
+
+GET /api/v1/communities/{id}
+Edit Community
+
+Same fields as Create
+
+API
+
+PUT /api/v1/communities/{id}
+Module 3 — House Management
+Register House
+
+Fields
+
+House Number
+Street
+Property Type
+Occupancy Status
+Owner Name
+Resident Name
+
+API
+
+POST /api/v1/houses
+House List
+
+Display
+
+House Number
+Street
+Resident
+Occupancy
+Actions
+
+API
+
+GET /api/v1/houses
+Search House
+
+Search by
+
+House Number
+Resident Name
+
+API
+
+GET /api/v1/houses/search
+House Details
+
+Display
+
+Complete house information
+
+API
+
+GET /api/v1/houses/{id}
+Edit House
+
+API
+
+PUT /api/v1/houses/{id}
+Module 4 — Levy Management
+Create Levy Type
+
+Fields
+
+Levy Name
+Amount
+Frequency
+Description
+
+API
+
+POST /api/v1/levy-types
+Levy Type List
+
+Display
+
+Levy Name
+Amount
+Frequency
+
+API
+
+GET /api/v1/levy-types
+Generate Monthly Levies
+
+Fields
+
+Levy Type
+Month
+Year
+
+API
+
+POST /api/v1/levies/generate
+Generated Levies
+
+Display
+
+Resident
+House
+Levy Type
+Amount
+Status
+
+API
+
+GET /api/v1/levies
+Module 5 — Payment Management
+Resident Upload Payment
+
+Fields
+
+Levy
+Payment Amount
+Payment Proof (Image/PDF)
+
+API
+
+POST /api/v1/payments
+Pending Payments
+
+Display
+
+Resident
+House
+Amount
+Payment Proof
+Status
+
+API
+
+GET /api/v1/payments
+Verify Payment
+
+API
+
+PUT /api/v1/payments/{id}/verify
+Reject Payment
+
+API
+
+PUT /api/v1/payments/{id}/reject
+Module 6 — Resident Portal
+Dashboard
+
+Cards
+
+Outstanding Levies
+Total Paid
+Pending Payments
+Notifications
+
+API
+
+GET /api/v1/resident/dashboard
+Outstanding Levies
+
+Display
+
+Levy Name
+Amount
+Due Date
+Status
+
+API
+
+GET /api/v1/resident/levies
+Payment History
+
+Display
+
+Date
+Amount
+Status
+
+API
+
+GET /api/v1/resident/payments
+Download Receipt
+
+API
+
+GET /api/v1/resident/payments/{paymentId}/receipt
+Notifications
+
+Display
+
+Title
+Message
+Date
+
+API
+
+GET /api/v1/notifications
+5. Navigation
+Community Admin
+Dashboard
+
+Community
+ ├── View
+ └── Edit
+
+Houses
+ ├── Register
+ ├── List
+ └── Search
+
+Levies
+ ├── Levy Types
+ ├── Generate Levies
+ └── Generated Levies
+
+Payments
+Community Staff
+Dashboard
+
+Payments
+ ├── Pending
+ ├── Verify
+ └── Reject
+Resident
+Dashboard
+
+Outstanding Levies
+
+Payment History
+
+Notifications
+
+Profile
+6. UI Components
+
+Reusable components should include:
+
+Button
+Input
+Select
+Modal
+Data Table
+Pagination
+Card
+Badge
+Alert
+Empty State
+Loading Spinner
+Toast Notifications
+Confirmation Dialog
+7. Validation
+
+Forms should validate:
+
+Required fields
+Email format
+Password confirmation
+Numeric amounts
+File type (payment proof)
+File size
+8. Error Handling
+
+Handle:
+
+Network errors
+Unauthorized requests
+Validation errors
+Empty states
+Loading states
+API failures
+9. Mock Data Strategy
+
+Until backend APIs are available:
+
+Use static JSON or Mock Service Worker (MSW).
+Match the expected API response shape.
+Replace mock services with live API calls as each endpoint becomes available.
+Keep service interfaces unchanged to minimize integration work.
+10. API Integration Order
+Priority	Module	Status
+1	Authentication	🔄 First Integration
+2	Community Management	Pending
+3	House Management	Pending
+4	Levy Management	Pending
+5	Payment Management	Pending
+6	Resident Portal	Pending
+11. Suggested Frontend Folder Structure
+src/
+│
+├── api/
+│   ├── auth.ts
+│   ├── community.ts
+│   ├── house.ts
+│   ├── levy.ts
+│   ├── payment.ts
+│   └── resident.ts
+│
+├── components/
+│
+├── layouts/
+│
+├── pages/
+│   ├── auth/
+│   ├── community/
+│   ├── houses/
+│   ├── levies/
+│   ├── payments/
+│   └── resident/
+│
+├── hooks/
+│
+├── services/
+│
+├── store/
+│
+├── types/
+│
+├── mocks/
+│
+├── routes/
+│
+└── utils/
+12. MVP Success Criteria
+
+The demo will be considered successful if the frontend demonstrates the following end-to-end flow:
+
+User logs in and is redirected based on their role.
+A Community Admin can create or update community information.
+A Community Admin can register and manage houses.
+A Community Admin can create levy types and generate monthly levies.
+A Resident can view outstanding levies and submit a payment proof.
+Community Staff can review submitted payments and verify or reject them.
+A Resident can view payment history, download receipts, and receive notifications.
+
+The application should function seamlessly with mock data initially and allow each module to transition to live backend APIs without requiring UI changes as integration progresses.
 
 
 

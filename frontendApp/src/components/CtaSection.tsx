@@ -1,18 +1,18 @@
+import { Link } from 'react-router-dom'
+
 export default function CtaSection() {
   return (
     <section className="cta">
       <div className="cta__backdrop" />
       <div className="container cta__content">
-        <h2 className="cta__heading">Ready to transform your community?</h2>
+        <h2 className="cta__heading">Ready to experience simplified community living?</h2>
         <p className="cta__subheading">
-          Join over 500+ premium estates worldwide trust CommunalTrust for their daily
-          management.
+          Get secure, instant self-service access to your resident account and levies today.
         </p>
         <div className="cta__actions">
-          <button className="btn btn-primary cta__btn">Get Started Today</button>
-          <button className="btn btn-outline cta__btn">Contact Sales</button>
+          <Link to="/resident/register" className="btn btn-primary cta__btn">Get Started Today</Link>
         </div>
-        <p className="cta__fineprint">No credit card required. Free 14-day trial for new estates.</p>
+        <p className="cta__fineprint">Join your neighbors in digitizing payments and service requests.</p>
       </div>
 
       <style>{`

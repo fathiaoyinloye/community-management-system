@@ -6,9 +6,10 @@ import EmptyState from '../../components/ui/EmptyState'
 import { useAuth } from '../../store/AuthContext'
 import { CommunitiesProvider, useCommunities } from '../../store/CommunitiesContext'
 
-type FilterTab = 'active' | 'pending_setup' | 'archived'
+type FilterTab = 'all' | 'active' | 'pending_setup' | 'archived'
 
 const TABS: { key: FilterTab; label: string }[] = [
+  { key: 'all', label: 'All' },
   { key: 'active', label: 'Active' },
   { key: 'pending_setup', label: 'Pending' },
   { key: 'archived', label: 'Archive' },
@@ -57,7 +58,7 @@ export default function PlatformAdminDashboardPage() {
 function PlatformAdminDashboard() {
   const { user } = useAuth()
   const { communities, isLoading } = useCommunities()
-  const [activeTab, setActiveTab] = useState<FilterTab>('active')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
   const totalCommunities = communities.length
   const pendingCount = communities.filter((community) => community.status === 'pending_setup').length
@@ -65,6 +66,7 @@ function PlatformAdminDashboard() {
     totalCommunities === 0 ? 0 : Math.round(((totalCommunities - pendingCount) / totalCommunities) * 100)
 
   const filteredCommunities = useMemo(() => {
+    if (activeTab === 'all') return communities
     if (activeTab === 'archived') return []
     return communities.filter((community) => community.status === activeTab)
   }, [communities, activeTab])

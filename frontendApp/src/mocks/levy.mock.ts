@@ -1,4 +1,4 @@
-import type { LevySummary, LevyType, ScheduledAdjustment } from '../types/levy'
+import type { CreateLevyTypePayload, LevySummary, LevyType, ScheduledAdjustment } from '../types/levy'
 
 let levyTypes: LevyType[] = [
   {
@@ -72,7 +72,13 @@ export async function mockGetLevyTypes(): Promise<LevyType[]> {
 
 export async function mockGetLevySummary(): Promise<LevySummary> {
   await delay(400)
-  return summary
+  // dynamically update to match local levyTypes list length
+  const activeCount = levyTypes.filter(l => l.status === 'active').length
+  return {
+    ...summary,
+    totalLevyTypes: levyTypes.length,
+    totalActiveLevies: activeCount,
+  }
 }
 
 export async function mockGetScheduledAdjustments(): Promise<ScheduledAdjustment[]> {
@@ -90,3 +96,19 @@ export async function mockUpdateLevyStatus(id: string, status: LevyType['status'
   levyTypes = levyTypes.map((entry) => (entry.id === id ? levy : entry))
   return levy
 }
+
+export async function mockCreateLevyType(payload: CreateLevyTypePayload): Promise<LevyType> {
+  await delay(600)
+  const newLevy: LevyType = {
+    id: `lv${levyTypes.length + 1}`,
+    name: payload.name,
+    description: payload.description,
+    icon: payload.icon || 'receipt_long',
+    amount: payload.amount,
+    frequency: payload.frequency,
+    status: 'active',
+  }
+  levyTypes.push(newLevy)
+  return newLevy
+}
+

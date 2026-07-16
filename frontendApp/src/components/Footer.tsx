@@ -5,17 +5,20 @@ const FOOTER_LINKS = ['Privacy Policy', 'Terms of Service', 'Contact Us', 'Caree
 const CONTACT_EMAIL = 'hello@communaltrust.com'
 const CONTACT_ADDRESS = '312 Herbert Macaulay Wy, Sabo Yaba, Lagos 101212, Lagos'
 
+/*
 const SOCIAL_LINKS: { label: string; href: string; icon: 'twitter' | 'facebook' | 'instagram' | 'linkedin' }[] = [
   { label: 'Twitter', href: '#', icon: 'twitter' },
   { label: 'Facebook', href: '#', icon: 'facebook' },
   { label: 'Instagram', href: '#', icon: 'instagram' },
   { label: 'LinkedIn', href: '#', icon: 'linkedin' },
 ]
+*/
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
+/*
 function SocialIcon({ type }: { type: (typeof SOCIAL_LINKS)[number]['icon'] }) {
   switch (type) {
     case 'twitter':
@@ -48,6 +51,7 @@ function SocialIcon({ type }: { type: (typeof SOCIAL_LINKS)[number]['icon'] }) {
       return null
   }
 }
+*/
 
 export default function Footer() {
   const [email, setEmail] = useState('')

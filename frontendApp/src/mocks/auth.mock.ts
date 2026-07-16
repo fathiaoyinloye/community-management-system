@@ -1,4 +1,6 @@
-import type { AuthUser, LoginPayload, LoginResponse } from '../types/auth'
+import type { AuthUser, LoginPayload, LoginResponse, RegisterResidentPayload } from '../types/auth'
+import { mockUpdateHouse } from './house.mock'
+
 
 interface StoredAccount {
   user: AuthUser
@@ -23,6 +25,15 @@ const accounts: StoredAccount[] = [
       role: 'community_admin',
     },
     password: 'Admin@123',
+  },
+  {
+    user: {
+      id: 'resident-1',
+      name: 'Julian Vance',
+      email: 'julian@communaltrust.com',
+      role: 'resident',
+    },
+    password: 'Resident@123',
   },
 ]
 
@@ -72,3 +83,37 @@ export async function mockCreateCommunityAdmin(payload: CreateCommunityAdminPayl
 
   return user
 }
+
+export async function mockRegisterResident(payload: RegisterResidentPayload): Promise<AuthUser> {
+  await delay(800)
+
+  const email = payload.email.trim().toLowerCase()
+  if (accounts.some((entry) => entry.user.email === email)) {
+    throw new Error('An account with this email already exists.')
+  }
+
+  const resident = {
+    firstName: payload.firstName.trim(),
+    lastName: payload.lastName.trim(),
+    email,
+    phone: payload.phone.trim(),
+  }
+
+  // Update the corresponding house in the mock database
+  await mockUpdateHouse(payload.houseId, {
+    status: 'occupied',
+    resident,
+  })
+
+  const user: AuthUser = {
+    id: `resident-${accounts.length + 1}`,
+    name: `${payload.firstName.trim()} ${payload.lastName.trim()}`,
+    email,
+    role: 'resident',
+  }
+
+  accounts.push({ user, password: payload.password })
+
+  return user
+}
+

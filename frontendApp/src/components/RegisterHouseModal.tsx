@@ -1,0 +1,446 @@
+import { useState, type FormEvent } from 'react'
+import type { PropertyType, RegisterHousePayload } from '../types/house'
+
+interface RegisterHouseModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onRegister: (payload: RegisterHousePayload) => Promise<void>
+}
+
+interface FormState {
+  houseNumber: string
+  street: string
+  propertyType: PropertyType
+  addResident: boolean
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+}
+
+const EMPTY_FORM: FormState = {
+  houseNumber: '',
+  street: '',
+  propertyType: 'single_family',
+  addResident: false,
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+}
+
+export default function RegisterHouseModal({ isOpen, onClose, onRegister }: RegisterHouseModalProps) {
+  const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  if (!isOpen) return null
+
+  const updateField = <K extends keyof FormState>(field: K, value: FormState[K]) => {
+    setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const handleClose = () => {
+    setForm(EMPTY_FORM)
+    setError(null)
+    onClose()
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError(null)
+
+    if (!form.houseNumber.trim()) {
+      setError('Please provide a house number.')
+      return
+    }
+    if (!form.street.trim()) {
+      setError('Please provide a street address.')
+      return
+    }
+
+    if (form.addResident) {
+      if (!form.firstName.trim() || !form.lastName.trim()) {
+        setError("Please enter the resident's full name.")
+        return
+      }
+      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+        setError('Please enter a valid email address.')
+        return
+      }
+      if (!form.phone.trim()) {
+        setError("Please enter the resident's phone number.")
+        return
+      }
+    }
+
+    const payload: RegisterHousePayload = {
+      houseNumber: form.houseNumber.trim(),
+      street: form.street.trim(),
+      propertyType: form.propertyType,
+      resident: form.addResident
+        ? {
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+          }
+        : undefined,
+    }
+
+    setIsSubmitting(true)
+    try {
+      await onRegister(payload)
+      handleClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to register house.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="rhm__overlay" role="dialog" aria-modal="true">
+      <div className="rhm__panel">
+        <button type="button" className="rhm__close" onClick={handleClose} aria-label="Close">
+          <span className="material-symbols-outlined">close</span>
+        </button>
+
+        <h2 className="rhm__title">Register New House</h2>
+        <p className="rhm__subtitle">
+          Add a new property unit to your community registry database.
+        </p>
+
+        {error && (
+          <div role="alert" className="rhm__alert">
+            <span className="material-symbols-outlined">error</span>
+            {error}
+          </div>
+        )}
+
+        <form className="rhm__form" onSubmit={handleSubmit} noValidate>
+          <div className="rhm__grid">
+            <div className="rhm__field">
+              <label htmlFor="houseNumber" className="rhm__label">House Number / Unit #</label>
+              <input
+                id="houseNumber"
+                type="text"
+                className="rhm__input"
+                placeholder="e.g. H-0512 or Apt 4B"
+                value={form.houseNumber}
+                onChange={(e) => updateField('houseNumber', e.target.value)}
+                disabled={isSubmitting}
+                required
+              />
+            </div>
+
+            <div className="rhm__field">
+              <label htmlFor="propertyType" className="rhm__label">Property Type</label>
+              <select
+                id="propertyType"
+                className="rhm__input"
+                value={form.propertyType}
+                onChange={(e) => updateField('propertyType', e.target.value as PropertyType)}
+                disabled={isSubmitting}
+              >
+                <option value="single_family">Single Family Home</option>
+                <option value="townhouse">Townhouse</option>
+                <option value="apartment">Modern Apartment</option>
+                <option value="duplex">Duplex</option>
+                <option value="condominium">Condominium</option>
+                <option value="commercial">Commercial</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="rhm__field">
+            <label htmlFor="street" className="rhm__label">Street Address</label>
+            <input
+              id="street"
+              type="text"
+              className="rhm__input"
+              placeholder="e.g. 1422 Oakwood Avenue"
+              value={form.street}
+              onChange={(e) => updateField('street', e.target.value)}
+              disabled={isSubmitting}
+              required
+            />
+          </div>
+
+          <div className="rhm__checkbox-container">
+            <label className="rhm__checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.addResident}
+                onChange={(e) => updateField('addResident', e.target.checked)}
+                disabled={isSubmitting}
+              />
+              Assign Primary Resident Now
+            </label>
+          </div>
+
+          {form.addResident && (
+            <div className="rhm__resident-box">
+              <h3 className="rhm__section-title">Primary Resident Details</h3>
+              <div className="rhm__grid">
+                <div className="rhm__field">
+                  <label htmlFor="firstName" className="rhm__label">First Name</label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    className="rhm__input"
+                    value={form.firstName}
+                    onChange={(e) => updateField('firstName', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="rhm__field">
+                  <label htmlFor="lastName" className="rhm__label">Last Name</label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    className="rhm__input"
+                    value={form.lastName}
+                    onChange={(e) => updateField('lastName', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="rhm__grid">
+                <div className="rhm__field">
+                  <label htmlFor="email" className="rhm__label">Email Address</label>
+                  <input
+                    id="email"
+                    type="email"
+                    className="rhm__input"
+                    placeholder="e.g. resident@example.com"
+                    value={form.email}
+                    onChange={(e) => updateField('email', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="rhm__field">
+                  <label htmlFor="phone" className="rhm__label">Phone Number</label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    className="rhm__input"
+                    placeholder="e.g. 08012345678"
+                    value={form.phone}
+                    onChange={(e) => updateField('phone', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="rhm__actions">
+            <button
+              type="button"
+              className="rhm__btn-cancel"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary rhm__btn-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Registering...' : 'Register House'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <style>{`
+        .rhm__overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+          padding: var(--space-md);
+        }
+
+        .rhm__panel {
+          background: #ffffff;
+          border-radius: var(--radius-xl);
+          width: 100%;
+          max-width: 580px;
+          max-height: 90vh;
+          overflow-y: auto;
+          position: relative;
+          padding: var(--space-md);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .rhm__close {
+          position: absolute;
+          top: var(--space-md);
+          right: var(--space-md);
+          background: transparent;
+          color: var(--color-on-surface-variant);
+          padding: var(--space-xs);
+          border-radius: var(--radius-full);
+          transition: background-color 0.2s ease;
+        }
+
+        .rhm__close:hover {
+          background: var(--color-surface-container-low);
+        }
+
+        .rhm__title {
+          font-family: var(--font-display);
+          font-size: var(--text-headline-md);
+          font-weight: 700;
+          color: var(--color-primary);
+          margin-bottom: var(--space-xs);
+        }
+
+        .rhm__subtitle {
+          font-size: var(--text-label-md);
+          color: var(--color-on-surface-variant);
+          margin-bottom: var(--space-md);
+        }
+
+        .rhm__alert {
+          display: flex;
+          align-items: center;
+          gap: var(--space-xs);
+          background: var(--color-error-container);
+          color: var(--color-on-error-container);
+          padding: var(--space-sm);
+          border-radius: var(--radius-lg);
+          font-size: var(--text-label-md);
+          margin-bottom: var(--space-md);
+          font-weight: 500;
+        }
+
+        .rhm__alert .material-symbols-outlined {
+          color: var(--color-error);
+        }
+
+        .rhm__form {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-md);
+        }
+
+        .rhm__grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: var(--space-md);
+        }
+
+        @media (min-width: 480px) {
+          .rhm__grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        .rhm__field {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-xs);
+        }
+
+        .rhm__label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--color-on-surface-variant);
+        }
+
+        .rhm__input {
+          padding: 10px 14px;
+          border: 1px solid var(--color-outline-variant);
+          border-radius: var(--radius-lg);
+          font-size: var(--text-label-md);
+          outline: none;
+          transition: box-shadow 0.2s ease, border-color 0.2s ease;
+          background: #ffffff;
+        }
+
+        .rhm__input:focus {
+          border-color: var(--color-secondary);
+          box-shadow: 0 0 0 2px rgba(70, 72, 212, 0.25);
+        }
+
+        .rhm__checkbox-container {
+          display: flex;
+          align-items: center;
+          margin: var(--space-xs) 0;
+        }
+
+        .rhm__checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: var(--space-sm);
+          font-size: var(--text-label-md);
+          font-weight: 600;
+          color: var(--color-on-surface);
+          cursor: pointer;
+        }
+
+        .rhm__checkbox-label input {
+          width: 18px;
+          height: 18px;
+          border-radius: var(--radius-default);
+          accent-color: var(--color-secondary);
+        }
+
+        .rhm__resident-box {
+          border: 1px solid var(--color-outline-variant);
+          border-radius: var(--radius-xl);
+          padding: var(--space-md);
+          background: var(--color-surface-container-low);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-md);
+        }
+
+        .rhm__section-title {
+          font-size: var(--text-label-md);
+          font-weight: 700;
+          color: var(--color-secondary);
+          margin-bottom: -4px;
+        }
+
+        .rhm__actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: var(--space-sm);
+          margin-top: var(--space-md);
+        }
+
+        .rhm__btn-cancel {
+          padding: var(--space-sm) var(--space-md);
+          border-radius: var(--radius-lg);
+          font-size: var(--text-label-md);
+          font-weight: 600;
+          background: transparent;
+          color: var(--color-on-surface-variant);
+          transition: background-color 0.2s ease;
+        }
+
+        .rhm__btn-cancel:hover {
+          background: var(--color-surface-container-low);
+        }
+
+        .rhm__btn-submit {
+          padding: var(--space-sm) var(--space-md);
+          font-size: var(--text-label-md);
+        }
+      `}</style>
+    </div>
+  )
+}

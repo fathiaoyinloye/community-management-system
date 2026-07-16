@@ -16,3 +16,13 @@ export interface LoginResponse {
   token: string
   user: AuthUser
 }
+
+export interface RegisterResidentPayload {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  houseId: string
+  password: string
+}
+

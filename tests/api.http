@@ -1,0 +1,567 @@
+# ============================================================
+# Community Management System — API Test File
+# Version: 1.0 (MVP)
+#
+# Usage:
+#   VS Code : Install "REST Client" extension, then click "Send Request"
+#   IntelliJ: Open file and use the green ▶ buttons
+#
+# Variables are captured automatically after each login response
+# using @name annotations below each request.
+# ============================================================
+
+@baseUrl        = http://localhost:8080/api/v1
+@contentType    = application/json
+
+# ─── Placeholder variables (filled automatically after login) ─────────────────
+@platformAdminToken  = {{platformAdminLogin.response.body.accessToken}}
+@communityAdminToken = {{communityAdminLogin.response.body.accessToken}}
+@residentToken       = {{residentLogin.response.body.accessToken}}
+
+# ─── IDs captured from create responses ───────────────────────────────────────
+@communityId   = {{createCommunity.response.body.id}}
+@staffId       = {{inviteStaff.response.body.id}}
+@houseId       = {{registerHouse.response.body.id}}
+@levyTypeId    = {{createLevyType.response.body.id}}
+@levyId        = {{getHouseLevies.response.body[0].id}}
+@paymentId     = {{uploadPaymentProof.response.body.id}}
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  1. AUTHENTICATION                                       ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 1-A  Login — Platform Admin
+# @name platformAdminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "platform@communitytrust.com",
+  "password": "Password123"
+}
+
+###
+
+### 1-B  Login — Community Admin
+# @name communityAdminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@greenestate.com",
+  "password": "Password123"
+}
+
+###
+
+### 1-C  Login — Resident
+# @name residentLogin
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "john@email.com",
+  "password": "Password123"
+}
+
+###
+
+### 1-D  Login — Invalid credentials (expect 401)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpassword"
+}
+
+###
+
+### 1-E  Login — Missing password field (expect 400)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@greenestate.com"
+}
+
+###
+
+### 1-F  Complete Account Setup
+POST {{baseUrl}}/auth/complete-account-setup
+Content-Type: {{contentType}}
+
+{
+  "token": "REPLACE_WITH_REAL_INVITATION_TOKEN",
+  "password": "Password123"
+}
+
+###
+
+### 1-G  Logout (requires valid token)
+POST {{baseUrl}}/auth/logout
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  2. COMMUNITY                                            ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 2-A  Create Community — Platform Admin only
+# @name createCommunity
+POST {{baseUrl}}/communities
+Content-Type: {{contentType}}
+Authorization: Bearer {{platformAdminToken}}
+
+{
+  "name": "Green Estate",
+  "type": "Residential Estate",
+  "address": "Lekki Phase 1",
+  "lga": "Eti-Osa",
+  "state": "Lagos",
+  "phone": "08012345678",
+  "email": "admin@greenestate.com"
+}
+
+###
+
+### 2-B  Create Community — No auth (expect 401)
+POST {{baseUrl}}/communities
+Content-Type: {{contentType}}
+
+{
+  "name": "Unauthenticated Estate"
+}
+
+###
+
+### 2-C  Create Community — Missing required fields (expect 400)
+POST {{baseUrl}}/communities
+Content-Type: {{contentType}}
+Authorization: Bearer {{platformAdminToken}}
+
+{
+  "name": "Incomplete Estate"
+}
+
+###
+
+### 2-D  Get All Communities
+GET {{baseUrl}}/communities
+Authorization: Bearer {{platformAdminToken}}
+
+###
+
+### 2-E  Get Single Community by ID
+GET {{baseUrl}}/communities/{{communityId}}
+Authorization: Bearer {{platformAdminToken}}
+
+###
+
+### 2-F  Get Non-existent Community (expect 404)
+GET {{baseUrl}}/communities/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{platformAdminToken}}
+
+###
+
+### 2-G  Update Community
+PUT {{baseUrl}}/communities/{{communityId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Green Estate Updated",
+  "type": "Residential Estate",
+  "address": "Lekki Phase 2",
+  "lga": "Eti-Osa",
+  "state": "Lagos",
+  "phone": "08099998888",
+  "email": "contact@greenestate.com"
+}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  3. COMMUNITY STAFF                                      ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 3-A  Invite Staff Member
+# @name inviteStaff
+POST {{baseUrl}}/communities/{{communityId}}/staff
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@greenestate.com",
+  "role": "COMMUNITY_STAFF"
+}
+
+###
+
+### 3-B  Invite Staff — Duplicate email (expect 409)
+POST {{baseUrl}}/communities/{{communityId}}/staff
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@greenestate.com",
+  "role": "COMMUNITY_STAFF"
+}
+
+###
+
+### 3-C  Get All Staff for Community
+GET {{baseUrl}}/communities/{{communityId}}/staff
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 3-D  Update Staff Role
+PUT {{baseUrl}}/communities/{{communityId}}/staff/{{staffId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "role": "COMMUNITY_ADMIN"
+}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  4. HOUSES                                               ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 4-A  Register House with Resident
+# @name registerHouse
+POST {{baseUrl}}/houses
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "communityId": "{{communityId}}",
+  "houseNumber": "A12",
+  "street": "Main Street",
+  "resident": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@email.com",
+    "phone": "08012345678"
+  }
+}
+
+###
+
+### 4-B  Register House — Duplicate house number (expect 409)
+POST {{baseUrl}}/houses
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "communityId": "{{communityId}}",
+  "houseNumber": "A12",
+  "street": "Main Street",
+  "resident": {
+    "firstName": "Jane",
+    "lastName": "Brown",
+    "email": "jane.brown@email.com",
+    "phone": "08000000001"
+  }
+}
+
+###
+
+### 4-C  Register House — Missing required fields (expect 400)
+POST {{baseUrl}}/houses
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "communityId": "{{communityId}}"
+}
+
+###
+
+### 4-D  Get All Houses
+GET {{baseUrl}}/houses
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 4-E  Search Houses by keyword
+GET {{baseUrl}}/houses/search?keyword=A12
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 4-F  Search Houses — No match keyword
+GET {{baseUrl}}/houses/search?keyword=ZZZNOMATCH
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 4-G  Get Single House by ID
+GET {{baseUrl}}/houses/{{houseId}}
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 4-H  Get House — Not found (expect 404)
+GET {{baseUrl}}/houses/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 4-I  Update House
+PUT {{baseUrl}}/houses/{{houseId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "houseNumber": "A12",
+  "street": "New Main Street"
+}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  5. LEVY TYPES                                           ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 5-A  Create Levy Type
+# @name createLevyType
+POST {{baseUrl}}/levy-types
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Security Levy",
+  "amount": 5000,
+  "frequency": "MONTHLY"
+}
+
+###
+
+### 5-B  Create Another Levy Type
+POST {{baseUrl}}/levy-types
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Waste Management",
+  "amount": 2500,
+  "frequency": "MONTHLY"
+}
+
+###
+
+### 5-C  Create Levy Type — Missing fields (expect 400)
+POST {{baseUrl}}/levy-types
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Incomplete Levy"
+}
+
+###
+
+### 5-D  Get All Levy Types
+GET {{baseUrl}}/levy-types
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 5-E  Update Levy Type
+PUT {{baseUrl}}/levy-types/{{levyTypeId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Security & Patrol Levy",
+  "amount": 6000,
+  "frequency": "MONTHLY"
+}
+
+###
+
+### 5-F  Update Non-existent Levy Type (expect 404)
+PUT {{baseUrl}}/levy-types/00000000-0000-0000-0000-000000000000
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "name": "Ghost Levy",
+  "amount": 100,
+  "frequency": "MONTHLY"
+}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  6. LEVIES (House Levy Instances)                        ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 6-A  Generate House Levies for all active houses
+POST {{baseUrl}}/levies/generate
+Content-Type: {{contentType}}
+Authorization: Bearer {{communityAdminToken}}
+
+{
+  "communityId": "{{communityId}}"
+}
+
+###
+
+### 6-B  Get All House Levies
+# @name getHouseLevies
+GET {{baseUrl}}/levies
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 6-C  Get Single House Levy by ID
+GET {{baseUrl}}/levies/{{levyId}}
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 6-D  Get Levy — Not found (expect 404)
+GET {{baseUrl}}/levies/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  7. PAYMENTS                                             ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 7-A  Upload Payment Proof
+# @name uploadPaymentProof
+POST {{baseUrl}}/payments
+Content-Type: {{contentType}}
+Authorization: Bearer {{residentToken}}
+
+{
+  "houseLevyId": "{{levyId}}",
+  "amount": 5000,
+  "paymentReference": "TXN-ABC123XYZ",
+  "proofOfPaymentUrl": "https://storage.example.com/receipts/proof-001.pdf"
+}
+
+###
+
+### 7-B  Upload Payment Proof — Missing fields (expect 400)
+POST {{baseUrl}}/payments
+Content-Type: {{contentType}}
+Authorization: Bearer {{residentToken}}
+
+{
+  "amount": 5000
+}
+
+###
+
+### 7-C  Get All Payments
+GET {{baseUrl}}/payments
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 7-D  Verify Payment
+PUT {{baseUrl}}/payments/{{paymentId}}/verify
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 7-E  Verify Already-Verified Payment (expect 409 or 400)
+PUT {{baseUrl}}/payments/{{paymentId}}/verify
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 7-F  Reject Payment (use a different payment ID in practice)
+PUT {{baseUrl}}/payments/{{paymentId}}/reject
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 7-G  Verify — No auth (expect 401)
+PUT {{baseUrl}}/payments/{{paymentId}}/verify
+
+###
+
+### 7-H  Verify Non-existent Payment (expect 404)
+PUT {{baseUrl}}/payments/00000000-0000-0000-0000-000000000000/verify
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  8. RESIDENT PORTAL                                      ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 8-A  Resident Dashboard
+GET {{baseUrl}}/resident/dashboard
+Authorization: Bearer {{residentToken}}
+
+###
+
+### 8-B  Resident Dashboard — No auth (expect 401)
+GET {{baseUrl}}/resident/dashboard
+
+###
+
+### 8-C  View Outstanding Levies
+GET {{baseUrl}}/resident/levies
+Authorization: Bearer {{residentToken}}
+
+###
+
+### 8-D  View Payment History
+GET {{baseUrl}}/resident/payments
+Authorization: Bearer {{residentToken}}
+
+###
+
+### 8-E  Download Receipt
+GET {{baseUrl}}/resident/payments/{{paymentId}}/receipt
+Authorization: Bearer {{residentToken}}
+
+###
+
+### 8-F  Download Receipt — Non-existent (expect 404)
+GET {{baseUrl}}/resident/payments/00000000-0000-0000-0000-000000000000/receipt
+Authorization: Bearer {{residentToken}}
+
+###
+
+
+# ╔══════════════════════════════════════════════════════════╗
+# ║  9. NOTIFICATIONS                                        ║
+# ╚══════════════════════════════════════════════════════════╝
+
+### 9-A  Get Notifications
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{communityAdminToken}}
+
+###
+
+### 9-B  Mark Notification as Read
+PUT {{baseUrl}}/notifications/REPLACE_WITH_NOTIFICATION_ID/read
+Authorization: Bearer {{communityAdminToken}}
+
+###

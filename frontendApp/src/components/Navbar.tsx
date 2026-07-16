@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const NAV_LINKS = ['Platform', 'Solutions', 'Resources', 'Pricing']
 
@@ -26,8 +27,7 @@ export default function Navbar() {
         </div>
 
         <div className="navbar__actions">
-          <button className="navbar__login">Log In</button>
-          <button className="btn btn-primary navbar__cta">Get Started</button>
+          <Link to="/resident/register" className="btn btn-primary navbar__cta">Get Started</Link>
         </div>
 
         <button
@@ -57,12 +57,9 @@ export default function Navbar() {
             ))}
           </div>
           <div className="navbar__mobile-actions">
-            <button className="navbar__login navbar__login--mobile" onClick={() => setIsMenuOpen(false)}>
-              Log In
-            </button>
-            <button className="btn btn-primary navbar__cta" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/resident/register" className="btn btn-primary navbar__cta" onClick={() => setIsMenuOpen(false)}>
               Get Started
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -242,6 +239,117 @@ export default function Navbar() {
           .navbar__mobile {
             display: none;
           }
+        }
+
+        .navbar__login-container {
+          position: relative;
+        }
+
+        .navbar__login {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+        }
+
+        .navbar__login-arrow {
+          font-size: 18px;
+          transition: transform 0.2s ease;
+        }
+
+        .navbar__login-dropdown {
+          position: absolute;
+          top: calc(100% + 12px);
+          right: 0;
+          background: #ffffff;
+          border: 1px solid var(--color-outline-variant);
+          border-radius: var(--radius-xl);
+          width: 280px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          padding: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          z-index: 100;
+          animation: navbarDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes navbarDropdownFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .navbar__dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border-radius: var(--radius-lg);
+          color: var(--color-on-surface);
+          text-decoration: none;
+          transition: background-color 0.15s ease;
+        }
+
+        .navbar__dropdown-item:hover {
+          background: var(--color-surface-container-low);
+        }
+
+        .navbar__dropdown-item .material-symbols-outlined {
+          color: var(--color-secondary);
+          font-size: 24px;
+          flex-shrink: 0;
+        }
+
+        .navbar__dropdown-title {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--color-primary);
+          line-height: 1.2;
+        }
+
+        .navbar__dropdown-desc {
+          display: block;
+          font-size: 11px;
+          color: var(--color-on-surface-variant);
+          margin-top: 2px;
+        }
+
+        .navbar__mobile-login-title {
+          font-size: 12px;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: var(--color-on-surface-variant);
+          letter-spacing: 0.05em;
+          margin-top: var(--space-xs);
+          margin-bottom: 4px;
+          text-align: left;
+        }
+
+        .navbar__mobile-login-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: var(--space-sm) 0;
+          color: var(--color-secondary);
+          font-weight: 600;
+          font-size: var(--text-body-md);
+          text-decoration: none;
+          border-bottom: 1px dashed var(--color-outline-variant);
+        }
+
+        .navbar__mobile-login-link:last-of-type {
+          margin-bottom: var(--space-md);
+        }
+
+        .navbar__mobile-login-link .material-symbols-outlined {
+          font-size: 20px;
         }
       `}</style>
     </nav>

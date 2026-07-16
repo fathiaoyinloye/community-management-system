@@ -11,7 +11,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: 'dashboard', to: '/platform-admin/dashboard' },
-  { label: 'Communities', icon: 'domain' },
+  { label: 'Communities', icon: 'domain', to: '/platform-admin/communities' },
   { label: 'Admins', icon: 'manage_accounts' },
   { label: 'Payments', icon: 'payments' },
   { label: 'Reports', icon: 'monitoring' },

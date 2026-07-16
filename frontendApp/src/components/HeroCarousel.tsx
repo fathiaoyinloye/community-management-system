@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 
 const SLIDE_COUNT = 2
 const AUTO_ADVANCE_MS = 8000
@@ -43,7 +45,7 @@ export default function HeroCarousel() {
         <div className="hero__slide">
           <div className="hero__slide-bg">
             <img
-              src="https://lh3.googleusercontent.com/aida/AP1WRLsFh79Z7qBvkpuz2ijw9ffHtaqhFEOPcHiWDk8bvYKVg0WLogrGWzh1Nv6Qyq7CAsjDDo1DsgCwury5cQ5YFM4eyZn6kRQZsHqWB7VrZtJWl6Rk19hSgA8z9MR9dherLRBC2XSAue1bgiiHp4M6p3R79Kym7TQvCTITDAny-D7I9p7PZgIxtVU-KR5XHBNXISIa_byFI9RdAeNXgacD_b2dMCWX7Pj2WgO8a6ssvJfRJRxD8bJgh1OCyw"
+              src="/community_aerial_view.jpg"
               alt="Aerial view of a modern sustainable community"
             />
           </div>
@@ -51,11 +53,11 @@ export default function HeroCarousel() {
             <div className="hero__copy">
               <h1 className="hero__title">Harmony in Every Household.</h1>
               <p className="hero__subtitle">
-                Experience the next generation of community management. CommunalTrust brings
+                Experience the next generation of community living. CommunalTrust brings
                 transparency, security, and ease to your residential ecosystem.
               </p>
               <div className="hero__actions">
-                <button className="btn btn-primary hero__btn">Explore Platform</button>
+                <Link to="/resident/register" className="btn btn-primary hero__btn">Get Started</Link>
                 <button className="btn btn-ghost-light hero__btn">Watch Demo</button>
               </div>
             </div>
@@ -65,17 +67,17 @@ export default function HeroCarousel() {
         <div className="hero__slide hero__slide--dashboard">
           <div className="hero__slide-content container hero__slide-content--split">
             <div className="hero__copy">
-              <h2 className="hero__title">Data-Driven Administration.</h2>
+              <h2 className="hero__title">Your Resident Dashboard.</h2>
               <p className="hero__subtitle">
-                A command center designed for precision. Manage finances, maintenance requests,
-                and communications from a single, intuitive interface.
+                Your personal command center. Track your financial statements, view upcoming community levies,
+                and submit maintenance requests from a single, intuitive interface.
               </p>
-              <button className="btn btn-primary hero__btn">Get Started</button>
+              <Link to="/resident/register" className="btn btn-primary hero__btn">Get Started</Link>
             </div>
             <div className="hero__dashboard-preview">
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWafVHRgWRnQvxXQhc7BDN-rqK6pOxHdmc6ElG8DX9rtEdPryNWjWb1rlatDAr8Cxsp4PAXUQulwDv506w8N-nRl-NWtWIomwv9d8M-NlNKEiS-cNJAtHKPEDgVUu8pYmClVewKUwnpOgjgAg6-iU_YHpKASOGC9OCZQCS-tOKPiAE1DPjMUKxZRLeJB_YJmcfIUiVNqVWj5g4Whevu-YFaFaCoTMiIsCv0TZbwoGRPYN94LjGy35h__M2owZ6hsetXuVC1VTtLrE"
-                alt="A sleek dashboard for estate managers with data visualizations"
+                alt="A sleek dashboard for residents with financial graphs"
               />
             </div>
           </div>

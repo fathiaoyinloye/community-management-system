@@ -1,0 +1,12 @@
+{
+  "name": "community-management-system",
+  "version": "1.0.0",
+  "description": "Community Management System — monorepo root",
+  "private": true,
+  "scripts": {
+    "test:api": "node tests/api-runner.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

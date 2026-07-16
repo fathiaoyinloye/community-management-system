@@ -25,3 +25,12 @@ export interface ScheduledAdjustment {
   label: string
   effectiveLabel: string
 }
+
+export interface CreateLevyTypePayload {
+  name: string
+  description: string
+  icon: string
+  amount: number
+  frequency: LevyFrequency
+}
+

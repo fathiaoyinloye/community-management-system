@@ -12,12 +12,13 @@ function isValidEmail(value: string) {
 }
 
 export default function PlatformAdminLogin() {
-  const { login, isAuthenticating, error } = useAuth()
+  const { login, logout, isAuthenticating, error } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const [portalError, setPortalError] = useState<string | null>(null)
 
   const validate = (): boolean => {
     const errors: FieldErrors = {}
@@ -30,11 +31,17 @@ export default function PlatformAdminLogin() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setPortalError(null)
     if (!validate()) return
 
     try {
-      await login({ email, password })
-      navigate('/platform-admin/dashboard', { replace: true })
+      const user = await login({ email, password })
+      if (user.role !== 'platform_admin') {
+        logout()
+        setPortalError('This portal is restricted to platform administrators.')
+      } else {
+        navigate('/platform-admin/dashboard', { replace: true })
+      }
     } catch {
       // surfaced via error from useAuth()
     }
@@ -74,10 +81,10 @@ export default function PlatformAdminLogin() {
 
       <div className="pa-auth__form-side">
         <div className="pa-auth__card">
-          {error && (
+          {(error || portalError) && (
             <div role="alert" className="pa-auth__alert">
               <span className="material-symbols-outlined pa-auth__alert-icon">error</span>
-              {error}
+              {portalError || error}
             </div>
           )}
 

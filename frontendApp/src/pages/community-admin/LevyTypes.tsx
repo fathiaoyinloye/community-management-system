@@ -3,8 +3,9 @@ import CommunityAdminLayout from '../../layouts/CommunityAdminLayout'
 import Badge from '../../components/ui/Badge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
-import { getLevySummary, getLevyTypes, getScheduledAdjustments, updateLevyStatus } from '../../api/levy'
-import type { LevyFrequency, LevySummary, LevyType, ScheduledAdjustment } from '../../types/levy'
+import { createLevyType, getLevySummary, getLevyTypes, getScheduledAdjustments, updateLevyStatus } from '../../api/levy'
+import type { CreateLevyTypePayload, LevyFrequency, LevySummary, LevyType, ScheduledAdjustment } from '../../types/levy'
+import CreateLevyTypeModal from '../../components/CreateLevyTypeModal'
 
 const FREQUENCY_LABELS: Record<LevyFrequency, string> = {
   monthly: 'Monthly',
@@ -26,6 +27,15 @@ export default function LevyTypes() {
   const [scheduledAdjustments, setScheduledAdjustments] = useState<ScheduledAdjustment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+
+  const handleCreateLevy = async (payload: CreateLevyTypePayload) => {
+    const created = await createLevyType(payload)
+    setLevyTypes((current) => [...current, created])
+    // Refresh summary
+    const summaryData = await getLevySummary()
+    setSummary(summaryData)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -68,7 +78,7 @@ export default function LevyTypes() {
               all future invoice generation cycles.
             </p>
           </div>
-          <button type="button" className="lv__create-btn">
+          <button type="button" className="lv__create-btn" onClick={() => setIsCreateOpen(true)}>
             <span className="material-symbols-outlined">add</span>
             Create New Levy Type
           </button>
@@ -724,6 +734,12 @@ export default function LevyTypes() {
           }
         }
       `}</style>
+
+      <CreateLevyTypeModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreate={handleCreateLevy}
+      />
     </CommunityAdminLayout>
   )
 }

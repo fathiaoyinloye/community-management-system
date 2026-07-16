@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../store/AuthContext'
-
 
 interface FieldErrors {
   email?: string
@@ -12,14 +11,18 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-export default function CommunityAdminLogin() {
+export default function ResidentLogin() {
   const { login, logout, isAuthenticating, error } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [portalError, setPortalError] = useState<string | null>(null)
+  
+  const registerSuccess = location.state?.registrationSuccess
+
 
   const validate = (): boolean => {
     const errors: FieldErrors = {}
@@ -37,11 +40,12 @@ export default function CommunityAdminLogin() {
 
     try {
       const user = await login({ email, password })
-      if (user.role === 'resident') {
+      if (user.role !== 'resident') {
+        // Enforce resident-only access
         logout()
-        setPortalError('Residents must sign in via the Resident Portal.')
+        setPortalError('This portal is for residents only. If you are an administrator, please sign in via the Administrator Portal.')
       } else {
-        navigate('/community-admin/community-info', { replace: true })
+        navigate('/resident/dashboard', { replace: true })
       }
     } catch {
       // surfaced via error from useAuth()
@@ -49,71 +53,79 @@ export default function CommunityAdminLogin() {
   }
 
   return (
-    <div className="ca-auth">
-      <div className="ca-auth__panel">
-        <div className="ca-auth__glow ca-auth__glow--one" />
-        <div className="ca-auth__glow ca-auth__glow--two" />
-        <div className="ca-auth__panel-content">
-          <div className="ca-auth__brand">
-            <span className="material-symbols-outlined ca-auth__brand-icon">corporate_fare</span>
-            <span className="ca-auth__brand-name">CommUnity Admin</span>
+    <div className="res-auth">
+      <div className="res-auth__panel">
+        <div className="res-auth__glow res-auth__glow--one" />
+        <div className="res-auth__glow res-auth__glow--two" />
+        <div className="res-auth__panel-content">
+          <div className="res-auth__brand">
+            <span className="material-symbols-outlined res-auth__brand-icon">account_balance</span>
+            <span className="res-auth__brand-name">Resident Portal</span>
           </div>
-          <h2 className="ca-auth__panel-title">Manage your community from one dashboard.</h2>
-          <p className="ca-auth__panel-copy">
-            Community administrators manage residents, houses, levies, and payments for their
-            community, all in one place.
+          <h2 className="res-auth__panel-title">Simplified community living at your fingertips.</h2>
+          <p className="res-auth__panel-copy">
+            As a resident, you can securely access your billing statement, upload payment receipts, 
+            and keep track of your community levies.
           </p>
-          <ul className="ca-auth__panel-list">
+          <ul className="res-auth__panel-list">
             <li>
               <span className="material-symbols-outlined">check_circle</span>
-              Keep your community profile up to date
+              View outstanding balances and upcoming dues
             </li>
             <li>
               <span className="material-symbols-outlined">check_circle</span>
-              Track houses, levies, and payments
+              Track payment history and download digital receipts
             </li>
             <li>
               <span className="material-symbols-outlined">check_circle</span>
-              Manage your staff and residents
+              Receive instant updates and community notifications
             </li>
           </ul>
         </div>
       </div>
 
-      <div className="ca-auth__form-side">
-        <div className="ca-auth__card">
+      <div className="res-auth__form-side">
+        <div className="res-auth__card">
+          {registerSuccess && (
+            <div role="alert" className="res-auth__alert res-auth__alert--success">
+              <span className="material-symbols-outlined res-auth__alert-icon">check_circle</span>
+              Registration successful! Please sign in with your credentials.
+            </div>
+          )}
+
           {(error || portalError) && (
-            <div role="alert" className="ca-auth__alert">
-              <span className="material-symbols-outlined ca-auth__alert-icon">error</span>
+            <div role="alert" className="res-auth__alert">
+              <span className="material-symbols-outlined res-auth__alert-icon">error</span>
               {portalError || error}
             </div>
           )}
 
-          <form className="ca-auth__form" onSubmit={handleSubmit} noValidate>
-            <h1 className="ca-auth__title">Community Admin Sign In</h1>
-            <p className="ca-auth__subtitle">
-              Sign in with your community administrator credentials.
+
+          <form className="res-auth__form" onSubmit={handleSubmit} noValidate>
+            <h1 className="res-auth__title">Resident Sign In</h1>
+            <p className="res-auth__subtitle">
+              Sign in with your registered resident credentials.
             </p>
 
-            <label className="ca-auth__field">
-              <span className="ca-auth__label">Email</span>
+            <label className="res-auth__field">
+              <span className="res-auth__label">Email</span>
               <input
                 type="email"
-                className="ca-auth__input"
+                className="res-auth__input"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 autoComplete="email"
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.email)}
               />
-              {fieldErrors.email && <span className="ca-auth__field-error">{fieldErrors.email}</span>}
+              {fieldErrors.email && <span className="res-auth__field-error">{fieldErrors.email}</span>}
             </label>
 
-            <label className="ca-auth__field">
-              <span className="ca-auth__label">Password</span>
+            <label className="res-auth__field">
+              <span className="res-auth__label">Password</span>
               <input
                 type="password"
-                className="ca-auth__input"
+                className="res-auth__input"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete="current-password"
@@ -121,32 +133,40 @@ export default function CommunityAdminLogin() {
                 aria-invalid={Boolean(fieldErrors.password)}
               />
               {fieldErrors.password && (
-                <span className="ca-auth__field-error">{fieldErrors.password}</span>
+                <span className="res-auth__field-error">{fieldErrors.password}</span>
               )}
             </label>
 
-            <button type="submit" className="btn btn-primary ca-auth__submit" disabled={isAuthenticating}>
+            <button type="submit" className="btn btn-primary res-auth__submit" disabled={isAuthenticating}>
               {isAuthenticating ? 'Signing in…' : 'Log In'}
             </button>
 
-            <div className="ca-auth__footer">
-              <span className="ca-auth__footer-text">Are you a resident? </span>
-              <Link to="/resident/login" className="ca-auth__footer-link">
-                Sign in here
-              </Link>
+             <div className="res-auth__footer">
+              <div style={{ marginBottom: '8px' }}>
+                <span className="res-auth__footer-text">New resident? </span>
+                <Link to="/resident/register" className="res-auth__footer-link">
+                  Register here
+                </Link>
+              </div>
+              <div>
+                <span className="res-auth__footer-text">Are you an administrator? </span>
+                <Link to="/community-admin/login" className="res-auth__footer-link">
+                  Sign in here
+                </Link>
+              </div>
             </div>
           </form>
         </div>
       </div>
 
       <style>{`
-        .ca-auth {
+        .res-auth {
           min-height: 100vh;
           display: grid;
           grid-template-columns: 1fr;
         }
 
-        .ca-auth__panel {
+        .res-auth__panel {
           display: none;
           position: relative;
           overflow: hidden;
@@ -154,7 +174,7 @@ export default function CommunityAdminLogin() {
           background: linear-gradient(
             160deg,
             var(--color-primary-container) 0%,
-            #1c2340 60%,
+            #0f172a 60%,
             var(--color-secondary) 150%
           );
           color: #ffffff;
@@ -162,14 +182,14 @@ export default function CommunityAdminLogin() {
           justify-content: center;
         }
 
-        .ca-auth__glow {
+        .res-auth__glow {
           position: absolute;
           border-radius: var(--radius-full);
           filter: blur(60px);
           opacity: 0.35;
         }
 
-        .ca-auth__glow--one {
+        .res-auth__glow--one {
           width: 320px;
           height: 320px;
           background: var(--color-secondary);
@@ -177,7 +197,7 @@ export default function CommunityAdminLogin() {
           right: -80px;
         }
 
-        .ca-auth__glow--two {
+        .res-auth__glow--two {
           width: 260px;
           height: 260px;
           background: var(--color-tertiary-fixed);
@@ -185,32 +205,32 @@ export default function CommunityAdminLogin() {
           left: -60px;
         }
 
-        .ca-auth__panel-content {
+        .res-auth__panel-content {
           position: relative;
           z-index: 10;
           max-width: 420px;
         }
 
-        .ca-auth__brand {
+        .res-auth__brand {
           display: flex;
           align-items: center;
           gap: var(--space-base);
           margin-bottom: var(--space-xl);
         }
 
-        .ca-auth__brand-icon {
+        .res-auth__brand-icon {
           color: var(--color-tertiary-fixed);
           font-size: 28px;
           font-variation-settings: 'FILL' 1;
         }
 
-        .ca-auth__brand-name {
+        .res-auth__brand-name {
           font-family: var(--font-display);
           font-size: var(--text-headline-md);
           font-weight: 700;
         }
 
-        .ca-auth__panel-title {
+        .res-auth__panel-title {
           font-family: var(--font-display);
           font-size: var(--text-headline-lg);
           font-weight: 600;
@@ -218,19 +238,19 @@ export default function CommunityAdminLogin() {
           margin-bottom: var(--space-md);
         }
 
-        .ca-auth__panel-copy {
+        .res-auth__panel-copy {
           font-size: var(--text-body-lg);
           opacity: 0.85;
           margin-bottom: var(--space-lg);
         }
 
-        .ca-auth__panel-list {
+        .res-auth__panel-list {
           display: flex;
           flex-direction: column;
           gap: var(--space-sm);
         }
 
-        .ca-auth__panel-list li {
+        .res-auth__panel-list li {
           display: flex;
           align-items: center;
           gap: var(--space-sm);
@@ -238,12 +258,12 @@ export default function CommunityAdminLogin() {
           opacity: 0.9;
         }
 
-        .ca-auth__panel-list .material-symbols-outlined {
+        .res-auth__panel-list .material-symbols-outlined {
           color: var(--color-tertiary-fixed);
           font-size: 20px;
         }
 
-        .ca-auth__form-side {
+        .res-auth__form-side {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -252,7 +272,7 @@ export default function CommunityAdminLogin() {
           min-height: 100vh;
         }
 
-        .ca-auth__card {
+        .res-auth__card {
           width: 100%;
           max-width: 440px;
           background: #ffffff;
@@ -261,7 +281,7 @@ export default function CommunityAdminLogin() {
           box-shadow: 0 20px 45px -20px rgba(19, 27, 46, 0.25);
         }
 
-        .ca-auth__alert {
+        .res-auth__alert {
           display: flex;
           align-items: center;
           gap: var(--space-xs);
@@ -273,17 +293,22 @@ export default function CommunityAdminLogin() {
           margin-bottom: var(--space-md);
         }
 
-        .ca-auth__alert-icon {
+        .res-auth__alert--success {
+          background: #e6f4ea;
+          color: #137333;
+        }
+
+        .res-auth__alert-icon {
           font-size: 20px;
         }
 
-        .ca-auth__form {
+        .res-auth__form {
           display: flex;
           flex-direction: column;
           gap: var(--space-md);
         }
 
-        .ca-auth__title {
+        .res-auth__title {
           font-family: var(--font-display);
           font-size: var(--text-headline-lg);
           font-weight: 600;
@@ -291,25 +316,25 @@ export default function CommunityAdminLogin() {
           margin-bottom: var(--space-xs);
         }
 
-        .ca-auth__subtitle {
+        .res-auth__subtitle {
           color: var(--color-on-surface-variant);
           font-size: var(--text-label-md);
           margin-bottom: var(--space-xs);
         }
 
-        .ca-auth__field {
+        .res-auth__field {
           display: flex;
           flex-direction: column;
           gap: var(--space-xs);
         }
 
-        .ca-auth__label {
+        .res-auth__label {
           font-size: var(--text-label-md);
           font-weight: 500;
           color: var(--color-on-surface);
         }
 
-        .ca-auth__input {
+        .res-auth__input {
           font-family: var(--font-body);
           font-size: var(--text-body-md);
           padding: var(--space-sm);
@@ -320,60 +345,60 @@ export default function CommunityAdminLogin() {
           transition: border-color 0.2s ease;
         }
 
-        .ca-auth__input:focus {
+        .res-auth__input:focus {
           outline: none;
           border-color: var(--color-secondary);
         }
 
-        .ca-auth__input[aria-invalid='true'] {
+        .res-auth__input[aria-invalid='true'] {
           border-color: var(--color-error);
         }
 
-        .ca-auth__input:disabled {
+        .res-auth__input:disabled {
           opacity: 0.6;
         }
 
-        .ca-auth__field-error {
+        .res-auth__field-error {
           color: var(--color-error);
           font-size: 13px;
         }
 
-        .ca-auth__submit {
+        .res-auth__submit {
           margin-top: var(--space-xs);
           padding: var(--space-sm) var(--space-md);
           width: 100%;
         }
 
-        .ca-auth__footer {
+        .res-auth__footer {
           margin-top: var(--space-sm);
           text-align: center;
           font-size: 14px;
         }
 
-        .ca-auth__footer-text {
+        .res-auth__footer-text {
           color: var(--color-on-surface-variant);
         }
 
-        .ca-auth__footer-link {
+        .res-auth__footer-link {
           color: var(--color-secondary);
           font-weight: 600;
           text-decoration: none;
         }
 
-        .ca-auth__footer-link:hover {
+        .res-auth__footer-link:hover {
           text-decoration: underline;
         }
 
         @media (min-width: 1024px) {
-          .ca-auth {
+          .res-auth {
             grid-template-columns: 1.1fr 1fr;
           }
 
-          .ca-auth__panel {
+          .res-auth__panel {
             display: flex;
           }
 
-          .ca-auth__form-side {
+          .res-auth__form-side {
             min-height: auto;
           }
         }

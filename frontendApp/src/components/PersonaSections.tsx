@@ -1,8 +1,6 @@
-const ADMIN_POINTS = [
-  'Unified Dashboard for all maintenance and security tasks.',
-  'Real-time Financial Analytics and reporting modules.',
-  'Bulk Communication tools for urgent community updates.',
-]
+import { Link } from 'react-router-dom'
+
+
 
 const RESIDENT_POINTS = [
   'Book amenities like the pool or clubhouse in seconds.',
@@ -14,30 +12,6 @@ export default function PersonaSections() {
   return (
     <section className="personas">
       <div className="container">
-        <div className="personas__row">
-          <div className="personas__image personas__image--first">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuChpyZ7ACZW_R3t8uSdDpwmHVwq_jxrmA8UtRYyI3t71TZM7hyYNvTz5Tm55ydmVh6MBRwtHymNpolppDrP-FJ2y6RN7rc1A11r-pOoFMYmq8d4DfRsfQb-oaQRwIICc_CWff-YbUeeP9L_z5jpH3c9VGreDuFX2D220YWMQHe7i0hu6GHs3oGSF0dHF8HMGgg7TFfNM0cEW8Y4zWUOJNoC4m1WR1npkJcsxpFjqYqWhqkMKoCVCBK07IdmIZYzIempSoHCNu3vuCc"
-              alt="A confident professional estate manager reviewing a tablet"
-            />
-          </div>
-          <div className="personas__copy personas__copy--first">
-            <span className="personas__tag">For Administrators</span>
-            <h2 className="personas__heading">Effortless Administration.</h2>
-            <ul className="personas__list">
-              {ADMIN_POINTS.map((point) => (
-                <li key={point} className="personas__list-item">
-                  <span className="material-symbols-outlined personas__check personas__check--admin">
-                    check
-                  </span>
-                  <p>{point}</p>
-                </li>
-              ))}
-            </ul>
-            <button className="btn btn-primary personas__btn">Schedule Admin Demo</button>
-          </div>
-        </div>
-
         <div className="personas__row">
           <div className="personas__copy">
             <span className="personas__tag personas__tag--resident">For Residents</span>
@@ -52,7 +26,7 @@ export default function PersonaSections() {
                 </li>
               ))}
             </ul>
-            <button className="btn btn-dark personas__btn">Download Resident App</button>
+            <Link to="/resident/register" className="btn btn-dark personas__btn">Get Started</Link>
           </div>
           <div className="personas__image">
             <img
