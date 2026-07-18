@@ -1,52 +1,52 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../../store/AuthContext'
-
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 
 interface FieldErrors {
-  email?: string
-  password?: string
+  email?: string;
+  password?: string;
 }
 
 function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export default function CommunityAdminLogin() {
-  const { login, logout, isAuthenticating, error } = useAuth()
-  const navigate = useNavigate()
+  const { login, logout, isAuthenticating, error } = useAuth();
+  const navigate = useNavigate();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [portalError, setPortalError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   const validate = (): boolean => {
-    const errors: FieldErrors = {}
-    if (!email.trim()) errors.email = 'Email is required.'
-    else if (!isValidEmail(email)) errors.email = 'Enter a valid email address.'
-    if (!password) errors.password = 'Password is required.'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+    const errors: FieldErrors = {};
+    if (!email.trim()) errors.email = "Email is required.";
+    else if (!isValidEmail(email))
+      errors.email = "Enter a valid email address.";
+    if (!password) errors.password = "Password is required.";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setPortalError(null)
-    if (!validate()) return
+    event.preventDefault();
+    setPortalError(null);
+    if (!validate()) return;
 
     try {
-      const user = await login({ email, password })
-      if (user.role === 'resident') {
-        logout()
-        setPortalError('Residents must sign in via the Resident Portal.')
+      const user = await login({ email, password });
+      if (user.role === "resident") {
+        logout();
+        setPortalError("Residents must sign in via the Resident Portal.");
       } else {
-        navigate('/community-admin/community-info', { replace: true })
+        navigate("/community-admin/community-info", { replace: true });
       }
     } catch {
       // surfaced via error from useAuth()
     }
-  }
+  };
 
   return (
     <div className="ca-auth">
@@ -55,13 +55,17 @@ export default function CommunityAdminLogin() {
         <div className="ca-auth__glow ca-auth__glow--two" />
         <div className="ca-auth__panel-content">
           <div className="ca-auth__brand">
-            <span className="material-symbols-outlined ca-auth__brand-icon">corporate_fare</span>
+            <span className="material-symbols-outlined ca-auth__brand-icon">
+              corporate_fare
+            </span>
             <span className="ca-auth__brand-name">CommUnity Admin</span>
           </div>
-          <h2 className="ca-auth__panel-title">Manage your community from one dashboard.</h2>
+          <h2 className="ca-auth__panel-title">
+            Manage your community from one dashboard.
+          </h2>
           <p className="ca-auth__panel-copy">
-            Community administrators manage residents, houses, levies, and payments for their
-            community, all in one place.
+            Community administrators manage residents, houses, levies, and
+            payments for their community, all in one place.
           </p>
           <ul className="ca-auth__panel-list">
             <li>
@@ -84,7 +88,9 @@ export default function CommunityAdminLogin() {
         <div className="ca-auth__card">
           {(error || portalError) && (
             <div role="alert" className="ca-auth__alert">
-              <span className="material-symbols-outlined ca-auth__alert-icon">error</span>
+              <span className="material-symbols-outlined ca-auth__alert-icon">
+                error
+              </span>
               {portalError || error}
             </div>
           )}
@@ -106,7 +112,11 @@ export default function CommunityAdminLogin() {
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.email)}
               />
-              {fieldErrors.email && <span className="ca-auth__field-error">{fieldErrors.email}</span>}
+              {fieldErrors.email && (
+                <span className="ca-auth__field-error">
+                  {fieldErrors.email}
+                </span>
+              )}
             </label>
 
             <label className="ca-auth__field">
@@ -121,15 +131,19 @@ export default function CommunityAdminLogin() {
                 aria-invalid={Boolean(fieldErrors.password)}
               />
               {fieldErrors.password && (
-                <span className="ca-auth__field-error">{fieldErrors.password}</span>
+                <span className="ca-auth__field-error">
+                  {fieldErrors.password}
+                </span>
               )}
             </label>
 
-            <button type="submit" className="btn btn-primary ca-auth__submit" disabled={isAuthenticating}>
-              {isAuthenticating ? 'Signing in…' : 'Log In'}
+            <button
+              type="submit"
+              className="btn btn-primary ca-auth__submit"
+              disabled={isAuthenticating}
+            >
+              {isAuthenticating ? "Signing in…" : "Log In"}
             </button>
-
-
           </form>
         </div>
       </div>
@@ -355,5 +369,5 @@ export default function CommunityAdminLogin() {
         }
       `}</style>
     </div>
-  )
+  );
 }

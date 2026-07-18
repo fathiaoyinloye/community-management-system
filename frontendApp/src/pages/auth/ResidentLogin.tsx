@@ -1,56 +1,56 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../../store/AuthContext'
+import { useState, type FormEvent } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 
 interface FieldErrors {
-  email?: string
-  password?: string
+  email?: string;
+  password?: string;
 }
 
 function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export default function ResidentLogin() {
-  const { login, logout, isAuthenticating, error } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const { login, logout, isAuthenticating, error } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [portalError, setPortalError] = useState<string | null>(null)
-  
-  const registerSuccess = location.state?.registrationSuccess
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [portalError, setPortalError] = useState<string | null>(null);
 
+  const registerSuccess = location.state?.registrationSuccess;
 
   const validate = (): boolean => {
-    const errors: FieldErrors = {}
-    if (!email.trim()) errors.email = 'Email is required.'
-    else if (!isValidEmail(email)) errors.email = 'Enter a valid email address.'
-    if (!password) errors.password = 'Password is required.'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+    const errors: FieldErrors = {};
+    if (!email.trim()) errors.email = "Email is required.";
+    else if (!isValidEmail(email))
+      errors.email = "Enter a valid email address.";
+    if (!password) errors.password = "Password is required.";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setPortalError(null)
-    if (!validate()) return
+    event.preventDefault();
+    setPortalError(null);
+    if (!validate()) return;
 
     try {
-      const user = await login({ email, password })
-      if (user.role !== 'resident') {
+      const user = await login({ email, password });
+      if (user.role !== "resident") {
         // Enforce resident-only access
-        logout()
-        setPortalError('This portal is for residents only. If you are an administrator, please sign in via the Administrator Portal.')
+        logout();
+        setPortalError("This portal is for residents only.");
       } else {
-        navigate('/resident/dashboard', { replace: true })
+        navigate("/resident/dashboard", { replace: true });
       }
     } catch {
       // surfaced via error from useAuth()
     }
-  }
+  };
 
   return (
     <div className="res-auth">
@@ -59,13 +59,17 @@ export default function ResidentLogin() {
         <div className="res-auth__glow res-auth__glow--two" />
         <div className="res-auth__panel-content">
           <div className="res-auth__brand">
-            <span className="material-symbols-outlined res-auth__brand-icon">account_balance</span>
+            <span className="material-symbols-outlined res-auth__brand-icon">
+              account_balance
+            </span>
             <span className="res-auth__brand-name">Resident Portal</span>
           </div>
-          <h2 className="res-auth__panel-title">Simplified community living at your fingertips.</h2>
+          <h2 className="res-auth__panel-title">
+            Simplified community living at your fingertips.
+          </h2>
           <p className="res-auth__panel-copy">
-            As a resident, you can securely access your billing statement, upload payment receipts, 
-            and keep track of your community levies.
+            As a resident, you can securely access your billing statement,
+            upload payment receipts, and keep track of your community levies.
           </p>
           <ul className="res-auth__panel-list">
             <li>
@@ -87,19 +91,25 @@ export default function ResidentLogin() {
       <div className="res-auth__form-side">
         <div className="res-auth__card">
           {registerSuccess && (
-            <div role="alert" className="res-auth__alert res-auth__alert--success">
-              <span className="material-symbols-outlined res-auth__alert-icon">check_circle</span>
+            <div
+              role="alert"
+              className="res-auth__alert res-auth__alert--success"
+            >
+              <span className="material-symbols-outlined res-auth__alert-icon">
+                check_circle
+              </span>
               Registration successful! Please sign in with your credentials.
             </div>
           )}
 
           {(error || portalError) && (
             <div role="alert" className="res-auth__alert">
-              <span className="material-symbols-outlined res-auth__alert-icon">error</span>
+              <span className="material-symbols-outlined res-auth__alert-icon">
+                error
+              </span>
               {portalError || error}
             </div>
           )}
-
 
           <form className="res-auth__form" onSubmit={handleSubmit} noValidate>
             <h1 className="res-auth__title">Resident Sign In</h1>
@@ -118,7 +128,11 @@ export default function ResidentLogin() {
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.email)}
               />
-              {fieldErrors.email && <span className="res-auth__field-error">{fieldErrors.email}</span>}
+              {fieldErrors.email && (
+                <span className="res-auth__field-error">
+                  {fieldErrors.email}
+                </span>
+              )}
             </label>
 
             <label className="res-auth__field">
@@ -133,14 +147,19 @@ export default function ResidentLogin() {
                 aria-invalid={Boolean(fieldErrors.password)}
               />
               {fieldErrors.password && (
-                <span className="res-auth__field-error">{fieldErrors.password}</span>
+                <span className="res-auth__field-error">
+                  {fieldErrors.password}
+                </span>
               )}
             </label>
 
-            <button type="submit" className="btn btn-primary res-auth__submit" disabled={isAuthenticating}>
-              {isAuthenticating ? 'Signing in…' : 'Log In'}
+            <button
+              type="submit"
+              className="btn btn-primary res-auth__submit"
+              disabled={isAuthenticating}
+            >
+              {isAuthenticating ? "Signing in…" : "Log In"}
             </button>
-
           </form>
         </div>
       </div>
@@ -371,5 +390,5 @@ export default function ResidentLogin() {
         }
       `}</style>
     </div>
-  )
+  );
 }
