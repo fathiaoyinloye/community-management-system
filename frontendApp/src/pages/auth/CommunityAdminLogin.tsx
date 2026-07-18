@@ -129,12 +129,7 @@ export default function CommunityAdminLogin() {
               {isAuthenticating ? 'Signing in…' : 'Log In'}
             </button>
 
-            <div className="ca-auth__footer">
-              <span className="ca-auth__footer-text">Are you a resident? </span>
-              <Link to="/resident/login" className="ca-auth__footer-link">
-                Sign in here
-              </Link>
-            </div>
+
           </form>
         </div>
       </div>
@@ -344,25 +339,6 @@ export default function CommunityAdminLogin() {
           width: 100%;
         }
 
-        .ca-auth__footer {
-          margin-top: var(--space-sm);
-          text-align: center;
-          font-size: 14px;
-        }
-
-        .ca-auth__footer-text {
-          color: var(--color-on-surface-variant);
-        }
-
-        .ca-auth__footer-link {
-          color: var(--color-secondary);
-          font-weight: 600;
-          text-decoration: none;
-        }
-
-        .ca-auth__footer-link:hover {
-          text-decoration: underline;
-        }
 
         @media (min-width: 1024px) {
           .ca-auth {

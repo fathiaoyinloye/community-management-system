@@ -75,12 +75,7 @@ export default function ResidentRegister() {
               Back to Sign In
             </button>
 
-            <div className="res-auth__footer" style={{ marginTop: '24px' }}>
-              <span className="res-auth__footer-text">Are you an administrator? </span>
-              <Link to="/community-admin/login" className="res-auth__footer-link">
-                Admin Sign In
-              </Link>
-            </div>
+
           </div>
         </div>
       </div>
@@ -284,24 +279,6 @@ export default function ResidentRegister() {
           width: 100%;
         }
 
-        .res-auth__footer {
-          text-align: center;
-          font-size: 14px;
-        }
-
-        .res-auth__footer-text {
-          color: var(--color-on-surface-variant);
-        }
-
-        .res-auth__footer-link {
-          color: var(--color-secondary);
-          font-weight: 600;
-          text-decoration: none;
-        }
-
-        .res-auth__footer-link:hover {
-          text-decoration: underline;
-        }
 
         @media (min-width: 1024px) {
           .res-auth {

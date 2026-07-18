@@ -141,19 +141,6 @@ export default function ResidentLogin() {
               {isAuthenticating ? 'Signing in…' : 'Log In'}
             </button>
 
-             <div className="res-auth__footer">
-              <div style={{ marginBottom: '12px', lineHeight: '1.4' }}>
-                <span className="res-auth__footer-text">
-                  New resident? Please contact your Community Administrator to get your portal login credentials.
-                </span>
-              </div>
-              <div>
-                <span className="res-auth__footer-text">Are you an administrator? </span>
-                <Link to="/community-admin/login" className="res-auth__footer-link">
-                  Sign in here
-                </Link>
-              </div>
-            </div>
           </form>
         </div>
       </div>
@@ -368,25 +355,6 @@ export default function ResidentLogin() {
           width: 100%;
         }
 
-        .res-auth__footer {
-          margin-top: var(--space-sm);
-          text-align: center;
-          font-size: 14px;
-        }
-
-        .res-auth__footer-text {
-          color: var(--color-on-surface-variant);
-        }
-
-        .res-auth__footer-link {
-          color: var(--color-secondary);
-          font-weight: 600;
-          text-decoration: none;
-        }
-
-        .res-auth__footer-link:hover {
-          text-decoration: underline;
-        }
 
         @media (min-width: 1024px) {
           .res-auth {

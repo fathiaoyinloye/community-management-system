@@ -21,7 +21,7 @@ const ACTIVITY_FEED = [
     tone: 'indigo',
     title: 'New Community Onboarded',
     description: 'Sunrise Meadows was added to the platform.',
-    time: '2 hours ago',
+    time: '2 hours ago'
   },
   {
     icon: 'mail',

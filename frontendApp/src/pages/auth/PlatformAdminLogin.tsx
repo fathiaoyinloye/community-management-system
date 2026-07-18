@@ -337,6 +337,8 @@ export default function PlatformAdminLogin() {
           width: 100%;
         }
 
+        }
+
         @media (min-width: 1024px) {
           .pa-auth {
             grid-template-columns: 1.1fr 1fr;

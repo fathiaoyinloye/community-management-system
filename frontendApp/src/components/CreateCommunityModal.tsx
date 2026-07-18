@@ -1,80 +1,90 @@
-import { useState, type FormEvent } from 'react'
-import { useCommunities } from '../store/CommunitiesContext'
-import type { CreateCommunityPayload } from '../types/community'
+import { useState, type FormEvent } from "react";
+import { useCommunities } from "../store/CommunitiesContext";
+import type { CreateCommunityPayload } from "../types/community";
 
 interface CreateCommunityModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface FormState {
-  name: string
-  state: string
-  lga: string
-  adminName: string
-  adminEmail: string
-  temporaryPassword: string
+  name: string;
+  state: string;
+  lga: string;
+  adminName: string;
+  adminEmail: string;
+  temporaryPassword: string;
 }
 
 const EMPTY_FORM: FormState = {
-  name: '',
-  state: '',
-  lga: '',
-  adminName: '',
-  adminEmail: '',
-  temporaryPassword: '',
-}
+  name: "",
+  state: "",
+  lga: "",
+  adminName: "",
+  adminEmail: "",
+  temporaryPassword: "",
+};
 
 function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function generatePassword() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
-  let result = ''
-  for (let i = 0; i < 10; i += 1) {
-    result += chars[Math.floor(Math.random() * chars.length)]
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz234567890";
+  let result = "";
+  for (let index = 0; index < 10; index += 1) {
+    result += chars[Math.floor(Math.random() * chars.length)];
   }
-  return result
+  return result;
 }
 
-export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunityModalProps) {
-  const { createCommunity } = useCommunities()
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [created, setCreated] = useState<{ communityName: string; adminEmail: string; password: string } | null>(
-    null,
-  )
+export default function CreateCommunityModal({
+  isOpen,
+  onClose,
+}: CreateCommunityModalProps) {
+  const { createCommunity } = useCommunities();
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState<{
+    communityName: string;
+    adminEmail: string;
+    password: string;
+  } | null>(null);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const updateField = (field: keyof FormState, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }))
-  }
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
   const handleClose = () => {
-    setForm(EMPTY_FORM)
-    setError(null)
-    setCreated(null)
-    onClose()
-  }
+    setForm(EMPTY_FORM);
+    setError(null);
+    setCreated(null);
+    onClose();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
+    event.preventDefault();
+    setError(null);
 
-    if (!form.name.trim() || !form.state.trim() || !form.lga.trim() || !form.adminName.trim()) {
-      setError('Please fill in every field.')
-      return
+    if (
+      !form.name.trim() ||
+      !form.state.trim() ||
+      !form.lga.trim() ||
+      !form.adminName.trim()
+    ) {
+      setError("Please fill in every field.");
+      return;
     }
     if (!isValidEmail(form.adminEmail)) {
-      setError('Enter a valid admin email address.')
-      return
+      setError("Enter a valid admin email address.");
+      return;
     }
-    if (form.temporaryPassword.length < 8) {
-      setError('Temporary password must be at least 8 characters.')
-      return
+    if (form.temporaryPassword.length < 5) {
+      setError("Temporary password must be at least 5 characters.");
+      return;
     }
 
     const payload: CreateCommunityPayload = {
@@ -84,27 +94,34 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
       adminName: form.adminName.trim(),
       adminEmail: form.adminEmail.trim(),
       temporaryPassword: form.temporaryPassword,
-    }
+    };
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const community = await createCommunity(payload)
+      const community = await createCommunity(payload);
       setCreated({
         communityName: community.name,
         adminEmail: payload.adminEmail,
         password: payload.temporaryPassword,
-      })
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to create community.')
+      setError(
+        err instanceof Error ? err.message : "Unable to create community.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="ccm__overlay" role="dialog" aria-modal="true">
       <div className="ccm__panel">
-        <button type="button" className="ccm__close" onClick={handleClose} aria-label="Close">
+        <button
+          type="button"
+          className="ccm__close"
+          onClick={handleClose}
+          aria-label="Close"
+        >
           <span className="material-symbols-outlined">close</span>
         </button>
 
@@ -115,8 +132,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
             </div>
             <h2 className="ccm__title">Community created</h2>
             <p className="ccm__success-copy">
-              <strong>{created.communityName}</strong> is set up. Share these temporary credentials with
-              the community admin so they can sign in and set their own password.
+              <strong>{created.communityName}</strong> is set up. Share these
+              temporary credentials with the community admin so they can sign in
+              and set their own password.
             </p>
             <div className="ccm__credentials">
               <div>
@@ -128,7 +146,11 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                 <p>{created.password}</p>
               </div>
             </div>
-            <button type="button" className="btn btn-primary ccm__done" onClick={handleClose}>
+            <button
+              type="button"
+              className="btn btn-primary ccm__done"
+              onClick={handleClose}
+            >
               Done
             </button>
           </div>
@@ -136,8 +158,8 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
           <>
             <h2 className="ccm__title">New Community</h2>
             <p className="ccm__subtitle">
-              Create a community and issue its admin a temporary password. They can change it after
-              signing in.
+              Create a community and issue its admin a temporary password. They
+              can change it after signing in.
             </p>
 
             {error && (
@@ -155,7 +177,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(event) => updateField('name', event.target.value)}
+                    onChange={(event) =>
+                      updateField("name", event.target.value)
+                    }
                     disabled={isSubmitting}
                   />
                 </label>
@@ -164,7 +188,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                   <input
                     type="text"
                     value={form.state}
-                    onChange={(event) => updateField('state', event.target.value)}
+                    onChange={(event) =>
+                      updateField("state", event.target.value)
+                    }
                     disabled={isSubmitting}
                   />
                 </label>
@@ -173,7 +199,7 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                   <input
                     type="text"
                     value={form.lga}
-                    onChange={(event) => updateField('lga', event.target.value)}
+                    onChange={(event) => updateField("lga", event.target.value)}
                     disabled={isSubmitting}
                   />
                 </label>
@@ -186,7 +212,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                   <input
                     type="text"
                     value={form.adminName}
-                    onChange={(event) => updateField('adminName', event.target.value)}
+                    onChange={(event) =>
+                      updateField("adminName", event.target.value)
+                    }
                     disabled={isSubmitting}
                   />
                 </label>
@@ -195,7 +223,9 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                   <input
                     type="email"
                     value={form.adminEmail}
-                    onChange={(event) => updateField('adminEmail', event.target.value)}
+                    onChange={(event) =>
+                      updateField("adminEmail", event.target.value)
+                    }
                     disabled={isSubmitting}
                   />
                 </label>
@@ -205,14 +235,18 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
                     <input
                       type="text"
                       value={form.temporaryPassword}
-                      onChange={(event) => updateField('temporaryPassword', event.target.value)}
+                      onChange={(event) =>
+                        updateField("temporaryPassword", event.target.value)
+                      }
                       disabled={isSubmitting}
                       placeholder="Set a temporary password"
                     />
                     <button
                       type="button"
                       className="ccm__generate"
-                      onClick={() => updateField('temporaryPassword', generatePassword())}
+                      onClick={() =>
+                        updateField("temporaryPassword", generatePassword())
+                      }
                       disabled={isSubmitting}
                     >
                       Generate
@@ -222,11 +256,20 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
               </div>
 
               <div className="ccm__actions">
-                <button type="button" className="ccm__cancel" onClick={handleClose} disabled={isSubmitting}>
+                <button
+                  type="button"
+                  className="ccm__cancel"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary ccm__submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Creating…' : 'Create Community'}
+                <button
+                  type="submit"
+                  className="btn btn-primary ccm__submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Creating…" : "Create Community"}
                 </button>
               </div>
             </form>
@@ -467,5 +510,5 @@ export default function CreateCommunityModal({ isOpen, onClose }: CreateCommunit
         }
       `}</style>
     </div>
-  )
+  );
 }
