@@ -14,7 +14,7 @@ import {
 } from '../mocks/community.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 export async function getCommunities(): Promise<Community[]> {
   if (USE_MOCK) return mockGetCommunities()

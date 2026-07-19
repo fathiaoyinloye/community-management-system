@@ -8,7 +8,7 @@ import {
 } from '../mocks/payment.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 /** Resident: upload proof of payment — POST /api/v1/payments */
 export async function uploadPayment(payload: UploadPaymentPayload): Promise<{ message: string }> {

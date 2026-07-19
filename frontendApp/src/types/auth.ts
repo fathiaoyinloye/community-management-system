@@ -12,7 +12,7 @@ export interface LoginResponse {
   username: string
   firstName: string
   lastName: string
-  role: UserRole
+  role: string  // raw from backend, normalized to UserRole in api/auth.ts
 }
 
 // ── Local convenience: full user stored in context ───────────────────────────

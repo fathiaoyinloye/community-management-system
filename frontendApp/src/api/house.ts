@@ -3,7 +3,7 @@ import type { UserActivationResponse } from '../types/auth'
 import { mockGetHouses, mockRegisterHouse, mockAssignResident } from '../mocks/house.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 export async function getHouses(
   keyword?: string,

@@ -2,7 +2,7 @@ import type { AuthUser, LoginPayload, LoginResponse, CompleteAccountSetupPayload
 import { mockLogin } from '../mocks/auth.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 export async function login(payload: LoginPayload): Promise<{ token: string; user: AuthUser }> {
   if (USE_MOCK) {
@@ -21,13 +21,19 @@ export async function login(payload: LoginPayload): Promise<{ token: string; use
   }
 
   const data: LoginResponse = await response.json()
+
+  // Normalize role — backend may return uppercase e.g. "PLATFORM_ADMIN"
+  const normalizeRole = (raw: string): AuthUser['role'] => {
+    return raw.toLowerCase().replace(/^role_/, '') as AuthUser['role']
+  }
+
   const user: AuthUser = {
     id: data.id,
     username: data.username,
     firstName: data.firstName,
     lastName: data.lastName,
     name: `${data.firstName} ${data.lastName}`,
-    role: data.role,
+    role: normalizeRole(data.role),
   }
 
   // Backend doesn't return a token in LoginResponse — use a placeholder until

@@ -9,7 +9,7 @@ import {
 } from '../mocks/levy.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 /** Community admin: get all levy types (POST /api/v1/levies creates one) */
 export async function getLevyTypes(): Promise<LevyType[]> {
