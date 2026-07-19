@@ -1,4 +1,10 @@
-import type { CreateLevyTypePayload, HouseLevy, LevySummary, LevyType, ScheduledAdjustment } from '../types/levy'
+import type {
+  CreateLevyTypePayload,
+  HouseLevy,
+  LevySummary,
+  LevyType,
+  ScheduledAdjustment,
+} from '../types/levy'
 import {
   mockCreateLevyType,
   mockGetHouseLevies,
@@ -9,57 +15,62 @@ import {
 } from '../mocks/levy.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = false
+// POST /levies — implemented
+const USE_MOCK_WRITE = false
+// GET /levies/my-balance — implemented
+const USE_MOCK_BALANCE = false
 
-/** Community admin: get all levy types (POST /api/v1/levies creates one) */
-export async function getLevyTypes(): Promise<LevyType[]> {
-  if (USE_MOCK) return mockGetLevyTypes()
-
-  const response = await fetch(apiUrl('/api/v1/levies'))
-  if (!response.ok) throw new Error('Unable to load levy types.')
-  return response.json() as Promise<LevyType[]>
-}
-
-/** Community admin: create a new levy type */
+/** Community staff: create a new levy type — POST /api/v1/levies */
 export async function createLevyType(payload: CreateLevyTypePayload): Promise<LevyType> {
-  if (USE_MOCK) return mockCreateLevyType(payload)
+  if (USE_MOCK_WRITE) return mockCreateLevyType(payload)
 
-  const response = await fetch(apiUrl('/api/v1/levies'), {
+  // Backend expects uppercase frequency
+  const body = {
+    name: payload.name,
+    amount: payload.amount,
+    frequency: payload.frequency.toUpperCase(),
+    description: payload.description,
+    icon: payload.icon,
+  }
+
+  const response = await fetch(apiUrl('/levies'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    credentials: 'include',
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {
-    const body = await response.json().catch(() => null)
-    throw new Error(body?.message ?? 'Unable to create levy type.')
+    const err = await response.json().catch(() => null)
+    throw new Error(err?.message ?? 'Unable to create levy type.')
   }
 
   return response.json() as Promise<LevyType>
 }
 
-/** Resident: get my outstanding house levy balances */
+/** Resident: get outstanding house levy balances — GET /api/v1/levies/my-balance */
 export async function getMyBalance(): Promise<HouseLevy[]> {
-  if (USE_MOCK) return mockGetHouseLevies()
+  if (USE_MOCK_BALANCE) return mockGetHouseLevies()
 
-  const response = await fetch(apiUrl('/api/v1/levies/my-balance'))
+  const response = await fetch(apiUrl('/levies/my-balance'), { credentials: 'include' })
   if (!response.ok) throw new Error('Unable to load levy balances.')
   return response.json() as Promise<HouseLevy[]>
 }
 
-// ── UI-only helpers (mock-only, no swagger equivalent) ───────────────────────
+// ── UI-only helpers (mocked — no backend endpoint yet) ────────────────────────
+
+export async function getLevyTypes(): Promise<LevyType[]> {
+  return mockGetLevyTypes()
+}
 
 export async function getLevySummary(): Promise<LevySummary> {
-  if (USE_MOCK) return mockGetLevySummary()
-  throw new Error('getLevySummary: no backend endpoint available.')
+  return mockGetLevySummary()
 }
 
 export async function getScheduledAdjustments(): Promise<ScheduledAdjustment[]> {
-  if (USE_MOCK) return mockGetScheduledAdjustments()
-  throw new Error('getScheduledAdjustments: no backend endpoint available.')
+  return mockGetScheduledAdjustments()
 }
 
 export async function updateLevyStatus(id: string, status: LevyType['status']): Promise<LevyType> {
-  if (USE_MOCK) return mockUpdateLevyStatus(id, status)
-  throw new Error('updateLevyStatus: no backend endpoint available.')
+  return mockUpdateLevyStatus(id, status)
 }

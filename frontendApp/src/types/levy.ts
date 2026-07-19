@@ -3,6 +3,8 @@ export interface CreateLevyTypePayload {
   name: string
   amount: number
   frequency: LevyFrequency
+  description?: string
+  icon?: string
 }
 
 // ── Swagger: LevyTypeResponse ─────────────────────────────────────────────────
@@ -28,7 +30,15 @@ export interface HouseLevy {
   status: HouseLevyStatus
 }
 
-export type LevyFrequency = 'monthly' | 'yearly' | 'one_time'
+export type LevyFrequency =
+  | 'monthly'
+  | 'yearly'
+  | 'one_time'
+  | 'quarterly'
+  | 'MONTHLY'
+  | 'QUARTERLY'
+  | 'ANNUALLY'
+  | 'ONE_TIME'
 export type LevyStatus = 'active' | 'inactive'
 export type HouseLevyStatus = 'paid' | 'unpaid' | 'overdue' | 'partial'
 

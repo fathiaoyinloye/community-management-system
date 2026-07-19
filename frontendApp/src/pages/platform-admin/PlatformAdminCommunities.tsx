@@ -1,37 +1,40 @@
-import { useMemo, useState } from 'react'
-import PlatformAdminLayout from '../../layouts/PlatformAdminLayout'
-import Badge from '../../components/ui/Badge'
-import Spinner from '../../components/ui/Spinner'
-import EmptyState from '../../components/ui/EmptyState'
-import { CommunitiesProvider, useCommunities } from '../../store/CommunitiesContext'
-import type { Community } from '../../types/community'
+import { useMemo, useState } from "react";
+import PlatformAdminLayout from "../../layouts/PlatformAdminLayout";
+import Badge from "../../components/ui/Badge";
+import Spinner from "../../components/ui/Spinner";
+import EmptyState from "../../components/ui/EmptyState";
+import {
+  CommunitiesProvider,
+  useCommunities,
+} from "../../store/CommunitiesContext";
+import type { Community } from "../../types/community";
 
-type FilterTab = 'all' | 'active' | 'pending_setup'
-type SortKey = 'name' | 'housesCount' | 'createdAt' | 'state'
-type SortDir = 'asc' | 'desc'
+type FilterTab = "all" | "active" | "pending_setup";
+type SortKey = "name" | "housesCount" | "createdAt" | "state";
+type SortDir = "asc" | "desc";
 
 const TABS: { key: FilterTab; label: string; icon: string }[] = [
-  { key: 'all', label: 'All Communities', icon: 'apps' },
-  { key: 'active', label: 'Active', icon: 'verified' },
-  { key: 'pending_setup', label: 'Pending Setup', icon: 'pending' },
-]
+  { key: "all", label: "All Communities", icon: "apps" },
+  { key: "active", label: "Active", icon: "verified" },
+  { key: "pending_setup", label: "Pending Setup", icon: "pending" },
+];
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('en-NG', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return new Date(value).toLocaleDateString("en-NG", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
+    .join("")
+    .toUpperCase();
 }
 
 export default function PlatformAdminCommunitiesPage() {
@@ -39,94 +42,100 @@ export default function PlatformAdminCommunitiesPage() {
     <CommunitiesProvider>
       <PlatformAdminCommunities />
     </CommunitiesProvider>
-  )
+  );
 }
 
 function PlatformAdminCommunities() {
-  const { communities, isLoading } = useCommunities()
-  const [activeTab, setActiveTab] = useState<FilterTab>('all')
-  const [search, setSearch] = useState('')
-  const [sortKey, setSortKey] = useState<SortKey>('createdAt')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const { communities, isLoading } = useCommunities();
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
-      setSortKey(key)
-      setSortDir('asc')
+      setSortKey(key);
+      setSortDir("asc");
     }
-  }
+  };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const toggleSelectAll = (list: Community[]) => {
     if (selectedIds.size === list.length && list.length > 0) {
-      setSelectedIds(new Set())
+      setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(list.map((c) => c.id)))
+      setSelectedIds(new Set(list.map((c) => c.id)));
     }
-  }
+  };
 
   const filteredAndSorted = useMemo(() => {
-    let result = communities
+    let result = communities;
 
     // Filter by tab
-    if (activeTab !== 'all') {
-      result = result.filter((c) => c.status === activeTab)
+    if (activeTab !== "all") {
+      result = result.filter((c) => c.status === activeTab);
     }
 
     // Filter by search
     if (search.trim()) {
-      const q = search.toLowerCase()
+      const q = search.toLowerCase();
       result = result.filter(
         (c) =>
           c.name.toLowerCase().includes(q) ||
-          c.adminName.toLowerCase().includes(q) ||
+          (c.adminName ?? "").toLowerCase().includes(q) ||
           c.state.toLowerCase().includes(q) ||
           c.lga.toLowerCase().includes(q),
-      )
+      );
     }
 
     // Sort
     const sorted = [...result].sort((a, b) => {
-      let cmp = 0
+      let cmp = 0;
       switch (sortKey) {
-        case 'name':
-          cmp = a.name.localeCompare(b.name)
-          break
-        case 'housesCount':
-          cmp = a.housesCount - b.housesCount
-          break
-        case 'createdAt':
-          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          break
-        case 'state':
-          cmp = a.state.localeCompare(b.state)
-          break
+        case "name":
+          cmp = a.name.localeCompare(b.name);
+          break;
+        case "housesCount":
+          cmp = (a.housesCount ?? 0) - (b.housesCount ?? 0);
+          break;
+        case "createdAt":
+          cmp =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "state":
+          cmp = a.state.localeCompare(b.state);
+          break;
       }
-      return sortDir === 'asc' ? cmp : -cmp
-    })
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
-    return sorted
-  }, [communities, activeTab, search, sortKey, sortDir])
+    return sorted;
+  }, [communities, activeTab, search, sortKey, sortDir]);
 
-  const totalActive = communities.filter((c) => c.status === 'active').length
-  const totalPending = communities.filter((c) => c.status === 'pending_setup').length
-  const totalHouses = communities.reduce((acc, c) => acc + c.housesCount, 0)
+  const totalActive = communities.filter((c) => c.status === "active").length;
+  const totalPending = communities.filter(
+    (c) => c.status === "pending_setup",
+  ).length;
+  const totalHouses = communities.reduce(
+    (acc, c) => acc + (c.housesCount ?? 0),
+    0,
+  );
 
   const sortIcon = (key: SortKey) => {
-    if (sortKey !== key) return 'unfold_more'
-    return sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward'
-  }
+    if (sortKey !== key) return "unfold_more";
+    return sortDir === "asc" ? "arrow_upward" : "arrow_downward";
+  };
 
   return (
     <PlatformAdminLayout>
@@ -149,7 +158,9 @@ function PlatformAdminCommunities() {
             </div>
             <div>
               <p className="pac__stat-label">Total Communities</p>
-              <h3 className="pac__stat-value">{isLoading ? '—' : communities.length}</h3>
+              <h3 className="pac__stat-value">
+                {isLoading ? "—" : communities.length}
+              </h3>
             </div>
           </div>
           <div className="pac__stat-card">
@@ -158,7 +169,9 @@ function PlatformAdminCommunities() {
             </div>
             <div>
               <p className="pac__stat-label">Active</p>
-              <h3 className="pac__stat-value">{isLoading ? '—' : totalActive}</h3>
+              <h3 className="pac__stat-value">
+                {isLoading ? "—" : totalActive}
+              </h3>
             </div>
           </div>
           <div className="pac__stat-card">
@@ -167,7 +180,9 @@ function PlatformAdminCommunities() {
             </div>
             <div>
               <p className="pac__stat-label">Pending Setup</p>
-              <h3 className="pac__stat-value">{isLoading ? '—' : totalPending}</h3>
+              <h3 className="pac__stat-value">
+                {isLoading ? "—" : totalPending}
+              </h3>
             </div>
           </div>
           <div className="pac__stat-card">
@@ -177,7 +192,7 @@ function PlatformAdminCommunities() {
             <div>
               <p className="pac__stat-label">Total Houses</p>
               <h3 className="pac__stat-value">
-                {isLoading ? '—' : totalHouses.toLocaleString()}
+                {isLoading ? "—" : totalHouses.toLocaleString()}
               </h3>
             </div>
           </div>
@@ -193,22 +208,24 @@ function PlatformAdminCommunities() {
                   key={tab.key}
                   type="button"
                   className={
-                    activeTab === tab.key ? 'pac__tab pac__tab--active' : 'pac__tab'
+                    activeTab === tab.key
+                      ? "pac__tab pac__tab--active"
+                      : "pac__tab"
                   }
                   onClick={() => {
-                    setActiveTab(tab.key)
-                    setSelectedIds(new Set())
+                    setActiveTab(tab.key);
+                    setSelectedIds(new Set());
                   }}
                 >
                   <span className="material-symbols-outlined">{tab.icon}</span>
                   {tab.label}
-                  {tab.key === 'all' && (
+                  {tab.key === "all" && (
                     <span className="pac__tab-count">{communities.length}</span>
                   )}
-                  {tab.key === 'active' && (
+                  {tab.key === "active" && (
                     <span className="pac__tab-count">{totalActive}</span>
                   )}
-                  {tab.key === 'pending_setup' && (
+                  {tab.key === "pending_setup" && (
                     <span className="pac__tab-count">{totalPending}</span>
                   )}
                 </button>
@@ -226,7 +243,7 @@ function PlatformAdminCommunities() {
                 <button
                   type="button"
                   className="pac__search-clear"
-                  onClick={() => setSearch('')}
+                  onClick={() => setSearch("")}
                   aria-label="Clear search"
                 >
                   <span className="material-symbols-outlined">close</span>
@@ -244,11 +261,11 @@ function PlatformAdminCommunities() {
           ) : filteredAndSorted.length === 0 ? (
             <EmptyState
               icon="domain"
-              title={search ? 'No results found' : 'No communities here yet'}
+              title={search ? "No results found" : "No communities here yet"}
               description={
                 search
                   ? `No communities match "${search}". Try a different term.`
-                  : 'Communities in this status will appear here.'
+                  : "Communities in this status will appear here."
               }
             />
           ) : (
@@ -266,36 +283,42 @@ function PlatformAdminCommunities() {
                         onChange={() => toggleSelectAll(filteredAndSorted)}
                       />
                     </th>
-                    <th className="pac__th pac__th--sortable" onClick={() => toggleSort('name')}>
+                    <th
+                      className="pac__th pac__th--sortable"
+                      onClick={() => toggleSort("name")}
+                    >
                       Community
                       <span className="material-symbols-outlined pac__sort-icon">
-                        {sortIcon('name')}
+                        {sortIcon("name")}
                       </span>
                     </th>
                     <th className="pac__th">Admin</th>
-                    <th className="pac__th pac__th--sortable" onClick={() => toggleSort('state')}>
+                    <th
+                      className="pac__th pac__th--sortable"
+                      onClick={() => toggleSort("state")}
+                    >
                       Location
                       <span className="material-symbols-outlined pac__sort-icon">
-                        {sortIcon('state')}
+                        {sortIcon("state")}
                       </span>
                     </th>
                     <th
                       className="pac__th pac__th--sortable pac__th--right"
-                      onClick={() => toggleSort('housesCount')}
+                      onClick={() => toggleSort("housesCount")}
                     >
                       Houses
                       <span className="material-symbols-outlined pac__sort-icon">
-                        {sortIcon('housesCount')}
+                        {sortIcon("housesCount")}
                       </span>
                     </th>
                     <th className="pac__th">Status</th>
                     <th
                       className="pac__th pac__th--sortable"
-                      onClick={() => toggleSort('createdAt')}
+                      onClick={() => toggleSort("createdAt")}
                     >
                       Onboarded
                       <span className="material-symbols-outlined pac__sort-icon">
-                        {sortIcon('createdAt')}
+                        {sortIcon("createdAt")}
                       </span>
                     </th>
                     <th className="pac__th pac__th--right">Actions</th>
@@ -307,8 +330,8 @@ function PlatformAdminCommunities() {
                       key={community.id}
                       className={
                         selectedIds.has(community.id)
-                          ? 'pac__row pac__row--selected'
-                          : 'pac__row'
+                          ? "pac__row pac__row--selected"
+                          : "pac__row"
                       }
                     >
                       <td className="pac__td pac__td--check">
@@ -323,39 +346,57 @@ function PlatformAdminCommunities() {
                           <div className="pac__community-avatar">
                             {getInitials(community.name)}
                           </div>
-                          <span className="pac__community-name">{community.name}</span>
+                          <span className="pac__community-name">
+                            {community.name}
+                          </span>
                         </div>
                       </td>
                       <td className="pac__td">
                         <div className="pac__admin-cell">
                           <div className="pac__admin-badge">
-                            {getInitials(community.adminName)}
+                            {getInitials(
+                              community.adminName ?? "Community Admin",
+                            )}
                           </div>
-                          <span>{community.adminName}</span>
+                          <span>
+                            {community.adminName ?? "Community Admin"}
+                          </span>
                         </div>
                       </td>
                       <td className="pac__td">
                         <div className="pac__location-cell">
-                          <span className="material-symbols-outlined">location_on</span>
+                          <span className="material-symbols-outlined">
+                            location_on
+                          </span>
                           <span>
                             {community.lga}, {community.state}
                           </span>
                         </div>
                       </td>
                       <td className="pac__td pac__td--right">
-                        <span className="pac__houses-value">{community.housesCount}</span>
+                        <span className="pac__houses-value">
+                          {community.housesCount ?? 0}
+                        </span>
                       </td>
                       <td className="pac__td">
                         <Badge
-                          variant={community.status === 'active' ? 'success' : 'warning'}
+                          variant={
+                            community.status === "active"
+                              ? "success"
+                              : "warning"
+                          }
                           icon={
-                            community.status === 'active' ? 'verified' : 'pending'
+                            community.status === "active"
+                              ? "verified"
+                              : "pending"
                           }
                         >
-                          {community.status === 'active' ? 'Active' : 'Pending'}
+                          {community.status === "active" ? "Active" : "Pending"}
                         </Badge>
                       </td>
-                      <td className="pac__td">{formatDate(community.createdAt)}</td>
+                      <td className="pac__td">
+                        {formatDate(community.createdAt)}
+                      </td>
                       <td className="pac__td pac__td--right">
                         <div className="pac__actions">
                           <button
@@ -363,14 +404,18 @@ function PlatformAdminCommunities() {
                             className="pac__action-btn"
                             title="View details"
                           >
-                            <span className="material-symbols-outlined">visibility</span>
+                            <span className="material-symbols-outlined">
+                              visibility
+                            </span>
                           </button>
                           <button
                             type="button"
                             className="pac__action-btn"
                             title="More options"
                           >
-                            <span className="material-symbols-outlined">more_vert</span>
+                            <span className="material-symbols-outlined">
+                              more_vert
+                            </span>
                           </button>
                         </div>
                       </td>
@@ -384,10 +429,9 @@ function PlatformAdminCommunities() {
           {/* Footer */}
           <div className="pac__table-foot">
             <p>
-              {selectedIds.size > 0
-                ? `${selectedIds.size} selected · `
-                : ''}
-              Showing {filteredAndSorted.length} of {communities.length} communities
+              {selectedIds.size > 0 ? `${selectedIds.size} selected · ` : ""}
+              Showing {filteredAndSorted.length} of {communities.length}{" "}
+              communities
             </p>
             <div className="pac__pagination">
               <button type="button" disabled>
@@ -916,5 +960,5 @@ function PlatformAdminCommunities() {
         }
       `}</style>
     </PlatformAdminLayout>
-  )
+  );
 }

@@ -1,181 +1,124 @@
-import { useState, type FormEvent } from 'react'
-import ResidentLayout from '../../layouts/ResidentLayout'
-
-interface LevyItem {
-  id: string
-  name: string
-  period: string
-  amount: number
-  dueDate: string
-  icon: string
-}
-
-interface PaymentItem {
-  id: string
-  date: string
-  amount: number
-  status: 'successful' | 'pending' | 'failed'
-}
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import ResidentLayout from "../../layouts/ResidentLayout";
+import { getMyBalance } from "../../api/levy";
+import { uploadPayment } from "../../api/payment";
+import type { HouseLevy } from "../../types/levy";
 
 interface UpdateItem {
-  id: string
-  type: string
-  title: string
-  content: string
-  imageUrl: string
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  imageUrl: string;
 }
 
 export default function ResidentDashboard() {
-  // Live State
-  const [balance, setBalance] = useState(1240.50)
-  const [payments, setPayments] = useState<PaymentItem[]>([
-    { id: '#TXN-98210', date: 'Sep 12, 2023', amount: 1240.50, status: 'successful' },
-    { id: '#TXN-98154', date: 'Aug 15, 2023', amount: 1240.50, status: 'successful' },
-    { id: '#TXN-97882', date: 'Jul 20, 2023', amount: 85.00, status: 'pending' },
-  ])
-
-  const [levies] = useState<LevyItem[]>([
-    {
-      id: 'l1',
-      name: 'Monthly Electricity Usage',
-      period: 'Sept 1 - Sept 30, 2023',
-      amount: 182.40,
-      dueDate: 'Due Oct 15',
-      icon: 'bolt',
-    },
-    {
-      id: 'l2',
-      name: 'Water & Sewage',
-      period: 'Sept 1 - Sept 30, 2023',
-      amount: 45.10,
-      dueDate: 'Due Oct 15',
-      icon: 'water_drop',
-    },
-    {
-      id: 'l3',
-      name: 'Community Security Levy',
-      period: 'Fixed Monthly',
-      amount: 75.00,
-      dueDate: 'Due Oct 15',
-      icon: 'security',
-    },
-  ])
+  const [levies, setLevies] = useState<HouseLevy[]>([]);
+  const [isLoadingLevies, setIsLoadingLevies] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedLevy, setSelectedLevy] = useState<HouseLevy | null>(null);
+  const [paymentReference, setPaymentReference] = useState("");
+  const [proofUrl, setProofUrl] = useState(
+    "https://communaltrust.s3.amazonaws.com/receipts/proof.pdf",
+  );
+  const [isPaying, setIsPaying] = useState(false);
 
   const [updates] = useState<UpdateItem[]>([
     {
-      id: 'u1',
-      type: 'Event',
-      title: 'Garden Clean-up Day',
-      content: 'Join us this Saturday for our quarterly community garden spruce-up and social mixer.',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3gIRL4dTvjrTlKYAuPkk4Cmb7VBCNH4l4VpA1_2X8vwupd5Dz7AlI9Hl1Dw2qG8l_QkKTyezKlry9lmBHhJc8f-gUoP_QC-HrjLoJ1Sm5bvDcy5b-tGVuS8rpvc3SBdD55d0_VBJQVrJQNydr1jMRfgfpg5pd7wEL8Sp6Sv3y9mDjnf9wfLAWNkp7djv0ljCQJWGB1KgAJW061vAckCpoinaL7tAARz1CEeQ-0xqPF-YHxZV3YIv3hIx1gkOxacnUKjvqmpWsv-8',
+      id: "u1",
+      type: "Event",
+      title: "Garden Clean-up Day",
+      content:
+        "Join us this Saturday for our quarterly community garden spruce-up and social mixer.",
+      imageUrl:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuD3gIRL4dTvjrTlKYAuPkk4Cmb7VBCNH4l4VpA1_2X8vwupd5Dz7AlI9Hl1Dw2qG8l_QkKTyezKlry9lmBHhJc8f-gUoP_QC-HrjLoJ1Sm5bvDcy5b-tGVuS8rpvc3SBdD55d0_VBJQVrJQNydr1jMRfgfpg5pd7wEL8Sp6Sv3y9mDjnf9wfLAWNkp7djv0ljCQJWGB1KgAJW061vAckCpoinaL7tAARz1CEeQ-0xqPF-YHxZV3YIv3hIx1gkOxacnUKjvqmpWsv-8",
     },
     {
-      id: 'u2',
-      type: 'Project',
-      title: 'Solar Grid Integration',
-      content: 'The installation of Phase 2 solar panels is scheduled to begin next Tuesday on Roof A.',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOp2UM2-pBOQcG79XbnY-u1Y0DejHa-RZxUaskBI9DND7Jj6citJdjvH-6AUk_aUKi3YYVoKxGkLrXaywZ8U-DgEZkPohB6Se1X7V2XZ0pCZDc0r23ckwrK3IiCK-sV3i4kHvv23U89zT9rYC7u-kDRIaYGjISh4As0517P7vcPzchJGOl3vjjPc1gy3Ax39QNegCA6Pq6vLT2dHHmjWfbQIUKGf28G1kqPn3CtXlq9UMXUwn1Oh9UBA1zDfyjEqAH3RuAxRL2Vm0',
+      id: "u2",
+      type: "Project",
+      title: "Solar Grid Integration",
+      content:
+        "The installation of Phase 2 solar panels is scheduled to begin next Tuesday on Roof A.",
+      imageUrl:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuAOp2UM2-pBOQcG79XbnY-u1Y0DejHa-RZxUaskBI9DND7Jj6citJdjvH-6AUk_aUKi3YYVoKxGkLrXaywZ8U-DgEZkPohB6Se1X7V2XZ0pCZDc0r23ckwrK3IiCK-sV3i4kHvv23U89zT9rYC7u-kDRIaYGjISh4As0517P7vcPzchJGOl3vjjPc1gy3Ax39QNegCA6Pq6vLT2dHHmjWfbQIUKGf28G1kqPn3CtXlq9UMXUwn1Oh9UBA1zDfyjEqAH3RuAxRL2Vm0",
     },
     {
-      id: 'u3',
-      type: 'Facility',
-      title: 'Gym Maintenance',
-      content: 'The community gym will be closed for routine machine servicing from 8 AM to 12 PM this Friday.',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlElvjp8DBZ9k3eVIHRpuEjOjcVPlYqfV4uNqB2p6K4gwIFZpPM_svcrO5YybrXUERzHbgnhn7DWG3InHfiQb6942XsoOLDZ3e5M877g3a2F7_pxmQ2dvwFjKHjm73LbmZv-IyYJ3H3_Gr5Zgg-DtkYXc2l4gY1x8lsP5aD5v1tc3e7S5TcHRMo9Q496EZ2fC0vYWZIkOqEsZOWzTlwr-N1aRlPpoKR4Fgvy7FuzwzwKImX1WaID78upNuui4l4rKsWmLdEJc_1w0',
+      id: "u3",
+      type: "Facility",
+      title: "Gym Maintenance",
+      content:
+        "The community gym will be closed for routine machine servicing from 8 AM to 12 PM this Friday.",
+      imageUrl:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuBlElvjp8DBZ9k3eVIHRpuEjOjcVPlYqfV4uNqB2p6K4gwIFZpPM_svcrO5YybrXUERzHbgnhn7DWG3InHfiQb6942XsoOLDZ3e5M877g3a2F7_pxmQ2dvwFjKHjm73LbmZv-IyYJ3H3_Gr5Zgg-DtkYXc2l4gY1x8lsP5aD5v1tc3e7S5TcHRMo9Q496EZ2fC0vYWZIkOqEsZOWzTlwr-N1aRlPpoKR4Fgvy7FuzwzwKImX1WaID78upNuui4l4rKsWmLdEJc_1w0",
     },
     {
-      id: 'u4',
-      type: 'Notice',
-      title: 'Town Hall: Budget 2024',
-      content: 'Review the upcoming year\'s infrastructure budget in our annual resident town hall meeting.',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASSeGi6xr5USthTM0EM1GE9zPw3EhFmQHFWEzLiBJIBw-r3CUcWABdR452jOPSx74eC_WLV9FAitLhnTaZfCTJhEWecZNhsmegztoFe7YahpsqBmqFisI2QW2UY9xp9BPkyYJlnPdGujOWxy1mHLBQ1cgOcQ2yLByGAgZi39v9MhNqWdBg7qCBIIuVY2xYJrJFaQRlsyGxypFOcbgjYjdfPIkt0D2b-QWDiiEFOrnoUKW5Q6WTZ8kegyG95Z8pR4BiB_6kcfGpOgg',
+      id: "u4",
+      type: "Notice",
+      title: "Town Hall: Budget 2024",
+      content:
+        "Review the upcoming year's infrastructure budget in our annual resident town hall meeting.",
+      imageUrl:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuASSeGi6xr5USthTM0EM1GE9zPw3EhFmQHFWEzLiBJIBw-r3CUcWABdR452jOPSx74eC_WLV9FAitLhnTaZfCTJhEWecZNhsmegztoFe7YahpsqBmqFisI2QW2UY9xp9BPkyYJlnPdGujOWxy1mHLBQ1cgOcQ2yLByGAgZi39v9MhNqWdBg7qCBIIuVY2xYJrJFaQRlsyGxypFOcbgjYjdfPIkt0D2b-QWDiiEFOrnoUKW5Q6WTZ8kegyG95Z8pR4BiB_6kcfGpOgg",
     },
-  ])
+  ]);
 
-  // Modals & User Feedback
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  useEffect(() => {
+    getMyBalance()
+      .then(setLevies)
+      .catch(console.error)
+      .finally(() => setIsLoadingLevies(false));
+  }, []);
 
-  // Payment Form State
-  const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentReference, setPaymentReference] = useState('')
-  const [isPaying, setIsPaying] = useState(false)
+  const totalBalance = useMemo(
+    () => levies.reduce((sum, item) => sum + item.balance, 0),
+    [levies],
+  );
 
-  // Maintenance Request Form State
-  const [requestTitle, setRequestTitle] = useState('')
-  const [requestDescription, setRequestDescription] = useState('')
-  const [requestCategory, setRequestCategory] = useState('plumbing')
-  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false)
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(null), 3000)
-  }
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const handlePayNow = () => {
-    setPaymentAmount(balance.toFixed(2))
-    setPaymentReference(`REF-${Math.floor(100000 + Math.random() * 900000)}`)
-    setIsPaymentModalOpen(true)
-  }
+    const levyToPay = levies[0] ?? null;
+    setSelectedLevy(levyToPay);
+    setPaymentReference(`REF-${Math.floor(100000 + Math.random() * 900000)}`);
+    setIsPaymentModalOpen(true);
+  };
 
-  const submitPayment = (e: FormEvent) => {
-    e.preventDefault()
-    const amt = parseFloat(paymentAmount)
-    if (isNaN(amt) || amt <= 0) {
-      alert('Please enter a valid payment amount.')
-      return
+  const submitPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedLevy) return;
+    if (!paymentReference.trim()) {
+      alert("Please enter a bank reference.");
+      return;
     }
 
-    setIsPaying(true)
-    setTimeout(() => {
-      const newTxn: PaymentItem = {
-        id: `#TXN-${Math.floor(90000 + Math.random() * 10000)}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        amount: amt,
-        status: 'pending',
-      }
-      setPayments((current) => [newTxn, ...current])
-      setBalance((current) => Math.max(0, current - amt))
-      setIsPaying(false)
-      setIsPaymentModalOpen(false)
-      showToast(`Payment of ₦${amt.toLocaleString()} submitted successfully! Status is pending verification.`)
-    }, 1000)
-  }
+    setIsPaying(true);
+    try {
+      await uploadPayment({
+        houseLevyId: selectedLevy.id,
+        amount: selectedLevy.balance,
+        paymentReference: paymentReference.trim(),
+        proofOfPaymentUrl: proofUrl.trim(),
+      });
+      showToast(
+        `Payment proof submitted for ${selectedLevy.levyName}. Pending review.`,
+      );
+      setIsPaymentModalOpen(false);
+      const updated = await getMyBalance();
+      setLevies(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit payment.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
 
   const handleNewRequest = () => {
-    setIsRequestModalOpen(true)
-  }
-
-  const submitRequest = (e: FormEvent) => {
-    e.preventDefault()
-    if (!requestTitle.trim() || !requestDescription.trim()) {
-      alert('Please fill in all request fields.')
-      return
-    }
-
-    setIsSubmittingRequest(true)
-    setTimeout(() => {
-      setIsSubmittingRequest(false)
-      setIsRequestModalOpen(false)
-      setRequestTitle('')
-      setRequestDescription('')
-      showToast('Maintenance request submitted successfully! Community staff will review it shortly.')
-    }, 1000)
-  }
-
-  const handleDownloadStatement = () => {
-    const text = `CommunalTrust - Resident Financial Statement\nOutstanding Balance: ₦${balance.toFixed(2)}\n\nRecent Transactions:\n` +
-      payments.map(p => `${p.date} - ${p.id} - ₦${p.amount.toFixed(2)} - ${p.status.toUpperCase()}`).join('\n')
-    
-    const blob = new Blob([text], { type: 'text/plain' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `financial_statement_${new Date().toISOString().slice(0, 10)}.txt`
-    link.click()
-    showToast('Statement statement download started...')
-  }
+    showToast("Maintenance requests coming soon.");
+  };
 
   return (
     <ResidentLayout onNewRequest={handleNewRequest}>
@@ -187,16 +130,23 @@ export default function ResidentDashboard() {
           </div>
         )}
 
-        {/* Hero Section: Financial & Property Overview */}
         <section className="rd__hero">
-          {/* Financial Overview Card */}
           <div className="rd__hero-financial lift-hover">
             <div className="rd__hero-financial-content">
               <h2 className="rd__hero-title">Financial Overview</h2>
-              <p className="rd__hero-subtitle">Current cycle outstanding balance</p>
+              <p className="rd__hero-subtitle">
+                Current cycle outstanding balance
+              </p>
               <div className="rd__balance-wrap">
-                <span className="rd__balance-value">₦{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                {balance > 0 && <span className="rd__due-tag">Due in 5 days</span>}
+                <span className="rd__balance-value">
+                  ₦
+                  {totalBalance.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+                {totalBalance > 0 && (
+                  <span className="rd__due-tag">Due in 5 days</span>
+                )}
               </div>
             </div>
             <div className="rd__hero-actions">
@@ -204,7 +154,7 @@ export default function ResidentDashboard() {
                 type="button"
                 className="btn btn-primary rd__pay-btn"
                 onClick={handlePayNow}
-                disabled={balance === 0}
+                disabled={isLoadingLevies || totalBalance === 0}
               >
                 Pay Now
                 <span className="material-symbols-outlined">arrow_forward</span>
@@ -212,16 +162,14 @@ export default function ResidentDashboard() {
               <button
                 type="button"
                 className="rd__statement-btn"
-                onClick={handleDownloadStatement}
+                onClick={() => showToast("Statement download coming soon.")}
               >
                 Download Statement
               </button>
             </div>
-            {/* Decorative background shape */}
             <div className="rd__hero-decor"></div>
           </div>
 
-          {/* My Property Card */}
           <div className="rd__hero-property lift-hover">
             <div className="rd__property-banner">
               <img
@@ -250,38 +198,58 @@ export default function ResidentDashboard() {
           </div>
         </section>
 
-        {/* Secondary Section: Levies and Transactions */}
         <section className="rd__secondary">
-          {/* Upcoming Levies */}
           <div>
             <div className="rd__section-header">
               <h3 className="rd__section-title">Upcoming Levies</h3>
-              <button type="button" className="rd__section-link" onClick={() => showToast('Redirecting to levy payments...')}>View All</button>
+              <button
+                type="button"
+                className="rd__section-link"
+                onClick={() => showToast("Redirecting to levy payments...")}
+              >
+                View All
+              </button>
             </div>
-            <div className="rd__levy-list">
-              {levies.map((levy) => (
-                <div key={levy.id} className="rd__levy-item lift-hover">
-                  <div className="rd__levy-icon-wrap">
-                    <span className="material-symbols-outlined">{levy.icon}</span>
+
+            {isLoadingLevies ? (
+              <div className="rd__loading">Loading balances…</div>
+            ) : levies.length === 0 ? (
+              <div className="rd__empty">
+                No levy balances available right now.
+              </div>
+            ) : (
+              <div className="rd__levy-list">
+                {levies.map((levy) => (
+                  <div key={levy.id} className="rd__levy-item lift-hover">
+                    <div className="rd__levy-icon-wrap">
+                      <span className="material-symbols-outlined">
+                        payments
+                      </span>
+                    </div>
+                    <div className="rd__levy-content">
+                      <h4>{levy.levyName}</h4>
+                      <p>{levy.dueDate}</p>
+                    </div>
+                    <div className="rd__levy-right">
+                      <strong>₦{levy.balance.toFixed(2)}</strong>
+                      <span>{levy.status}</span>
+                    </div>
                   </div>
-                  <div className="rd__levy-content">
-                    <h4>{levy.name}</h4>
-                    <p>{levy.period}</p>
-                  </div>
-                  <div className="rd__levy-right">
-                    <strong>₦{levy.amount.toFixed(2)}</strong>
-                    <span>{levy.dueDate}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Recent Payment History */}
           <div>
             <div className="rd__section-header">
               <h3 className="rd__section-title">Recent Payments</h3>
-              <button type="button" className="rd__section-link" onClick={() => showToast('Redirecting to payment history...')}>View History</button>
+              <button
+                type="button"
+                className="rd__section-link"
+                onClick={() => showToast("Redirecting to payment history...")}
+              >
+                View History
+              </button>
             </div>
             <div className="rd__table-card">
               <table className="rd__table">
@@ -294,33 +262,32 @@ export default function ResidentDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((p) => (
-                    <tr key={p.id}>
-                      <td className="rd__txn-id">{p.id}</td>
-                      <td>{p.date}</td>
-                      <td className="rd__txn-amount">₦{p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td>
-                        <span className={`rd__status-badge rd__status-badge--${p.status}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td className="rd__txn-id">—</td>
+                    <td>Not available yet</td>
+                    <td className="rd__txn-amount">—</td>
+                    <td>—</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
         </section>
 
-        {/* Community Updates */}
         <section className="rd__updates">
           <div className="rd__section-header">
             <h3 className="rd__section-title">Community Updates</h3>
             <div className="rd__updates-nav">
-              <button type="button" onClick={() => showToast('Navigating updates...')}>
+              <button
+                type="button"
+                onClick={() => showToast("Navigating updates...")}
+              >
                 <span className="material-symbols-outlined">chevron_left</span>
               </button>
-              <button type="button" onClick={() => showToast('Navigating updates...')}>
+              <button
+                type="button"
+                onClick={() => showToast("Navigating updates...")}
+              >
                 <span className="material-symbols-outlined">chevron_right</span>
               </button>
             </div>
@@ -342,8 +309,7 @@ export default function ResidentDashboard() {
         </section>
       </div>
 
-      {/* Pay Now Modal */}
-      {isPaymentModalOpen && (
+      {isPaymentModalOpen && selectedLevy && (
         <div className="rd-modal__overlay" role="dialog" aria-modal="true">
           <div className="rd-modal__panel">
             <button
@@ -354,7 +320,9 @@ export default function ResidentDashboard() {
               <span className="material-symbols-outlined">close</span>
             </button>
             <h3 className="rd-modal__title">Submit Payment Proof</h3>
-            <p className="rd-modal__subtitle">Upload bank transfer information to settle outstanding bills.</p>
+            <p className="rd-modal__subtitle">
+              Upload bank transfer information to settle outstanding bills.
+            </p>
 
             <form onSubmit={submitPayment} className="rd-modal__form">
               <div className="rd-modal__field">
@@ -363,10 +331,8 @@ export default function ResidentDashboard() {
                   type="number"
                   step="0.01"
                   min="0.1"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  disabled={isPaying}
-                  required
+                  value={selectedLevy.balance}
+                  disabled
                 />
               </div>
 
@@ -382,10 +348,11 @@ export default function ResidentDashboard() {
               </div>
 
               <div className="rd-modal__field">
-                <label>Proof of Payment Document (Fake URL)</label>
+                <label>Proof of Payment Document URL</label>
                 <input
                   type="text"
-                  defaultValue="https://communaltrust.s3.amazonaws.com/receipts/proof_402b.pdf"
+                  value={proofUrl}
+                  onChange={(e) => setProofUrl(e.target.value)}
                   disabled={isPaying}
                 />
               </div>
@@ -404,83 +371,7 @@ export default function ResidentDashboard() {
                   className="btn btn-primary rd-modal__btn-submit"
                   disabled={isPaying}
                 >
-                  {isPaying ? 'Processing...' : 'Submit Payment'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* New Maintenance Request Modal */}
-      {isRequestModalOpen && (
-        <div className="rd-modal__overlay" role="dialog" aria-modal="true">
-          <div className="rd-modal__panel">
-            <button
-              type="button"
-              className="rd-modal__close"
-              onClick={() => setIsRequestModalOpen(false)}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-            <h3 className="rd-modal__title">Create Maintenance Request</h3>
-            <p className="rd-modal__subtitle">Report structural or utility faults in your residential unit.</p>
-
-            <form onSubmit={submitRequest} className="rd-modal__form">
-              <div className="rd-modal__field">
-                <label>Request Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Water leak in main bathroom"
-                  value={requestTitle}
-                  onChange={(e) => setRequestTitle(e.target.value)}
-                  disabled={isSubmittingRequest}
-                  required
-                />
-              </div>
-
-              <div className="rd-modal__field">
-                <label>Utility Category</label>
-                <select
-                  value={requestCategory}
-                  onChange={(e) => setRequestCategory(e.target.value)}
-                  disabled={isSubmittingRequest}
-                >
-                  <option value="plumbing">Plumbing & Water</option>
-                  <option value="electrical">Electrical Grid</option>
-                  <option value="hvac">Air Conditioning & HVAC</option>
-                  <option value="carpentry">Carpentry & Structural</option>
-                  <option value="other">Other Concerns</option>
-                </select>
-              </div>
-
-              <div className="rd-modal__field">
-                <label>Detailed Description</label>
-                <textarea
-                  rows={4}
-                  placeholder="Describe the severity of the fault..."
-                  value={requestDescription}
-                  onChange={(e) => setRequestDescription(e.target.value)}
-                  disabled={isSubmittingRequest}
-                  required
-                />
-              </div>
-
-              <div className="rd-modal__actions">
-                <button
-                  type="button"
-                  className="rd-modal__btn-cancel"
-                  onClick={() => setIsRequestModalOpen(false)}
-                  disabled={isSubmittingRequest}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary rd-modal__btn-submit"
-                  disabled={isSubmittingRequest}
-                >
-                  {isSubmittingRequest ? 'Submitting...' : 'Submit Request'}
+                  {isPaying ? "Processing..." : "Submit Payment"}
                 </button>
               </div>
             </form>
@@ -1095,5 +986,5 @@ export default function ResidentDashboard() {
         }
       `}</style>
     </ResidentLayout>
-  )
+  );
 }

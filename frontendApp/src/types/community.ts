@@ -33,7 +33,7 @@ export interface AssignCommunityAdminPayload {
   firstName: string
   lastName: string
   phone: string
-  email: string
+  email?: string
 }
 
 // ── Swagger: InviteStaffRequest ───────────────────────────────────────────────

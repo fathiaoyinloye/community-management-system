@@ -1,141 +1,167 @@
-import { useEffect, useState } from 'react'
-import CommunityAdminLayout from '../../layouts/CommunityAdminLayout'
-import Badge from '../../components/ui/Badge'
-import Spinner from '../../components/ui/Spinner'
-import EmptyState from '../../components/ui/EmptyState'
-import RegisterHouseModal from '../../components/RegisterHouseModal'
-import AssignResidentModal from '../../components/AssignResidentModal'
-import { getHouses, registerHouse, assignResident } from '../../api/house'
-import type { House, HouseSummary, PropertyType, RegisterHousePayload, AssignResidentPayload } from '../../types/house'
+import { useEffect, useState } from "react";
+import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
+import Badge from "../../components/ui/Badge";
+import Spinner from "../../components/ui/Spinner";
+import EmptyState from "../../components/ui/EmptyState";
+import RegisterHouseModal from "../../components/RegisterHouseModal";
+import AssignResidentModal from "../../components/AssignResidentModal";
+import { getHouses, registerHouse, assignResident } from "../../api/house";
+import type {
+  House,
+  HouseSummary,
+  PropertyType,
+  RegisterHousePayload,
+  AssignResidentPayload,
+} from "../../types/house";
 
 const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
-  single_family: 'Single Family Home',
-  townhouse: 'Townhouse',
-  apartment: 'Modern Apartment',
-  duplex: 'Duplex',
-  condominium: 'Condominium',
-  commercial: 'Commercial',
-}
+  single_family: "Single Family Home",
+  townhouse: "Townhouse",
+  apartment: "Modern Apartment",
+  duplex: "Duplex",
+  condominium: "Condominium",
+  commercial: "Commercial",
+};
 
 export default function Houses() {
-  const [houses, setHouses] = useState<House[]>([])
-  const [summary, setSummary] = useState<HouseSummary | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [tab, setTab] = useState<'all' | 'residential' | 'commercial' | 'vacant'>('all')
-  const [keyword, setKeyword] = useState('')
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
-  const [isAssignOpen, setIsAssignOpen] = useState(false)
-  const [selectedHouseForAssign, setSelectedHouseForAssign] = useState<House | null>(null)
-  const [activeActionsId, setActiveActionsId] = useState<string | null>(null)
+  const [houses, setHouses] = useState<House[]>([]);
+  const [summary, setSummary] = useState<HouseSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [tab, setTab] = useState<
+    "all" | "residential" | "commercial" | "vacant"
+  >("all");
+  const [keyword, setKeyword] = useState("");
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [selectedHouseForAssign, setSelectedHouseForAssign] =
+    useState<House | null>(null);
+  const [activeActionsId, setActiveActionsId] = useState<string | null>(null);
 
   // Feedback notifications
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const loadData = async (currentKeyword: string, currentTab: typeof tab) => {
     try {
-      const response = await getHouses(currentKeyword, currentTab)
-      setHouses(response.houses)
-      setSummary(response.summary)
-      setIsLoading(false)
+      const response = await getHouses(currentKeyword, currentTab);
+      setHouses(response.houses);
+      setSummary(response.summary);
+      setIsLoading(false);
     } catch (err) {
-      console.error('Failed to load houses:', err)
-      setIsLoading(false)
+      console.error("Failed to load houses:", err);
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    setIsLoading(true)
+    setIsLoading(true);
     const debounce = setTimeout(() => {
-      loadData(keyword, tab)
-    }, 250)
+      loadData(keyword, tab);
+    }, 250);
 
-    return () => clearTimeout(debounce)
-  }, [keyword, tab])
+    return () => clearTimeout(debounce);
+  }, [keyword, tab]);
 
   const showToast = (msg: string) => {
-    setToastMessage(msg)
-    setTimeout(() => setToastMessage(null), 3000)
-  }
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const handleRegister = async (payload: RegisterHousePayload) => {
     try {
-      const newHouse = await registerHouse(payload)
-      showToast(`House ${newHouse.houseNumber} has been successfully registered.`)
+      const newHouse = await registerHouse(payload);
+      showToast(
+        `House ${newHouse.houseNumber} has been successfully registered.`,
+      );
       // Refresh list
-      loadData(keyword, tab)
+      loadData(keyword, tab);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to register house.')
+      alert(err instanceof Error ? err.message : "Failed to register house.");
     }
-  }
+  };
 
   const toggleMaintenanceAlert = async (house: House) => {
     try {
-      const nextVal = !house.hasMaintenanceAlert
+      const nextVal = !house.hasMaintenanceAlert;
       // UI-only: no backend endpoint for maintenance alerts
-      house.hasMaintenanceAlert = nextVal
-      showToast(`Maintenance alert for ${house.houseNumber} has been ${nextVal ? 'raised' : 'cleared'}.`)
-      loadData(keyword, tab)
+      house.hasMaintenanceAlert = nextVal;
+      showToast(
+        `Maintenance alert for ${house.houseNumber} has been ${nextVal ? "raised" : "cleared"}.`,
+      );
+      loadData(keyword, tab);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     } finally {
-      setActiveActionsId(null)
+      setActiveActionsId(null);
     }
-  }
+  };
 
   const toggleOccupancy = async (house: House) => {
-    if (house.status === 'occupied') {
-      if (!window.confirm(`Are you sure you want to remove the resident from ${house.houseNumber} and mark it as vacant?`)) {
-        setActiveActionsId(null)
-        return
+    if (house.status === "occupied") {
+      if (
+        !window.confirm(
+          `Are you sure you want to remove the resident from ${house.houseNumber} and mark it as vacant?`,
+        )
+      ) {
+        setActiveActionsId(null);
+        return;
       }
       try {
         // UI-only: vacancy reset has no backend endpoint yet
-        house.status = 'vacant'
-        house.resident = undefined
-        showToast(`House ${house.houseNumber} is now vacant.`)
-        loadData(keyword, tab)
+        house.status = "vacant";
+        house.resident = undefined;
+        showToast(`House ${house.houseNumber} is now vacant.`);
+        loadData(keyword, tab);
       } catch (err) {
-        console.error(err)
+        console.error(err);
       } finally {
-        setActiveActionsId(null)
+        setActiveActionsId(null);
       }
     } else {
-      setSelectedHouseForAssign(house)
-      setIsAssignOpen(true)
-      setActiveActionsId(null)
+      setSelectedHouseForAssign(house);
+      setIsAssignOpen(true);
+      setActiveActionsId(null);
     }
-  }
+  };
 
-  const handleAssignResident = async (residentDetails: AssignResidentPayload) => {
-    if (!selectedHouseForAssign) return
+  const handleAssignResident = async (
+    residentDetails: AssignResidentPayload,
+  ) => {
+    if (!selectedHouseForAssign) return;
     try {
-      await assignResident(selectedHouseForAssign.id, residentDetails)
-      showToast(`Resident assigned to ${selectedHouseForAssign.houseNumber} successfully.`)
-      loadData(keyword, tab)
+      await assignResident(selectedHouseForAssign.id, residentDetails);
+      showToast(
+        `Resident assigned to ${selectedHouseForAssign.houseNumber} successfully.`,
+      );
+      loadData(keyword, tab);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to assign resident.')
+      alert(err instanceof Error ? err.message : "Failed to assign resident.");
     }
-  }
+  };
 
   const handleExport = () => {
     // Generate a simple CSV file mock
-    const headers = 'House #,Street Address,Resident,Status,Property Type\n'
+    const headers = "House #,Street Address,Resident,Status,Property Type\n";
     const rows = houses
       .map(
         (h) =>
           `"${h.houseNumber}","${h.street}","${
-            h.resident ? `${h.resident.firstName} ${h.resident.lastName}` : 'None'
-          }","${h.status}","${PROPERTY_TYPE_LABELS[h.propertyType]}"`,
+            h.resident
+              ? `${h.resident.firstName} ${h.resident.lastName}`
+              : "None"
+          }","${h.status}","${PROPERTY_TYPE_LABELS[h.propertyType ?? "single_family"]}"`,
       )
-      .join('\n')
-    const blob = new Blob([headers + rows], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.setAttribute('href', url)
-    a.setAttribute('download', `house_inventory_${tab}_${new Date().toISOString().slice(0, 10)}.csv`)
-    a.click()
-    showToast('Exporting house registry list...')
-  }
+      .join("\n");
+    const blob = new Blob([headers + rows], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("href", url);
+    a.setAttribute(
+      "download",
+      `house_inventory_${tab}_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+    a.click();
+    showToast("Exporting house registry list...");
+  };
 
   return (
     <CommunityAdminLayout>
@@ -152,7 +178,8 @@ export default function Houses() {
           <div>
             <h2 className="hs__title">House Management</h2>
             <p className="hs__subtitle">
-              Oversee the community's residential assets, track occupancy health, and manage maintenance alerts in real-time.
+              Oversee the community's residential assets, track occupancy
+              health, and manage maintenance alerts in real-time.
             </p>
           </div>
           <button
@@ -175,7 +202,11 @@ export default function Houses() {
               <span className="hs__metric-tag">Total Inventory</span>
             </div>
             <div className="hs__metric-body">
-              <h4 className="hs__metric-value">{isLoading || !summary ? '—' : summary.totalInventory.toLocaleString()}</h4>
+              <h4 className="hs__metric-value">
+                {isLoading || !summary
+                  ? "—"
+                  : summary.totalInventory.toLocaleString()}
+              </h4>
               <p className="hs__metric-label">Verified Property Units</p>
             </div>
           </div>
@@ -185,10 +216,16 @@ export default function Houses() {
               <div className="hs__metric-icon-wrap hs__metric-icon-wrap--tertiary">
                 <span className="material-symbols-outlined">person_check</span>
               </div>
-              <span className="hs__metric-tag hs__metric-tag--positive">{isLoading || !summary ? '—' : `${summary.occupancyRate}% Rate`}</span>
+              <span className="hs__metric-tag hs__metric-tag--positive">
+                {isLoading || !summary ? "—" : `${summary.occupancyRate}% Rate`}
+              </span>
             </div>
             <div className="hs__metric-body">
-              <h4 className="hs__metric-value">{isLoading || !summary ? '—' : summary.occupiedCount.toLocaleString()}</h4>
+              <h4 className="hs__metric-value">
+                {isLoading || !summary
+                  ? "—"
+                  : summary.occupiedCount.toLocaleString()}
+              </h4>
               <p className="hs__metric-label">Occupied Units</p>
             </div>
           </div>
@@ -198,10 +235,16 @@ export default function Houses() {
               <div className="hs__metric-icon-wrap hs__metric-icon-wrap--neutral">
                 <span className="material-symbols-outlined">meeting_room</span>
               </div>
-              <span className="hs__metric-tag">{isLoading || !summary ? '—' : `${summary.vacantCount} Listed`}</span>
+              <span className="hs__metric-tag">
+                {isLoading || !summary ? "—" : `${summary.vacantCount} Listed`}
+              </span>
             </div>
             <div className="hs__metric-body">
-              <h4 className="hs__metric-value">{isLoading || !summary ? '—' : summary.vacantCount.toLocaleString()}</h4>
+              <h4 className="hs__metric-value">
+                {isLoading || !summary
+                  ? "—"
+                  : summary.vacantCount.toLocaleString()}
+              </h4>
               <p className="hs__metric-label">Vacant Units</p>
             </div>
           </div>
@@ -211,10 +254,16 @@ export default function Houses() {
               <div className="hs__metric-icon-wrap hs__metric-icon-wrap--danger">
                 <span className="material-symbols-outlined">warning</span>
               </div>
-              <span className="hs__metric-tag hs__metric-tag--danger">High Priority</span>
+              <span className="hs__metric-tag hs__metric-tag--danger">
+                High Priority
+              </span>
             </div>
             <div className="hs__metric-body">
-              <h4 className="hs__metric-value hs__metric-value--danger">{isLoading || !summary ? '—' : summary.maintenanceAlertCount.toLocaleString()}</h4>
+              <h4 className="hs__metric-value hs__metric-value--danger">
+                {isLoading || !summary
+                  ? "—"
+                  : summary.maintenanceAlertCount.toLocaleString()}
+              </h4>
               <p className="hs__metric-label">Maintenance Alerts</p>
             </div>
           </div>
@@ -224,16 +273,18 @@ export default function Houses() {
         <section className="hs__table-card">
           <div className="hs__table-toolbar">
             <div className="hs__tabs">
-              {(['all', 'residential', 'commercial', 'vacant'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={`hs__tab-btn ${tab === t ? 'hs__tab-btn--active' : ''}`}
-                  onClick={() => setTab(t)}
-                >
-                  {t.charAt(0).toUpperCase() + t.slice(1)} Houses
-                </button>
-              ))}
+              {(["all", "residential", "commercial", "vacant"] as const).map(
+                (t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`hs__tab-btn ${tab === t ? "hs__tab-btn--active" : ""}`}
+                    onClick={() => setTab(t)}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)} Houses
+                  </button>
+                ),
+              )}
             </div>
 
             <div className="hs__toolbar-actions">
@@ -289,7 +340,7 @@ export default function Houses() {
                     <tr
                       key={house.id}
                       className={`hs__row ${
-                        house.hasMaintenanceAlert ? 'hs__row--alert' : ''
+                        house.hasMaintenanceAlert ? "hs__row--alert" : ""
                       }`}
                     >
                       <td className="hs__cell-number">{house.houseNumber}</td>
@@ -310,47 +361,64 @@ export default function Houses() {
                               </div>
                             )}
                             <span className="hs__resident-name">
-                              {house.resident.firstName} {house.resident.lastName}
+                              {house.resident.firstName}{" "}
+                              {house.resident.lastName}
                             </span>
                           </div>
                         ) : (
-                          <span className="hs__no-resident">No resident listed</span>
+                          <span className="hs__no-resident">
+                            No resident listed
+                          </span>
                         )}
                       </td>
                       <td>
                         <div className="hs__status-col">
                           <Badge
-                            variant={house.status === 'occupied' ? 'success' : 'neutral'}
+                            variant={
+                              house.status === "occupied"
+                                ? "success"
+                                : "neutral"
+                            }
                           >
                             <span
                               className={`hs__status-dot hs__status-dot--${house.status}`}
                             />
-                            {house.status === 'occupied' ? 'Occupied' : 'Vacant'}
+                            {house.status === "occupied"
+                              ? "Occupied"
+                              : "Vacant"}
                           </Badge>
 
                           {house.hasMaintenanceAlert && (
                             <span className="hs__alert-label">
-                              <span className="material-symbols-outlined">priority_high</span>
+                              <span className="material-symbols-outlined">
+                                priority_high
+                              </span>
                               Maintenance Alert
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="hs__property-type">
-                        {PROPERTY_TYPE_LABELS[house.propertyType]}
+                        {
+                          PROPERTY_TYPE_LABELS[
+                            house.propertyType ?? "single_family"
+                          ]
+                        }
                       </td>
                       <td className="hs__col-right hs__cell-actions">
                         <button
                           type="button"
                           className="hs__actions-trigger"
                           onClick={(e) => {
-                            e.stopPropagation()
+                            e.stopPropagation();
                             setActiveActionsId(
-                              activeActionsId === house.id ? null : house.id
-                            )
+                              activeActionsId === house.id ? null : house.id,
+                            );
                           }}
                         >
-                          <span className="material-symbols-outlined">more_vert</span>
+                          <span className="material-symbols-outlined">
+                            more_vert
+                          </span>
                         </button>
 
                         {activeActionsId === house.id && (
@@ -360,18 +428,26 @@ export default function Houses() {
                               onClick={() => toggleOccupancy(house)}
                             >
                               <span className="material-symbols-outlined">
-                                {house.status === 'occupied' ? 'logout' : 'login'}
+                                {house.status === "occupied"
+                                  ? "logout"
+                                  : "login"}
                               </span>
-                              {house.status === 'occupied' ? 'Mark as Vacant' : 'Set Occupied'}
+                              {house.status === "occupied"
+                                ? "Mark as Vacant"
+                                : "Set Occupied"}
                             </button>
                             <button
                               type="button"
                               onClick={() => toggleMaintenanceAlert(house)}
                             >
                               <span className="material-symbols-outlined">
-                                {house.hasMaintenanceAlert ? 'check_circle' : 'warning'}
+                                {house.hasMaintenanceAlert
+                                  ? "check_circle"
+                                  : "warning"}
                               </span>
-                              {house.hasMaintenanceAlert ? 'Clear Alert' : 'Raise Alert'}
+                              {house.hasMaintenanceAlert
+                                ? "Clear Alert"
+                                : "Raise Alert"}
                             </button>
                           </div>
                         )}
@@ -386,15 +462,25 @@ export default function Houses() {
           {/* Footer of Table */}
           <div className="hs__table-foot">
             <p>
-              Showing {houses.length} of {isLoading || !summary ? '—' : summary.totalInventory} properties
+              Showing {houses.length} of{" "}
+              {isLoading || !summary ? "—" : summary.totalInventory} properties
             </p>
             <div className="hs__pagination">
               <button type="button" disabled>
                 Previous
               </button>
-              <button type="button" className="hs__page-btn hs__page-btn--active">1</button>
-              <button type="button" className="hs__page-btn">2</button>
-              <button type="button" className="hs__page-btn">Next</button>
+              <button
+                type="button"
+                className="hs__page-btn hs__page-btn--active"
+              >
+                1
+              </button>
+              <button type="button" className="hs__page-btn">
+                2
+              </button>
+              <button type="button" className="hs__page-btn">
+                Next
+              </button>
             </div>
           </div>
         </section>
@@ -408,10 +494,15 @@ export default function Houses() {
             <div>
               <h5 className="hs__bento-title">Occupancy Health is Up 2.4%</h5>
               <p className="hs__bento-desc">
-                Your community inventory is reaching peak efficiency. Consider reviewing the upcoming vacancies for preemptive marketing.
+                Your community inventory is reaching peak efficiency. Consider
+                reviewing the upcoming vacancies for preemptive marketing.
               </p>
             </div>
-            <button type="button" className="hs__bento-btn" onClick={() => showToast('Redirecting to report analysis...')}>
+            <button
+              type="button"
+              className="hs__bento-btn"
+              onClick={() => showToast("Redirecting to report analysis...")}
+            >
               View Report
             </button>
           </div>
@@ -442,7 +533,9 @@ export default function Houses() {
             </div>
             <div className="hs__progress-labels">
               <span className="hs__progress-title">Safety Inspections</span>
-              <span className="hs__progress-subtitle">Q3 Compliance Progress</span>
+              <span className="hs__progress-subtitle">
+                Q3 Compliance Progress
+              </span>
             </div>
           </div>
         </section>
@@ -459,11 +552,11 @@ export default function Houses() {
       <AssignResidentModal
         isOpen={isAssignOpen}
         onClose={() => {
-          setIsAssignOpen(false)
-          setSelectedHouseForAssign(null)
+          setIsAssignOpen(false);
+          setSelectedHouseForAssign(null);
         }}
         onAssign={handleAssignResident}
-        houseNumber={selectedHouseForAssign?.houseNumber || ''}
+        houseNumber={selectedHouseForAssign?.houseNumber || ""}
       />
 
       <style>{`
@@ -1171,5 +1264,5 @@ export default function Houses() {
         }
       `}</style>
     </CommunityAdminLayout>
-  )
+  );
 }

@@ -1,71 +1,94 @@
-import { useEffect, useState } from 'react'
-import CommunityAdminLayout from '../../layouts/CommunityAdminLayout'
-import Badge from '../../components/ui/Badge'
-import Spinner from '../../components/ui/Spinner'
-import EmptyState from '../../components/ui/EmptyState'
-import { createLevyType, getLevySummary, getLevyTypes, getScheduledAdjustments, updateLevyStatus } from '../../api/levy'
-import type { CreateLevyTypePayload, LevyFrequency, LevySummary, LevyType, ScheduledAdjustment } from '../../types/levy'
-import CreateLevyTypeModal from '../../components/CreateLevyTypeModal'
+import { useEffect, useState } from "react";
+import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
+import Badge from "../../components/ui/Badge";
+import Spinner from "../../components/ui/Spinner";
+import EmptyState from "../../components/ui/EmptyState";
+import {
+  createLevyType,
+  getLevySummary,
+  getLevyTypes,
+  getScheduledAdjustments,
+  updateLevyStatus,
+} from "../../api/levy";
+import type {
+  CreateLevyTypePayload,
+  LevyFrequency,
+  LevySummary,
+  LevyType,
+  ScheduledAdjustment,
+} from "../../types/levy";
+import CreateLevyTypeModal from "../../components/CreateLevyTypeModal";
 
 const FREQUENCY_LABELS: Record<LevyFrequency, string> = {
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-  one_time: 'One-time',
-}
+  monthly: "Monthly",
+  yearly: "Yearly",
+  one_time: "One-time",
+  quarterly: "Quarterly",
+  MONTHLY: "Monthly",
+  QUARTERLY: "Quarterly",
+  ANNUALLY: "Yearly",
+  ONE_TIME: "One-time",
+};
 
 function formatCurrency(value: number, maximumFractionDigits = 2) {
-  return value.toLocaleString('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return value.toLocaleString("en-NG", {
+    style: "currency",
+    currency: "NGN",
     maximumFractionDigits,
-  })
+  });
 }
 
 export default function LevyTypes() {
-  const [levyTypes, setLevyTypes] = useState<LevyType[]>([])
-  const [summary, setSummary] = useState<LevySummary | null>(null)
-  const [scheduledAdjustments, setScheduledAdjustments] = useState<ScheduledAdjustment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [pendingId, setPendingId] = useState<string | null>(null)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [levyTypes, setLevyTypes] = useState<LevyType[]>([]);
+  const [summary, setSummary] = useState<LevySummary | null>(null);
+  const [scheduledAdjustments, setScheduledAdjustments] = useState<
+    ScheduledAdjustment[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const handleCreateLevy = async (payload: CreateLevyTypePayload) => {
-    const created = await createLevyType(payload)
-    setLevyTypes((current) => [...current, created])
+    const created = await createLevyType(payload);
+    setLevyTypes((current) => [...current, created]);
     // Refresh summary
-    const summaryData = await getLevySummary()
-    setSummary(summaryData)
-  }
+    const summaryData = await getLevySummary();
+    setSummary(summaryData);
+  };
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
-    Promise.all([getLevyTypes(), getLevySummary(), getScheduledAdjustments()]).then(
-      ([levyTypesData, summaryData, scheduledAdjustmentsData]) => {
-        if (!cancelled) {
-          setLevyTypes(levyTypesData)
-          setSummary(summaryData)
-          setScheduledAdjustments(scheduledAdjustmentsData)
-          setIsLoading(false)
-        }
-      },
-    )
+    Promise.all([
+      getLevyTypes(),
+      getLevySummary(),
+      getScheduledAdjustments(),
+    ]).then(([levyTypesData, summaryData, scheduledAdjustmentsData]) => {
+      if (!cancelled) {
+        setLevyTypes(levyTypesData);
+        setSummary(summaryData);
+        setScheduledAdjustments(scheduledAdjustmentsData);
+        setIsLoading(false);
+      }
+    });
 
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
   const handleToggleStatus = async (levy: LevyType) => {
-    const nextStatus = levy.status === 'active' ? 'inactive' : 'active'
-    setPendingId(levy.id)
+    const nextStatus = levy.status === "active" ? "inactive" : "active";
+    setPendingId(levy.id);
     try {
-      const updated = await updateLevyStatus(levy.id, nextStatus)
-      setLevyTypes((current) => current.map((entry) => (entry.id === updated.id ? updated : entry)))
+      const updated = await updateLevyStatus(levy.id, nextStatus);
+      setLevyTypes((current) =>
+        current.map((entry) => (entry.id === updated.id ? updated : entry)),
+      );
     } finally {
-      setPendingId(null)
+      setPendingId(null);
     }
-  }
+  };
 
   return (
     <CommunityAdminLayout>
@@ -74,11 +97,15 @@ export default function LevyTypes() {
           <div>
             <h3 className="lv__hero-title">Levy Type Management</h3>
             <p className="lv__hero-copy">
-              Configure and maintain standard billing types for the community. Changes here affect
-              all future invoice generation cycles.
+              Configure and maintain standard billing types for the community.
+              Changes here affect all future invoice generation cycles.
             </p>
           </div>
-          <button type="button" className="lv__create-btn" onClick={() => setIsCreateOpen(true)}>
+          <button
+            type="button"
+            className="lv__create-btn"
+            onClick={() => setIsCreateOpen(true)}
+          >
             <span className="material-symbols-outlined">add</span>
             Create New Levy Type
           </button>
@@ -87,37 +114,55 @@ export default function LevyTypes() {
         <section className="lv__stats">
           <div className="lv__stat-card">
             <div className="lv__stat-head">
-              <span className="material-symbols-outlined lv__stat-icon">account_balance_wallet</span>
+              <span className="material-symbols-outlined lv__stat-icon">
+                account_balance_wallet
+              </span>
               <span className="lv__stat-tag">Total Active</span>
             </div>
             <p className="lv__stat-label">Total Active Levies</p>
-            <p className="lv__stat-value">{isLoading || !summary ? '—' : summary.totalActiveLevies}</p>
-          </div>
-          <div className="lv__stat-card">
-            <div className="lv__stat-head">
-              <span className="material-symbols-outlined lv__stat-icon">insights</span>
-              <span className="lv__stat-tag lv__stat-tag--positive">
-                {isLoading || !summary ? '—' : `+${summary.monthlyRevenueChangePct}%`}
-              </span>
-            </div>
-            <p className="lv__stat-label">Monthly Revenue Est.</p>
             <p className="lv__stat-value">
-              {isLoading || !summary ? '—' : formatCurrency(summary.monthlyRevenueEstimate, 0)}
+              {isLoading || !summary ? "—" : summary.totalActiveLevies}
             </p>
           </div>
           <div className="lv__stat-card">
             <div className="lv__stat-head">
-              <span className="material-symbols-outlined lv__stat-icon lv__stat-icon--warning">warning</span>
+              <span className="material-symbols-outlined lv__stat-icon">
+                insights
+              </span>
+              <span className="lv__stat-tag lv__stat-tag--positive">
+                {isLoading || !summary
+                  ? "—"
+                  : `+${summary.monthlyRevenueChangePct}%`}
+              </span>
             </div>
-            <p className="lv__stat-label">Pending Updates</p>
-            <p className="lv__stat-value">{isLoading || !summary ? '—' : summary.pendingUpdates}</p>
+            <p className="lv__stat-label">Monthly Revenue Est.</p>
+            <p className="lv__stat-value">
+              {isLoading || !summary
+                ? "—"
+                : formatCurrency(summary.monthlyRevenueEstimate, 0)}
+            </p>
           </div>
           <div className="lv__stat-card">
             <div className="lv__stat-head">
-              <span className="material-symbols-outlined lv__stat-icon lv__stat-icon--muted">schedule</span>
+              <span className="material-symbols-outlined lv__stat-icon lv__stat-icon--warning">
+                warning
+              </span>
+            </div>
+            <p className="lv__stat-label">Pending Updates</p>
+            <p className="lv__stat-value">
+              {isLoading || !summary ? "—" : summary.pendingUpdates}
+            </p>
+          </div>
+          <div className="lv__stat-card">
+            <div className="lv__stat-head">
+              <span className="material-symbols-outlined lv__stat-icon lv__stat-icon--muted">
+                schedule
+              </span>
             </div>
             <p className="lv__stat-label">Last Processed</p>
-            <p className="lv__stat-value">{isLoading || !summary ? '—' : summary.lastProcessedLabel}</p>
+            <p className="lv__stat-value">
+              {isLoading || !summary ? "—" : summary.lastProcessedLabel}
+            </p>
           </div>
         </section>
 
@@ -159,47 +204,78 @@ export default function LevyTypes() {
                 </thead>
                 <tbody>
                   {levyTypes.map((levy) => (
-                    <tr key={levy.id} className={levy.status === 'inactive' ? 'lv__row lv__row--inactive' : 'lv__row'}>
+                    <tr
+                      key={levy.id}
+                      className={
+                        levy.status === "inactive"
+                          ? "lv__row lv__row--inactive"
+                          : "lv__row"
+                      }
+                    >
                       <td>
                         <div className="lv__name-cell">
                           <div className="lv__name-icon">
-                            <span className="material-symbols-outlined">{levy.icon}</span>
+                            <span className="material-symbols-outlined">
+                              {levy.icon}
+                            </span>
                           </div>
                           <div>
                             <p className="lv__name">{levy.name}</p>
-                            <p className="lv__description">{levy.description}</p>
+                            <p className="lv__description">
+                              {levy.description}
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <p className="lv__amount">{formatCurrency(levy.amount)}</p>
+                        <p className="lv__amount">
+                          {formatCurrency(levy.amount)}
+                        </p>
                       </td>
                       <td>
-                        <span className="lv__frequency">{FREQUENCY_LABELS[levy.frequency]}</span>
+                        <span className="lv__frequency">
+                          {FREQUENCY_LABELS[levy.frequency]}
+                        </span>
                       </td>
                       <td className="lv__col-center">
-                        <Badge variant={levy.status === 'active' ? 'success' : 'neutral'}>
-                          {levy.status === 'active' ? 'Active' : 'Inactive'}
+                        <Badge
+                          variant={
+                            levy.status === "active" ? "success" : "neutral"
+                          }
+                        >
+                          {levy.status === "active" ? "Active" : "Inactive"}
                         </Badge>
                       </td>
                       <td className="lv__col-right">
                         <div className="lv__row-actions">
-                          <button type="button" className="lv__row-action" title="Edit">
-                            <span className="material-symbols-outlined">edit</span>
+                          <button
+                            type="button"
+                            className="lv__row-action"
+                            title="Edit"
+                          >
+                            <span className="material-symbols-outlined">
+                              edit
+                            </span>
                           </button>
                           <button
                             type="button"
                             className={
-                              levy.status === 'active'
-                                ? 'lv__row-action lv__row-action--danger'
-                                : 'lv__row-action lv__row-action--success'
+                              levy.status === "active"
+                                ? "lv__row-action lv__row-action--danger"
+                                : "lv__row-action lv__row-action--success"
                             }
-                            title={levy.status === 'active' ? 'Deactivate' : 'Activate'}
+                            title={
+                              levy.status === "active"
+                                ? "Deactivate"
+                                : "Activate"
+                            }
                             onClick={() => handleToggleStatus(levy)}
                             disabled={pendingId === levy.id}
                           >
                             <span className="material-symbols-outlined">
-                              {levy.status === 'active' ? 'block' : 'check_circle'}
+                              {levy.status === "active"
+                                ? "block"
+                                : "check_circle"}
                             </span>
                           </button>
                         </div>
@@ -213,7 +289,8 @@ export default function LevyTypes() {
 
           <div className="lv__table-foot">
             <p>
-              Showing {levyTypes.length} of {summary?.totalLevyTypes ?? levyTypes.length} levy types
+              Showing {levyTypes.length} of{" "}
+              {summary?.totalLevyTypes ?? levyTypes.length} levy types
             </p>
             <div className="lv__pagination">
               <button type="button" disabled>
@@ -250,14 +327,17 @@ export default function LevyTypes() {
           <div className="lv__wizard-card">
             <h5 className="lv__wizard-title">Need a custom levy type?</h5>
             <p className="lv__wizard-copy">
-              Special levies for one-off projects can be created and targeted to specific property
-              clusters.
+              Special levies for one-off projects can be created and targeted to
+              specific property clusters.
             </p>
             <div className="lv__wizard-actions">
               <button type="button" className="lv__wizard-btn">
                 Start Wizard
               </button>
-              <button type="button" className="lv__wizard-btn lv__wizard-btn--ghost">
+              <button
+                type="button"
+                className="lv__wizard-btn lv__wizard-btn--ghost"
+              >
                 Documentation
               </button>
             </div>
@@ -741,5 +821,5 @@ export default function LevyTypes() {
         onCreate={handleCreateLevy}
       />
     </CommunityAdminLayout>
-  )
+  );
 }

@@ -1,98 +1,112 @@
-import { useState, type FormEvent } from 'react'
-import type { CreateLevyTypePayload, LevyFrequency } from '../types/levy'
+import { useState, type FormEvent } from "react";
+import type { CreateLevyTypePayload, LevyFrequency } from "../types/levy";
 
 interface CreateLevyTypeModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onCreate: (payload: CreateLevyTypePayload) => Promise<void>
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (payload: CreateLevyTypePayload) => Promise<void>;
 }
 
 const ICONS = [
-  { name: 'security', label: 'Security' },
-  { name: 'delete_sweep', label: 'Waste' },
-  { name: 'construction', label: 'Maintenance' },
-  { name: 'forest', label: 'Landscaping' },
-  { name: 'water_drop', label: 'Water' },
-  { name: 'bolt', label: 'Electricity' },
-  { name: 'local_parking', label: 'Parking' },
-  { name: 'gavel', label: 'Legal/Fine' },
-  { name: 'payments', label: 'General' },
-]
+  { name: "security", label: "Security" },
+  { name: "delete_sweep", label: "Waste" },
+  { name: "construction", label: "Maintenance" },
+  { name: "forest", label: "Landscaping" },
+  { name: "water_drop", label: "Water" },
+  { name: "bolt", label: "Electricity" },
+  { name: "local_parking", label: "Parking" },
+  { name: "gavel", label: "Legal/Fine" },
+  { name: "payments", label: "General" },
+];
 
 interface FormState {
-  name: string
-  description: string
-  amount: string
-  frequency: LevyFrequency
-  icon: string
+  name: string;
+  description: string;
+  amount: string;
+  frequency: LevyFrequency;
+  icon: string;
 }
 
 const EMPTY_FORM: FormState = {
-  name: '',
-  description: '',
-  amount: '',
-  frequency: 'monthly',
-  icon: 'security',
-}
+  name: "",
+  description: "",
+  amount: "",
+  frequency: "monthly",
+  icon: "security",
+};
 
-export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: CreateLevyTypeModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default function CreateLevyTypeModal({
+  isOpen,
+  onClose,
+  onCreate,
+}: CreateLevyTypeModalProps) {
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
-  const updateField = <K extends keyof FormState>(field: K, value: FormState[K]) => {
-    setForm((current) => ({ ...current, [field]: value }))
-  }
+  const updateField = <K extends keyof FormState>(
+    field: K,
+    value: FormState[K],
+  ) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
   const handleClose = () => {
-    setForm(EMPTY_FORM)
-    setError(null)
-    onClose()
-  }
+    setForm(EMPTY_FORM);
+    setError(null);
+    onClose();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
+    event.preventDefault();
+    setError(null);
 
     if (!form.name.trim()) {
-      setError('Please provide a levy name.')
-      return
+      setError("Please provide a levy name.");
+      return;
     }
     if (!form.description.trim()) {
-      setError('Please provide a short description.')
-      return
+      setError("Please provide a short description.");
+      return;
     }
-    const amt = parseFloat(form.amount)
+    const amt = parseFloat(form.amount);
     if (isNaN(amt) || amt <= 0) {
-      setError('Please enter a valid amount greater than zero.')
-      return
+      setError("Please enter a valid amount greater than zero.");
+      return;
     }
 
     const payload: CreateLevyTypePayload = {
       name: form.name.trim(),
-      description: form.description.trim(),
       amount: amt,
       frequency: form.frequency,
+      description: form.description.trim(),
       icon: form.icon,
-    }
+    };
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await onCreate(payload)
-      handleClose()
+      await onCreate(payload);
+      handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to create levy type.')
+      setError(
+        err instanceof Error ? err.message : "Unable to create levy type.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="clm__overlay" role="dialog" aria-modal="true">
       <div className="clm__panel">
-        <button type="button" className="clm__close" onClick={handleClose} aria-label="Close">
+        <button
+          type="button"
+          className="clm__close"
+          onClick={handleClose}
+          aria-label="Close"
+        >
           <span className="material-symbols-outlined">close</span>
         </button>
 
@@ -110,28 +124,32 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
 
         <form className="clm__form" onSubmit={handleSubmit} noValidate>
           <div className="clm__field">
-            <label htmlFor="levyName" className="clm__label">Levy Category Name</label>
+            <label htmlFor="levyName" className="clm__label">
+              Levy Category Name
+            </label>
             <input
               id="levyName"
               type="text"
               className="clm__input"
               placeholder="e.g. Infrastructure Levy, Facility Fee"
               value={form.name}
-              onChange={(e) => updateField('name', e.target.value)}
+              onChange={(e) => updateField("name", e.target.value)}
               disabled={isSubmitting}
               required
             />
           </div>
 
           <div className="clm__field">
-            <label htmlFor="description" className="clm__label">Short Description</label>
+            <label htmlFor="description" className="clm__label">
+              Short Description
+            </label>
             <input
               id="description"
               type="text"
               className="clm__input"
               placeholder="e.g. Standard billing for estate gate guard patrols"
               value={form.description}
-              onChange={(e) => updateField('description', e.target.value)}
+              onChange={(e) => updateField("description", e.target.value)}
               disabled={isSubmitting}
               required
             />
@@ -139,7 +157,9 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
 
           <div className="clm__grid">
             <div className="clm__field">
-              <label htmlFor="amount" className="clm__label">Amount (NGN)</label>
+              <label htmlFor="amount" className="clm__label">
+                Amount (NGN)
+              </label>
               <input
                 id="amount"
                 type="number"
@@ -147,19 +167,23 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
                 className="clm__input"
                 placeholder="e.g. 5000"
                 value={form.amount}
-                onChange={(e) => updateField('amount', e.target.value)}
+                onChange={(e) => updateField("amount", e.target.value)}
                 disabled={isSubmitting}
                 required
               />
             </div>
 
             <div className="clm__field">
-              <label htmlFor="frequency" className="clm__label">Billing Frequency</label>
+              <label htmlFor="frequency" className="clm__label">
+                Billing Frequency
+              </label>
               <select
                 id="frequency"
                 className="clm__input"
                 value={form.frequency}
-                onChange={(e) => updateField('frequency', e.target.value as LevyFrequency)}
+                onChange={(e) =>
+                  updateField("frequency", e.target.value as LevyFrequency)
+                }
                 disabled={isSubmitting}
               >
                 <option value="monthly">Monthly</option>
@@ -170,14 +194,16 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
           </div>
 
           <div className="clm__field">
-            <label className="clm__label">Select Visual Icon representation</label>
+            <label className="clm__label">
+              Select Visual Icon representation
+            </label>
             <div className="clm__icons-grid">
               {ICONS.map((ico) => (
                 <button
                   key={ico.name}
                   type="button"
-                  className={`clm__icon-choice ${form.icon === ico.name ? 'clm__icon-choice--active' : ''}`}
-                  onClick={() => updateField('icon', ico.name)}
+                  className={`clm__icon-choice ${form.icon === ico.name ? "clm__icon-choice--active" : ""}`}
+                  onClick={() => updateField("icon", ico.name)}
                   disabled={isSubmitting}
                 >
                   <span className="material-symbols-outlined">{ico.name}</span>
@@ -201,7 +227,7 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
               className="btn btn-primary clm__btn-submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating...' : 'Create Levy'}
+              {isSubmitting ? "Creating..." : "Create Levy"}
             </button>
           </div>
         </form>
@@ -403,5 +429,5 @@ export default function CreateLevyTypeModal({ isOpen, onClose, onCreate }: Creat
         }
       `}</style>
     </div>
-  )
+  );
 }

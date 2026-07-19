@@ -1,4 +1,10 @@
-import type { Payment, PaymentSummary, UploadPaymentPayload, RejectPaymentPayload } from '../types/payment'
+import type {
+  Payment,
+  PaymentSummary,
+  UploadPaymentPayload,
+  RejectPaymentPayload,
+  ReceiptResponse,
+} from '../types/payment'
 import {
   mockGetPayments,
   mockGetPaymentSummary,
@@ -8,15 +14,19 @@ import {
 } from '../mocks/payment.mock'
 import { apiUrl } from './config'
 
-const USE_MOCK = false
+// POST /payments — implemented
+const USE_MOCK_UPLOAD = false
+// POST /payments/{id}/verify and /reject — implemented
+const USE_MOCK_ACTIONS = false
 
 /** Resident: upload proof of payment — POST /api/v1/payments */
 export async function uploadPayment(payload: UploadPaymentPayload): Promise<{ message: string }> {
-  if (USE_MOCK) return mockUploadPayment(payload)
+  if (USE_MOCK_UPLOAD) return mockUploadPayment(payload)
 
-  const response = await fetch(apiUrl('/api/v1/payments'), {
+  const response = await fetch(apiUrl('/payments'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   })
 
@@ -25,48 +35,74 @@ export async function uploadPayment(payload: UploadPaymentPayload): Promise<{ me
     throw new Error(body?.message ?? 'Unable to upload payment proof.')
   }
 
-  return response.json() as Promise<{ message: string }>
+  return { message: 'Proof of payment uploaded successfully.' }
 }
 
-/** Community admin: reject a payment — includes remarks */
-export async function rejectPaymentWithRemarks(
-  id: string,
-  payload: RejectPaymentPayload,
-): Promise<Payment> {
-  if (USE_MOCK) return mockRejectPayment(id)
+/** Community staff: verify a payment — POST /api/v1/payments/{id}/verify */
+export async function verifyPayment(id: string): Promise<ReceiptResponse> {
+  if (USE_MOCK_ACTIONS) {
+    await mockVerifyPayment(id)
+    return {} as ReceiptResponse
+  }
 
-  const response = await fetch(apiUrl(`/api/v1/payments/${id}/reject`), {
+  const response = await fetch(apiUrl(`/payments/${id}/verify`), {
+    method: 'POST',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'Unable to verify payment.')
+  }
+
+  return response.json() as Promise<ReceiptResponse>
+}
+
+/** Community staff: reject a payment — POST /api/v1/payments/{id}/reject */
+export async function rejectPayment(id: string, remarks = ''): Promise<Payment> {
+  if (USE_MOCK_ACTIONS) return mockRejectPayment(id)
+
+  const payload: RejectPaymentPayload = { remarks }
+
+  const response = await fetch(apiUrl(`/payments/${id}/reject`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   })
 
-  if (!response.ok) throw new Error('Unable to reject payment.')
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'Unable to reject payment.')
+  }
+
   return response.json() as Promise<Payment>
 }
 
-// ── UI-only helpers (no direct swagger endpoint, but needed by admin UI) ──────
+/** Resident or staff: download receipt — GET /api/v1/payments/{id}/receipt */
+export async function getReceipt(paymentId: string): Promise<ReceiptResponse> {
+  const response = await fetch(apiUrl(`/payments/${paymentId}/receipt`), {
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'Unable to fetch receipt.')
+  }
+
+  return response.json() as Promise<ReceiptResponse>
+}
+
+// ── UI-only helpers (mocked — no backend list endpoint yet) ───────────────────
 
 export async function getPayments(
   page: number,
   filter: 'all' | 'pending' | 'verified' | 'rejected',
   keyword: string,
 ): Promise<{ payments: Payment[]; total: number }> {
-  if (USE_MOCK) return mockGetPayments(page, filter, keyword)
-  throw new Error('getPayments: use uploadPayment and direct PaymentResponse queries instead.')
+  return mockGetPayments(page, filter, keyword)
 }
 
 export async function getPaymentSummary(): Promise<PaymentSummary> {
-  if (USE_MOCK) return mockGetPaymentSummary()
-  throw new Error('getPaymentSummary: no backend endpoint available.')
-}
-
-export async function verifyPayment(id: string): Promise<Payment> {
-  if (USE_MOCK) return mockVerifyPayment(id)
-  throw new Error('verifyPayment: no backend endpoint available — check swagger for verify endpoint.')
-}
-
-export async function rejectPayment(id: string): Promise<Payment> {
-  if (USE_MOCK) return mockRejectPayment(id)
-  return rejectPaymentWithRemarks(id, { remarks: '' })
+  return mockGetPaymentSummary()
 }

@@ -1,17 +1,27 @@
-import type { AuthUser, LoginPayload, LoginResponse, CompleteAccountSetupPayload, AccountActivatedResponse } from '../types/auth'
+import type {
+  AuthUser,
+  LoginPayload,
+  LoginResponse,
+  CompleteAccountSetupPayload,
+  AccountActivatedResponse,
+} from '../types/auth'
 import { mockLogin } from '../mocks/auth.mock'
 import { apiUrl } from './config'
 
 const USE_MOCK = false
 
-export async function login(payload: LoginPayload): Promise<{ token: string; user: AuthUser }> {
-  if (USE_MOCK) {
-    return mockLogin(payload)
-  }
+// Normalize role — backend returns uppercase e.g. "PLATFORM_ADMIN"
+function normalizeRole(raw: string): AuthUser['role'] {
+  return raw.toLowerCase().replace(/^role_/, '') as AuthUser['role']
+}
 
-  const response = await fetch(apiUrl('/api/v1/auth/login'), {
+export async function login(payload: LoginPayload): Promise<{ token: string; user: AuthUser }> {
+  if (USE_MOCK) return mockLogin(payload)
+
+  const response = await fetch(apiUrl('/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   })
 
@@ -21,12 +31,6 @@ export async function login(payload: LoginPayload): Promise<{ token: string; use
   }
 
   const data: LoginResponse = await response.json()
-
-  // Normalize role — backend may return uppercase e.g. "PLATFORM_ADMIN"
-  const normalizeRole = (raw: string): AuthUser['role'] => {
-    return raw.toLowerCase().replace(/^role_/, '') as AuthUser['role']
-  }
-
   const user: AuthUser = {
     id: data.id,
     username: data.username,
@@ -36,25 +40,31 @@ export async function login(payload: LoginPayload): Promise<{ token: string; use
     role: normalizeRole(data.role),
   }
 
-  // Backend doesn't return a token in LoginResponse — use a placeholder until
-  // the backend adds token-based auth. For now store the user id as the token.
+  // Auth is cookie-based — no token to store. Return user id as a placeholder
+  // so AuthContext shape stays stable.
   return { token: data.id, user }
 }
 
 export async function logout(): Promise<void> {
   if (USE_MOCK) return
 
-  await fetch(apiUrl('/api/v1/auth/logout'), { method: 'POST' })
+  await fetch(apiUrl('/auth/logout'), {
+    method: 'POST',
+    credentials: 'include',
+  })
 }
 
-export async function activateAccount(payload: CompleteAccountSetupPayload): Promise<AccountActivatedResponse> {
+export async function activateAccount(
+  payload: CompleteAccountSetupPayload,
+): Promise<AccountActivatedResponse> {
   if (USE_MOCK) {
     return { username: 'mock_user', message: 'Account activated successfully.' }
   }
 
-  const response = await fetch(apiUrl('/api/v1/auth/activate'), {
+  const response = await fetch(apiUrl('/auth/activate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(payload),
   })
 

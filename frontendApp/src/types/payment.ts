@@ -35,7 +35,7 @@ export interface RejectPaymentPayload {
   remarks: string
 }
 
-export type PaymentStatus = 'pending' | 'verified' | 'rejected'
+export type PaymentStatus = 'PENDING_REVIEW' | 'VERIFIED' | 'REJECTED' | 'pending' | 'verified' | 'rejected'
 
 // ── UI-only type: enriched payment row for community admin table ──────────────
 export interface Payment {

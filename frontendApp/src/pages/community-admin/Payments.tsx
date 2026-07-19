@@ -1,121 +1,153 @@
-import { useEffect, useRef, useState } from 'react'
-import CommunityAdminLayout from '../../layouts/CommunityAdminLayout'
-import Spinner from '../../components/ui/Spinner'
-import EmptyState from '../../components/ui/EmptyState'
-import { getPayments, getPaymentSummary, rejectPayment, verifyPayment } from '../../api/payment'
-import type { Payment, PaymentStatus, PaymentSummary } from '../../types/payment'
+import { useEffect, useRef, useState } from "react";
+import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
+import Spinner from "../../components/ui/Spinner";
+import EmptyState from "../../components/ui/EmptyState";
+import {
+  getPayments,
+  getPaymentSummary,
+  rejectPayment,
+  verifyPayment,
+} from "../../api/payment";
+import type {
+  Payment,
+  PaymentStatus,
+  PaymentSummary,
+} from "../../types/payment";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function formatCurrency(value: number) {
-  return value.toLocaleString('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return value.toLocaleString("en-NG", {
+    style: "currency",
+    currency: "NGN",
     maximumFractionDigits: 2,
-  })
+  });
 }
 
 function getInitials(name: string) {
   return name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
     .filter(Boolean)
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
+    .join("")
+    .toUpperCase();
 }
 
 const AVATAR_COLORS = [
-  { bg: '#dae2fd', color: '#131b2e' },
-  { bg: '#71f8e4', color: '#00201c' },
-  { bg: '#e1e0ff', color: '#07006c' },
-  { bg: '#ffdad6', color: '#93000a' },
-  { bg: '#d4f1c6', color: '#1a4a0a' },
-  { bg: '#fde8b0', color: '#5c3a00' },
-]
+  { bg: "#dae2fd", color: "#131b2e" },
+  { bg: "#71f8e4", color: "#00201c" },
+  { bg: "#e1e0ff", color: "#07006c" },
+  { bg: "#ffdad6", color: "#93000a" },
+  { bg: "#d4f1c6", color: "#1a4a0a" },
+  { bg: "#fde8b0", color: "#5c3a00" },
+];
 
 function avatarColors(name: string) {
-  const idx = name.charCodeAt(0) % AVATAR_COLORS.length
-  return AVATAR_COLORS[idx]
+  const idx = name.charCodeAt(0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
 }
 
 const LEVY_TYPE_STYLE: Record<string, { bg: string; color: string }> = {
-  'Annual Levy': { bg: 'rgba(113,248,228,0.18)', color: '#005048' },
-  Maintenance: { bg: 'rgba(192,193,255,0.25)', color: '#2f2ebe' },
-  'Security Fund': { bg: 'rgba(218,226,253,0.5)', color: '#3f465c' },
-  'Security & Patrols': { bg: 'rgba(218,226,253,0.5)', color: '#3f465c' },
-}
+  "Annual Levy": { bg: "rgba(113,248,228,0.18)", color: "#005048" },
+  Maintenance: { bg: "rgba(192,193,255,0.25)", color: "#2f2ebe" },
+  "Security Fund": { bg: "rgba(218,226,253,0.5)", color: "#3f465c" },
+  "Security & Patrols": { bg: "rgba(218,226,253,0.5)", color: "#3f465c" },
+};
 
 function levyBadgeStyle(levyType: string) {
-  return LEVY_TYPE_STYLE[levyType] ?? { bg: '#eceef0', color: '#45464d' }
+  return LEVY_TYPE_STYLE[levyType] ?? { bg: "#eceef0", color: "#45464d" };
 }
 
 function isImageProof(reference: string) {
-  return /\.(jpg|jpeg|png|webp)$/i.test(reference)
+  return /\.(jpg|jpeg|png|webp)$/i.test(reference);
 }
 
-const ITEMS_PER_PAGE = 3
-const FILTER_TABS: { label: string; value: 'all' | PaymentStatus }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Verified', value: 'verified' },
-  { label: 'Rejected', value: 'rejected' },
-]
+const ITEMS_PER_PAGE = 3;
+const FILTER_TABS: {
+  label: string;
+  value: "all" | "pending" | "verified" | "rejected";
+}[] = [
+  { label: "All", value: "all" },
+  { label: "Pending", value: "pending" },
+  { label: "Verified", value: "verified" },
+  { label: "Rejected", value: "rejected" },
+];
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 interface ToastProps {
-  message: string | null
-  type: 'success' | 'error'
+  message: string | null;
+  type: "success" | "error";
 }
 
 function Toast({ message, type }: ToastProps) {
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: 'var(--space-lg)',
-        right: 'var(--space-lg)',
+        position: "fixed",
+        bottom: "var(--space-lg)",
+        right: "var(--space-lg)",
         zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-sm)',
-        background: type === 'success' ? '#1e293b' : '#7f1d1d',
-        color: '#ffffff',
-        padding: '14px var(--space-md)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.35)',
-        transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
-        transform: message ? 'translateY(0) scale(1)' : 'translateY(80px) scale(0.9)',
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--space-sm)",
+        background: type === "success" ? "#1e293b" : "#7f1d1d",
+        color: "#ffffff",
+        padding: "14px var(--space-md)",
+        borderRadius: "var(--radius-xl)",
+        boxShadow: "0 20px 40px -10px rgba(0,0,0,0.35)",
+        transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        transform: message
+          ? "translateY(0) scale(1)"
+          : "translateY(80px) scale(0.9)",
         opacity: message ? 1 : 0,
-        pointerEvents: 'none',
+        pointerEvents: "none",
         maxWidth: 380,
       }}
     >
-      <span className="material-symbols-outlined" style={{ color: type === 'success' ? '#71f8e4' : '#fca5a5', fontSize: 22 }}>
-        {type === 'success' ? 'check_circle' : 'cancel'}
+      <span
+        className="material-symbols-outlined"
+        style={{
+          color: type === "success" ? "#71f8e4" : "#fca5a5",
+          fontSize: 22,
+        }}
+      >
+        {type === "success" ? "check_circle" : "cancel"}
       </span>
       <span style={{ fontSize: 14, fontWeight: 500 }}>{message}</span>
     </div>
-  )
+  );
 }
 
 interface SummaryCardProps {
-  icon: string
-  iconBg: string
-  iconColor: string
-  label: string
-  value: string
-  subLabel: string
-  subIcon: string
-  subColor: string
+  icon: string;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  value: string;
+  subLabel: string;
+  subIcon: string;
+  subColor: string;
 }
 
-function SummaryCard({ icon, iconBg, iconColor, label, value, subLabel, subIcon, subColor }: SummaryCardProps) {
+function SummaryCard({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  value,
+  subLabel,
+  subIcon,
+  subColor,
+}: SummaryCardProps) {
   return (
     <div className="pv-summary-card">
       <div className="pv-summary-card__icon" style={{ background: iconBg }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 26, color: iconColor }}>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 26, color: iconColor }}
+        >
           {icon}
         </span>
       </div>
@@ -130,27 +162,27 @@ function SummaryCard({ icon, iconBg, iconColor, label, value, subLabel, subIcon,
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 interface VerificationRateCardProps {
-  rate: number
+  rate: number;
 }
 
 function VerificationRateCard({ rate }: VerificationRateCardProps) {
-  const barHeights = [24, 32, 40, 28, 48, 36, 44]
-  const barRef = useRef<HTMLDivElement[]>([])
+  const barHeights = [24, 32, 40, 28, 48, 36, 44];
+  const barRef = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
     barRef.current.forEach((el, i) => {
-      if (!el) return
-      el.style.height = '0px'
+      if (!el) return;
+      el.style.height = "0px";
       setTimeout(() => {
-        el.style.transition = `height 0.7s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms`
-        el.style.height = `${barHeights[i]}px`
-      }, 400)
-    })
-  }, [])
+        el.style.transition = `height 0.7s cubic-bezier(0.175,0.885,0.32,1.275) ${i * 80}ms`;
+        el.style.height = `${barHeights[i]}px`;
+      }, 400);
+    });
+  }, []);
 
   return (
     <div className="pv-summary-card pv-summary-card--rate">
@@ -158,13 +190,23 @@ function VerificationRateCard({ rate }: VerificationRateCardProps) {
         <p className="pv-summary-card__label">Verification Rate</p>
         <p className="pv-summary-card__value">{rate}%</p>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 48, marginTop: 'auto' }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 4,
+          height: 48,
+          marginTop: "auto",
+        }}
+      >
         {barHeights.map((_h, i) => {
-          const opacity = 0.15 + (i / barHeights.length) * 0.85
+          const opacity = 0.15 + (i / barHeights.length) * 0.85;
           return (
             <div
               key={i}
-              ref={(el) => { if (el) barRef.current[i] = el }}
+              ref={(el) => {
+                if (el) barRef.current[i] = el;
+              }}
               style={{
                 flex: 1,
                 background: `rgba(70, 72, 212, ${opacity})`,
@@ -172,30 +214,41 @@ function VerificationRateCard({ rate }: VerificationRateCardProps) {
                 height: 0,
               }}
             />
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
 interface PaymentRowProps {
-  payment: Payment
-  actionPendingId: string | null
-  onVerify: (id: string) => void
-  onReject: (id: string) => void
+  payment: Payment;
+  actionPendingId: string | null;
+  onVerify: (id: string) => void;
+  onReject: (id: string) => void;
 }
 
-function PaymentRow({ payment, actionPendingId, onVerify, onReject }: PaymentRowProps) {
-  const colors = avatarColors(payment.residentName)
-  const levy = levyBadgeStyle(payment.levyType)
-  const isPending = actionPendingId === payment.id
-  const isImg = isImageProof(payment.reference)
+function PaymentRow({
+  payment,
+  actionPendingId,
+  onVerify,
+  onReject,
+}: PaymentRowProps) {
+  const colors = avatarColors(payment.residentName);
+  const levy = levyBadgeStyle(payment.levyType);
+  const isPending = actionPendingId === payment.id;
+  const isImg = isImageProof(payment.reference);
 
   return (
     <tr className="pv-table__row">
       <td className="pv-table__cell">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-sm)",
+          }}
+        >
           <div
             className="pv-avatar"
             style={{ background: colors.bg, color: colors.color }}
@@ -214,24 +267,36 @@ function PaymentRow({ payment, actionPendingId, onVerify, onReject }: PaymentRow
       <td className="pv-table__cell">
         <a href={payment.proofUrl} className="pv-proof-link">
           <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
-            {isImg ? 'image' : 'attachment'}
+            {isImg ? "image" : "attachment"}
           </span>
           <span>{payment.reference}</span>
         </a>
       </td>
       <td className="pv-table__cell">
         <p className="pv-table__amount">{formatCurrency(payment.amount)}</p>
-        <span className="pv-levy-badge" style={{ background: levy.bg, color: levy.color }}>
+        <span
+          className="pv-levy-badge"
+          style={{ background: levy.bg, color: levy.color }}
+        >
           {payment.levyType}
         </span>
       </td>
-      <td className="pv-table__cell pv-table__cell--time">{payment.submittedAtLabel}</td>
+      <td className="pv-table__cell pv-table__cell--time">
+        {payment.submittedAtLabel}
+      </td>
       <td className="pv-table__cell pv-table__cell--status">
         <StatusBadge status={payment.status} />
       </td>
       <td className="pv-table__cell pv-table__cell--actions">
-        {payment.status === 'pending' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', justifyContent: 'center' }}>
+        {payment.status === "pending" ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-sm)",
+              justifyContent: "center",
+            }}
+          >
             <button
               className="pv-btn-verify"
               onClick={() => onVerify(payment.id)}
@@ -241,7 +306,10 @@ function PaymentRow({ payment, actionPendingId, onVerify, onReject }: PaymentRow
                 <Spinner />
               ) : (
                 <>
-                  <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 17 }}
+                  >
                     check_circle
                   </span>
                   Verify
@@ -254,64 +322,72 @@ function PaymentRow({ payment, actionPendingId, onVerify, onReject }: PaymentRow
               disabled={isPending}
               title="Reject payment"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 20 }}
+              >
                 close
               </span>
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
             <StatusBadge status={payment.status} />
           </div>
         )}
       </td>
     </tr>
-  )
+  );
 }
 
 function StatusBadge({ status }: { status: PaymentStatus }) {
-  if (status === 'pending') {
+  if (status === "pending") {
     return (
       <span className="ui-badge ui-badge--warning">
         <span className="material-symbols-outlined">schedule</span>
         Pending
       </span>
-    )
+    );
   }
-  if (status === 'verified') {
+  if (status === "verified") {
     return (
       <span className="ui-badge ui-badge--success">
         <span className="material-symbols-outlined">check_circle</span>
         Verified
       </span>
-    )
+    );
   }
   return (
     <span className="ui-badge ui-badge--danger">
       <span className="material-symbols-outlined">cancel</span>
       Rejected
     </span>
-  )
+  );
 }
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export default function Payments() {
-  const [payments, setPayments] = useState<Payment[]>([])
-  const [summary, setSummary] = useState<PaymentSummary | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [totalItems, setTotalItems] = useState(0)
-  const [filter, setFilter] = useState<'all' | PaymentStatus>('all')
-  const [keyword, setKeyword] = useState('')
-  const [actionPendingId, setActionPendingId] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [summary, setSummary] = useState<PaymentSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [filter, setFilter] = useState<
+    "all" | "pending" | "verified" | "rejected"
+  >("all");
+  const [keyword, setKeyword] = useState("");
+  const [actionPendingId, setActionPendingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE))
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
-  function showToast(message: string, type: 'success' | 'error' = 'success') {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3500)
+  function showToast(message: string, type: "success" | "error" = "success") {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
   }
 
   const loadData = async (
@@ -323,59 +399,65 @@ export default function Payments() {
       const [paymentData, summaryData] = await Promise.all([
         getPayments(currentPage, currentFilter, currentKeyword),
         getPaymentSummary(),
-      ])
-      setPayments(paymentData.payments)
-      setTotalItems(paymentData.total)
-      setSummary(summaryData)
-      setIsLoading(false)
+      ]);
+      setPayments(paymentData.payments);
+      setTotalItems(paymentData.total);
+      setSummary(summaryData);
+      setIsLoading(false);
     } catch (err) {
-      console.error('Failed to load payments:', err)
-      setIsLoading(false)
+      console.error("Failed to load payments:", err);
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    setIsLoading(true)
-    setPage(1)
-    const debounce = setTimeout(() => loadData(1, filter, keyword), 250)
-    return () => clearTimeout(debounce)
-  }, [filter, keyword])
+    setIsLoading(true);
+    setPage(1);
+    const debounce = setTimeout(() => loadData(1, filter, keyword), 250);
+    return () => clearTimeout(debounce);
+  }, [filter, keyword]);
 
   useEffect(() => {
     if (!isLoading) {
-      setIsLoading(true)
-      loadData(page, filter, keyword)
+      setIsLoading(true);
+      loadData(page, filter, keyword);
     }
-  }, [page])
+  }, [page]);
 
   const handleVerify = async (id: string) => {
-    setActionPendingId(id)
+    setActionPendingId(id);
     try {
-      await verifyPayment(id)
-      showToast('Payment successfully verified!', 'success')
-      await loadData(page, filter, keyword)
+      await verifyPayment(id);
+      showToast("Payment successfully verified!", "success");
+      await loadData(page, filter, keyword);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Verification failed.', 'error')
+      showToast(
+        err instanceof Error ? err.message : "Verification failed.",
+        "error",
+      );
     } finally {
-      setActionPendingId(null)
+      setActionPendingId(null);
     }
-  }
+  };
 
   const handleReject = async (id: string) => {
-    setActionPendingId(id)
+    setActionPendingId(id);
     try {
-      await rejectPayment(id)
-      showToast('Payment has been rejected.', 'error')
-      await loadData(page, filter, keyword)
+      await rejectPayment(id);
+      showToast("Payment has been rejected.", "error");
+      await loadData(page, filter, keyword);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Rejection failed.', 'error')
+      showToast(
+        err instanceof Error ? err.message : "Rejection failed.",
+        "error",
+      );
     } finally {
-      setActionPendingId(null)
+      setActionPendingId(null);
     }
-  }
+  };
 
-  const startItem = (page - 1) * ITEMS_PER_PAGE + 1
-  const endItem = Math.min(page * ITEMS_PER_PAGE, totalItems)
+  const startItem = (page - 1) * ITEMS_PER_PAGE + 1;
+  const endItem = Math.min(page * ITEMS_PER_PAGE, totalItems);
 
   return (
     <CommunityAdminLayout>
@@ -384,10 +466,15 @@ export default function Payments() {
         <div className="pv-page__header">
           <div>
             <h2 className="pv-page__title">Payment Verification</h2>
-            <p className="pv-page__subtitle">Manage and audit incoming community trust contributions.</p>
+            <p className="pv-page__subtitle">
+              Manage and audit incoming community trust contributions.
+            </p>
           </div>
           <button className="pv-btn-export">
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 18 }}
+            >
               download
             </span>
             Export Report
@@ -401,7 +488,7 @@ export default function Payments() {
             iconBg="rgba(192,193,255,0.35)"
             iconColor="#2f2ebe"
             label="Total Pending"
-            value={String(summary?.totalPending ?? '—')}
+            value={String(summary?.totalPending ?? "—")}
             subLabel="+12% from yesterday"
             subIcon="trending_up"
             subColor="var(--color-error)"
@@ -411,7 +498,7 @@ export default function Payments() {
             iconBg="rgba(113,248,228,0.3)"
             iconColor="#005048"
             label="Pending Value"
-            value={summary ? formatCurrency(summary.pendingValue) : '—'}
+            value={summary ? formatCurrency(summary.pendingValue) : "—"}
             subLabel="Awaiting audit"
             subIcon="update"
             subColor="var(--color-on-tertiary-container)"
@@ -425,7 +512,7 @@ export default function Payments() {
             {FILTER_TABS.map((tab) => (
               <button
                 key={tab.value}
-                className={`pv-filter-tab${filter === tab.value ? ' pv-filter-tab--active' : ''}`}
+                className={`pv-filter-tab${filter === tab.value ? " pv-filter-tab--active" : ""}`}
                 onClick={() => setFilter(tab.value)}
               >
                 {tab.label}
@@ -433,7 +520,9 @@ export default function Payments() {
             ))}
           </div>
           <div className="pv-search">
-            <span className="material-symbols-outlined pv-search__icon">search</span>
+            <span className="material-symbols-outlined pv-search__icon">
+              search
+            </span>
             <input
               type="text"
               className="pv-search__input"
@@ -448,17 +537,22 @@ export default function Payments() {
         <section className="pv-table-section">
           <div className="pv-table-section__header">
             <h3 className="pv-table-section__title">
-              {filter === 'all' ? 'All Payments' : `${FILTER_TABS.find((t) => t.value === filter)?.label} Payments`}
+              {filter === "all"
+                ? "All Payments"
+                : `${FILTER_TABS.find((t) => t.value === filter)?.label} Payments`}
             </h3>
             <div className="pv-filter-chip">
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 15 }}
+              >
                 filter_list
               </span>
               Filter
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: "auto" }}>
             <table className="pv-table">
               <thead>
                 <tr>
@@ -474,8 +568,16 @@ export default function Payments() {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <td
+                      colSpan={7}
+                      style={{
+                        padding: "var(--space-xl)",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div
+                        style={{ display: "flex", justifyContent: "center" }}
+                      >
                         <Spinner />
                       </div>
                     </td>
@@ -488,8 +590,8 @@ export default function Payments() {
                         title="No payments found"
                         description={
                           keyword
-                            ? 'Try adjusting your search or filter.'
-                            : 'There are no payments in this category yet.'
+                            ? "Try adjusting your search or filter."
+                            : "There are no payments in this category yet."
                         }
                       />
                     </td>
@@ -513,8 +615,8 @@ export default function Payments() {
           <div className="pv-pagination">
             <p className="pv-pagination__info">
               {totalItems === 0
-                ? 'No results'
-                : `Showing ${startItem}–${endItem} of ${totalItems} ${filter === 'all' ? '' : filter} payment${totalItems !== 1 ? 's' : ''}`}
+                ? "No results"
+                : `Showing ${startItem}–${endItem} of ${totalItems} ${filter === "all" ? "" : filter} payment${totalItems !== 1 ? "s" : ""}`}
             </p>
             <div className="pv-pagination__controls">
               <button
@@ -527,7 +629,7 @@ export default function Payments() {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
-                  className={`pv-page-btn${page === p ? ' pv-page-btn--active' : ''}`}
+                  className={`pv-page-btn${page === p ? " pv-page-btn--active" : ""}`}
                   onClick={() => setPage(p)}
                 >
                   {p}
@@ -546,14 +648,36 @@ export default function Payments() {
 
         {/* ── Bottom micro-stats ─────────────────────────────────── */}
         <div className="pv-micro-stats">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-tertiary-fixed-dim)', display: 'inline-block' }} />
-              Auto-Matched: {summary?.autoMatchedCount ?? '—'}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-md)",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "var(--color-tertiary-fixed-dim)",
+                  display: "inline-block",
+                }}
+              />
+              Auto-Matched: {summary?.autoMatchedCount ?? "—"}
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-error)', display: 'inline-block' }} />
-              Disputed: {summary?.disputedCount ?? '—'}
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "var(--color-error)",
+                  display: "inline-block",
+                }}
+              />
+              Disputed: {summary?.disputedCount ?? "—"}
             </span>
           </div>
           <p>Last sync: 12 minutes ago from Bank API</p>
@@ -561,7 +685,7 @@ export default function Payments() {
       </div>
 
       {/* ── Toast ──────────────────────────────────────────────── */}
-      <Toast message={toast?.message ?? null} type={toast?.type ?? 'success'} />
+      <Toast message={toast?.message ?? null} type={toast?.type ?? "success"} />
 
       <style>{`
         .pv-page {
@@ -1052,5 +1176,5 @@ export default function Payments() {
         }
       `}</style>
     </CommunityAdminLayout>
-  )
+  );
 }
