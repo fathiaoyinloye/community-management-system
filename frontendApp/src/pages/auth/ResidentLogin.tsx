@@ -14,6 +14,7 @@ export default function ResidentLogin() {
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [portalError, setPortalError] = useState<string | null>(null);
 
@@ -21,7 +22,8 @@ export default function ResidentLogin() {
 
   const validate = (): boolean => {
     const errors: FieldErrors = {};
-    if (!identifier.trim()) errors.identifier = "Username or email is required.";
+    if (!identifier.trim())
+      errors.identifier = "Username or email is required.";
     if (!password) errors.password = "Password is required.";
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -131,15 +133,28 @@ export default function ResidentLogin() {
 
             <label className="res-auth__field">
               <span className="res-auth__label">Password</span>
-              <input
-                type="password"
-                className="res-auth__input"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.password)}
-              />
+              <div className="res-auth__input-wrap">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="res-auth__input"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  disabled={isAuthenticating}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                />
+                <button
+                  type="button"
+                  className="res-auth__pw-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
               {fieldErrors.password && (
                 <span className="res-auth__field-error">
                   {fieldErrors.password}
@@ -355,6 +370,37 @@ export default function ResidentLogin() {
 
         .res-auth__input:disabled {
           opacity: 0.6;
+        }
+
+        .res-auth__input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .res-auth__input-wrap .res-auth__input {
+          width: 100%;
+          padding-right: 40px;
+        }
+
+        .res-auth__pw-toggle {
+          position: absolute;
+          right: 10px;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          color: var(--color-on-surface-variant);
+          display: flex;
+          align-items: center;
+        }
+
+        .res-auth__pw-toggle .material-symbols-outlined {
+          font-size: 20px;
+        }
+
+        .res-auth__pw-toggle:hover {
+          color: var(--color-on-surface);
         }
 
         .res-auth__field-error {

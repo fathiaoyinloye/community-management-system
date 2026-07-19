@@ -1,35 +1,41 @@
-import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../store/AuthContext'
+import type { ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
 
 interface NavItem {
-  label: string
-  icon: string
-  to?: string
+  label: string;
+  icon: string;
+  to?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: 'dashboard' },
-  { label: 'Community Info', icon: 'info', to: '/community-admin/community-info' },
-  { label: 'Houses', icon: 'home_work', to: '/community-admin/houses' },
-  { label: 'Levies', icon: 'receipt_long', to: '/community-admin/levies' },
-  { label: 'Payments', icon: 'payments', to: '/community-admin/payments' },
-  { label: 'Staff', icon: 'group' },
-  { label: 'Settings', icon: 'settings' },
-]
+  { label: "Dashboard", icon: "dashboard" },
+  {
+    label: "Community Info",
+    icon: "info",
+    to: "/community-admin/community-info",
+  },
+  { label: "Houses", icon: "home_work", to: "/community-admin/houses" },
+  { label: "Levies", icon: "receipt_long", to: "/community-admin/levies" },
+  { label: "Payments", icon: "payments", to: "/community-admin/payments" },
+  { label: "Staff", icon: "group" },
+  { label: "Settings", icon: "settings" },
+];
 
 interface CommunityAdminLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export default function CommunityAdminLayout({ children }: CommunityAdminLayoutProps) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+export default function CommunityAdminLayout({
+  children,
+}: CommunityAdminLayoutProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout()
-    navigate('/community-admin/login', { replace: true })
-  }
+    logout();
+    navigate("/community-admin/login", { replace: true });
+  };
 
   return (
     <div className="ca-layout">
@@ -51,7 +57,9 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
                 key={item.label}
                 to={item.to}
                 className={({ isActive }) =>
-                  isActive ? 'ca-layout__nav-item ca-layout__nav-item--active' : 'ca-layout__nav-item'
+                  isActive
+                    ? "ca-layout__nav-item ca-layout__nav-item--active"
+                    : "ca-layout__nav-item"
                 }
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
@@ -75,11 +83,17 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         <div className="ca-layout__sidebar-footer">
           <div className="ca-layout__profile-card">
             <div className="ca-layout__profile-info">
-              <p className="ca-layout__profile-name">{user?.name ?? 'Community Admin'}</p>
+              <p className="ca-layout__profile-name">
+                {user?.name ?? "Community Admin"}
+              </p>
               <p className="ca-layout__profile-role">Community Admin</p>
             </div>
           </div>
-          <button type="button" className="ca-layout__footer-link" onClick={handleLogout}>
+          <button
+            type="button"
+            className="ca-layout__footer-link"
+            onClick={handleLogout}
+          >
             <span className="material-symbols-outlined">logout</span>
             Sign Out
           </button>
@@ -118,28 +132,30 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
           position: fixed;
           top: 0;
           left: 0;
+          min-height: 100vh;
           height: 100vh;
           width: 256px;
           background: #ffffff;
           border-right: 1px solid var(--color-outline-variant);
           display: flex;
           flex-direction: column;
-          gap: var(--space-sm);
-          padding: var(--space-md) 0;
+          gap: 6px;
+          padding: 12px 0;
           z-index: 50;
+          overflow: hidden;
         }
 
         .ca-layout__brand {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
+          gap: 8px;
           padding: 0 var(--space-md);
-          margin-bottom: var(--space-lg);
+          margin: 0 0 8px;
         }
 
         .ca-layout__brand-mark {
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           border-radius: var(--radius-lg);
           background: var(--color-secondary);
           color: #ffffff;
@@ -149,38 +165,46 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
           flex-shrink: 0;
         }
 
+        .ca-layout__brand-mark .material-symbols-outlined {
+          font-size: 18px;
+          line-height: 1;
+        }
+
         .ca-layout__brand-name {
           font-family: var(--font-display);
-          font-size: var(--text-headline-md);
+          font-size: 16px;
           font-weight: 700;
           color: #0f172a;
-          line-height: 1.2;
+          line-height: 1.15;
+          letter-spacing: -0.015em;
         }
 
         .ca-layout__brand-label {
-          font-size: 10px;
+          font-size: 8px;
           color: var(--color-on-primary-container);
           text-transform: uppercase;
           letter-spacing: 0.1em;
+          margin-top: 1px;
         }
 
         .ca-layout__nav {
-          flex-grow: 1;
+          flex: 1 1 auto;
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          padding: 0 var(--space-sm);
+          gap: 2px;
+          padding: 0 10px;
+          min-height: 0;
         }
 
         .ca-layout__nav-item {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: 14px var(--space-sm);
+          gap: 8px;
+          padding: 11px 10px;
           border-radius: var(--radius-lg);
           background: transparent;
           color: var(--color-on-surface-variant);
-          font-size: var(--text-body-md);
+          font-size: 13px;
           transition: all 0.2s ease;
           text-align: left;
           position: relative;
@@ -216,18 +240,20 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         }
 
         .ca-layout__sidebar-footer {
-          padding: var(--space-md) var(--space-sm) 0;
+          margin-top: auto;
+          padding: 10px 10px 6px;
           border-top: 1px solid var(--color-outline-variant);
           display: flex;
           flex-direction: column;
-          gap: var(--space-sm);
+          gap: 6px;
+          background: #ffffff;
         }
 
         .ca-layout__profile-card {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: 0 var(--space-xs);
+          gap: 8px;
+          padding: 0 2px;
         }
 
         .ca-layout__avatar {
@@ -250,7 +276,7 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         }
 
         .ca-layout__profile-name {
-          font-size: var(--text-label-md);
+          font-size: 12px;
           color: var(--color-on-surface);
           white-space: nowrap;
           overflow: hidden;
@@ -258,7 +284,7 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         }
 
         .ca-layout__profile-role {
-          font-size: 12px;
+          font-size: 11px;
           color: var(--color-on-surface-variant);
           white-space: nowrap;
           overflow: hidden;
@@ -268,13 +294,16 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         .ca-layout__footer-link {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: 12px var(--space-sm);
+          justify-content: center;
+          gap: 8px;
+          padding: 11px 10px;
           border-radius: var(--radius-lg);
           background: transparent;
           color: var(--color-error);
-          font-size: var(--text-label-md);
+          font-size: 12px;
+          font-weight: 600;
           transition: background-color 0.2s ease;
+          min-height: 42px;
         }
 
         .ca-layout__footer-link:hover {
@@ -371,7 +400,7 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         }
 
         .ca-layout__content {
-          padding: var(--space-xl) var(--space-gutter);
+          padding: var(--space-md) var(--space-lg);
           max-width: 1200px;
           margin: 0 auto;
         }
@@ -391,5 +420,5 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
         }
       `}</style>
     </div>
-  )
+  );
 }

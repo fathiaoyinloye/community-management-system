@@ -1,36 +1,38 @@
-import { useState, type ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../store/AuthContext'
-import CreateCommunityModal from '../components/CreateCommunityModal'
+import { useState, type ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
+import CreateCommunityModal from "../components/CreateCommunityModal";
 
 interface NavItem {
-  label: string
-  icon: string
-  to?: string
+  label: string;
+  icon: string;
+  to?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: 'dashboard', to: '/platform-admin/dashboard' },
-  { label: 'Communities', icon: 'domain', to: '/platform-admin/communities' },
-  { label: 'Admins', icon: 'manage_accounts' },
-  { label: 'Payments', icon: 'payments' },
-  { label: 'Reports', icon: 'monitoring' },
-  { label: 'Settings', icon: 'settings' },
-]
+  { label: "Dashboard", icon: "dashboard", to: "/platform-admin/dashboard" },
+  { label: "Communities", icon: "domain", to: "/platform-admin/communities" },
+  { label: "Admins", icon: "manage_accounts" },
+  { label: "Payments", icon: "payments" },
+  { label: "Reports", icon: "monitoring" },
+  { label: "Settings", icon: "settings" },
+];
 
 interface PlatformAdminLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export default function PlatformAdminLayout({ children }: PlatformAdminLayoutProps) {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+export default function PlatformAdminLayout({
+  children,
+}: PlatformAdminLayoutProps) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleLogout = () => {
-    logout()
-    navigate('/platform-admin/login', { replace: true })
-  }
+    logout();
+    navigate("/platform-admin/login", { replace: true });
+  };
 
   return (
     <div className="pa-layout">
@@ -50,7 +52,9 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
                 key={item.label}
                 to={item.to}
                 className={({ isActive }) =>
-                  isActive ? 'pa-layout__nav-item pa-layout__nav-item--active' : 'pa-layout__nav-item'
+                  isActive
+                    ? "pa-layout__nav-item pa-layout__nav-item--active"
+                    : "pa-layout__nav-item"
                 }
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
@@ -99,7 +103,10 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
         <header className="pa-layout__topbar">
           <div className="pa-layout__search">
             <span className="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Search across communities, admins, or payments…" />
+            <input
+              type="text"
+              placeholder="Search across communities, admins, or payments…"
+            />
           </div>
 
           <div className="pa-layout__topbar-actions">
@@ -112,7 +119,9 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
             </button>
             <div className="pa-layout__divider" />
             <div className="pa-layout__profile">
-              <span className="pa-layout__profile-name">{user?.name ?? 'Platform Admin'}</span>
+              <span className="pa-layout__profile-name">
+                {user?.name ?? "Platform Admin"}
+              </span>
               <span className="pa-layout__status-dot" />
             </div>
             <button
@@ -140,72 +149,75 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
           position: fixed;
           top: 0;
           left: 0;
+          min-height: 100vh;
           height: 100vh;
-          width: 288px;
+          width: 256px;
           background: #ffffff;
           border-right: 1px solid var(--color-outline-variant);
           display: flex;
           flex-direction: column;
-          gap: var(--space-sm);
-          padding: var(--space-md) 0;
+          gap: 6px;
+          padding: 12px 0;
           z-index: 50;
+          overflow: hidden;
         }
 
         .pa-layout__brand {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
+          gap: 8px;
           padding: 0 var(--space-md);
-          margin-bottom: var(--space-xl);
+          margin: 0 0 8px;
         }
 
         .pa-layout__brand-mark {
-          width: 40px;
-          height: 40px;
-          border-radius: var(--radius-xl);
+          width: 30px;
+          height: 30px;
+          border-radius: var(--radius-lg);
           background: var(--color-secondary);
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
-          font-size: 18px;
+          font-size: 15px;
           flex-shrink: 0;
         }
 
         .pa-layout__brand-name {
           font-family: var(--font-display);
-          font-size: 20px;
+          font-size: 16px;
           font-weight: 700;
           color: #0f172a;
-          line-height: 1.2;
+          line-height: 1.15;
         }
 
         .pa-layout__brand-label {
-          font-size: var(--text-label-sm);
-          color: var(--color-on-surface-variant);
+          font-size: 8px;
+          color: var(--color-on-primary-container);
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          opacity: 0.6;
+          margin-top: 1px;
         }
 
         .pa-layout__nav {
-          flex-grow: 1;
+          flex: 1 1 auto;
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          padding: 0 var(--space-sm);
+          gap: 2px;
+          padding: 0 10px;
+          min-height: 0;
         }
 
         .pa-layout__nav-item {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: 14px var(--space-sm);
-          border-radius: var(--radius-xl);
+          gap: 8px;
+          padding: 11px 10px;
+          border-radius: var(--radius-lg);
           background: transparent;
           color: var(--color-on-surface-variant);
-          font-size: var(--text-label-md);
+          font-size: 13px;
           font-weight: 500;
           transition: all 0.2s ease;
           text-align: left;
@@ -218,8 +230,10 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
         }
 
         .pa-layout__nav-item--active {
-          background: var(--color-secondary);
-          color: #ffffff;
+          background: var(--color-surface-container-low);
+          color: var(--color-secondary);
+          font-weight: 700;
+          border-right: 4px solid var(--color-secondary);
         }
 
         .pa-layout__nav-item--soon {
@@ -240,29 +254,34 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
         }
 
         .pa-layout__sidebar-footer {
-          padding: var(--space-md) var(--space-sm) 0;
+          margin-top: auto;
+          padding: 10px 10px 6px;
           border-top: 1px solid var(--color-outline-variant);
           display: flex;
           flex-direction: column;
           gap: 6px;
+          background: #ffffff;
         }
 
         .pa-layout__invite {
           width: 100%;
-          padding: var(--space-sm) var(--space-sm);
-          margin-bottom: var(--space-xs);
+          padding: 11px 10px;
+          margin-bottom: 2px;
         }
 
         .pa-layout__footer-link {
           display: flex;
           align-items: center;
-          gap: var(--space-sm);
-          padding: 12px var(--space-sm);
-          border-radius: var(--radius-xl);
+          justify-content: center;
+          gap: 8px;
+          padding: 11px 10px;
+          border-radius: var(--radius-lg);
           background: transparent;
           color: var(--color-on-surface-variant);
-          font-size: var(--text-label-md);
+          font-size: 12px;
+          font-weight: 600;
           transition: background-color 0.2s ease;
+          min-height: 42px;
         }
 
         .pa-layout__footer-link:hover:not(:disabled) {
@@ -283,7 +302,7 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
         }
 
         .pa-layout__main {
-          margin-left: 288px;
+          margin-left: 256px;
           min-height: 100vh;
         }
 
@@ -294,10 +313,10 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 var(--space-md);
-          height: 80px;
-          background: #ffffff;
-          border-bottom: 1px solid var(--color-outline-variant);
+          padding: 0 var(--space-gutter);
+          height: 64px;
+          background: var(--color-surface-bright);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
         .pa-layout__search {
@@ -425,7 +444,10 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
         }
       `}</style>
 
-      <CreateCommunityModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      <CreateCommunityModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
-  )
+  );
 }

@@ -13,12 +13,14 @@ export default function CommunityAdminLogin() {
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [portalError, setPortalError] = useState<string | null>(null);
 
   const validate = (): boolean => {
     const errors: FieldErrors = {};
-    if (!identifier.trim()) errors.identifier = "Username or email is required.";
+    if (!identifier.trim())
+      errors.identifier = "Username or email is required.";
     if (!password) errors.password = "Password is required.";
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -52,7 +54,7 @@ export default function CommunityAdminLogin() {
             <span className="material-symbols-outlined ca-auth__brand-icon">
               corporate_fare
             </span>
-            <span className="ca-auth__brand-name">CommUnity Admin</span>
+            <span className="ca-auth__brand-name">CommunalTrust Admin</span>
           </div>
           <h2 className="ca-auth__panel-title">
             Manage your community from one dashboard.
@@ -90,7 +92,7 @@ export default function CommunityAdminLogin() {
           )}
 
           <form className="ca-auth__form" onSubmit={handleSubmit} noValidate>
-            <h1 className="ca-auth__title">Community Admin Sign In</h1>
+            <h1 className="ca-auth__title">Sign In</h1>
             <p className="ca-auth__subtitle">
               Sign in with your community administrator credentials.
             </p>
@@ -115,15 +117,28 @@ export default function CommunityAdminLogin() {
 
             <label className="ca-auth__field">
               <span className="ca-auth__label">Password</span>
-              <input
-                type="password"
-                className="ca-auth__input"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.password)}
-              />
+              <div className="ca-auth__input-wrap">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="ca-auth__input"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  disabled={isAuthenticating}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                />
+                <button
+                  type="button"
+                  className="ca-auth__pw-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
               {fieldErrors.password && (
                 <span className="ca-auth__field-error">
                   {fieldErrors.password}
@@ -334,6 +349,37 @@ export default function CommunityAdminLogin() {
 
         .ca-auth__input:disabled {
           opacity: 0.6;
+        }
+
+        .ca-auth__input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .ca-auth__input-wrap .ca-auth__input {
+          width: 100%;
+          padding-right: 40px;
+        }
+
+        .ca-auth__pw-toggle {
+          position: absolute;
+          right: 10px;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          color: var(--color-on-surface-variant);
+          display: flex;
+          align-items: center;
+        }
+
+        .ca-auth__pw-toggle .material-symbols-outlined {
+          font-size: 20px;
+        }
+
+        .ca-auth__pw-toggle:hover {
+          color: var(--color-on-surface);
         }
 
         .ca-auth__field-error {

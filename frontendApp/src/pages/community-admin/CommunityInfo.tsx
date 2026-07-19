@@ -274,7 +274,7 @@ export default function CommunityInfo() {
                 <label className="ci__field">
                   <span>Community Description</span>
                   <textarea
-                    rows={6}
+                    rows={4}
                     maxLength={DESCRIPTION_LIMIT}
                     placeholder="Enter a brief history and description of the community…"
                     value={form.description}
@@ -325,8 +325,8 @@ export default function CommunityInfo() {
           flex-wrap: wrap;
           align-items: flex-end;
           justify-content: space-between;
-          gap: var(--space-md);
-          margin-bottom: var(--space-xl);
+          gap: var(--space-sm);
+          margin-bottom: var(--space-md);
         }
 
         .ci__breadcrumb {
@@ -351,14 +351,15 @@ export default function CommunityInfo() {
 
         .ci__title {
           font-family: var(--font-display);
-          font-size: var(--text-headline-lg);
+          font-size: var(--text-headline-md);
           font-weight: 600;
           color: var(--color-primary);
         }
 
         .ci__subtitle {
           color: var(--color-on-surface-variant);
-          margin-top: var(--space-xs);
+          font-size: 13px;
+          margin-top: 2px;
         }
 
         .ci__actions {
@@ -419,24 +420,24 @@ export default function CommunityInfo() {
         .ci__grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: var(--space-xl);
+          gap: var(--space-md);
         }
 
         .ci__col-left {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xl);
+          gap: var(--space-md);
         }
 
         .ci__col-right {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xl);
+          gap: var(--space-md);
         }
 
         .ci__card {
           background: #ffffff;
-          padding: var(--space-md);
+          padding: var(--space-sm) var(--space-md);
           border-radius: var(--radius-xl);
           border: 1px solid var(--color-outline-variant);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -444,21 +445,21 @@ export default function CommunityInfo() {
 
         .ci__card-title {
           font-family: var(--font-display);
-          font-size: var(--text-headline-md);
+          font-size: var(--text-label-md);
           font-weight: 600;
-          margin-bottom: var(--space-md);
+          margin-bottom: var(--space-sm);
         }
 
         .ci__logo-wrap {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: var(--space-md);
+          gap: var(--space-sm);
         }
 
         .ci__logo-frame {
-          width: 192px;
-          height: 192px;
+          width: 120px;
+          height: 120px;
           border-radius: var(--radius-2xl);
           border: 2px dashed var(--color-outline-variant);
           background: var(--color-surface-bright);
@@ -476,7 +477,7 @@ export default function CommunityInfo() {
         }
 
         .ci__logo-placeholder {
-          font-size: 56px;
+          font-size: 40px;
           color: var(--color-outline-variant);
         }
 
@@ -543,17 +544,17 @@ export default function CommunityInfo() {
         }
 
         .ci__card-eyebrow {
-          font-size: var(--text-label-md);
+          font-size: var(--text-label-sm);
           text-transform: uppercase;
           letter-spacing: 0.08em;
           color: var(--color-on-surface-variant);
-          margin-bottom: var(--space-md);
+          margin-bottom: var(--space-sm);
         }
 
         .ci__status {
           display: flex;
           flex-direction: column;
-          gap: var(--space-md);
+          gap: var(--space-sm);
         }
 
         .ci__status-row {
@@ -607,7 +608,7 @@ export default function CommunityInfo() {
         }
 
         .ci__section {
-          padding: var(--space-md);
+          padding: var(--space-sm) var(--space-md);
           border-bottom: 1px solid var(--color-outline-variant);
         }
 
@@ -624,9 +625,9 @@ export default function CommunityInfo() {
           align-items: center;
           gap: var(--space-sm);
           font-family: var(--font-display);
-          font-size: var(--text-headline-md);
+          font-size: var(--text-label-md);
           font-weight: 600;
-          margin-bottom: var(--space-lg);
+          margin-bottom: var(--space-sm);
         }
 
         .ci__section-title .material-symbols-outlined {
@@ -636,13 +637,13 @@ export default function CommunityInfo() {
         .ci__form-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: var(--space-md);
+          gap: var(--space-sm);
         }
 
         .ci__field {
           display: flex;
           flex-direction: column;
-          gap: var(--space-xs);
+          gap: 4px;
           font-size: var(--text-label-md);
           color: var(--color-on-surface);
         }
@@ -652,7 +653,7 @@ export default function CommunityInfo() {
         .ci__field textarea {
           font-family: var(--font-body);
           font-size: var(--text-body-md);
-          padding: var(--space-sm) var(--space-md);
+          padding: 7px var(--space-sm);
           border: 1px solid var(--color-outline-variant);
           border-radius: var(--radius-lg);
           background: var(--color-surface-bright);
@@ -701,15 +702,15 @@ export default function CommunityInfo() {
           border: 1px solid var(--color-outline-variant);
           border-radius: var(--radius-xl);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-          padding: var(--space-md);
+          padding: var(--space-sm) var(--space-md);
           display: flex;
           align-items: center;
-          gap: var(--space-md);
+          gap: var(--space-sm);
         }
 
         .ci__location-icon {
-          width: 80px;
-          height: 80px;
+          width: 48px;
+          height: 48px;
           flex-shrink: 0;
           border-radius: var(--radius-lg);
           background: var(--color-surface-container-high);
@@ -719,7 +720,7 @@ export default function CommunityInfo() {
         }
 
         .ci__location-icon .material-symbols-outlined {
-          font-size: 32px;
+          font-size: 22px;
           color: var(--color-secondary);
         }
 
@@ -753,8 +754,8 @@ export default function CommunityInfo() {
 
         .ci__toast {
           position: fixed;
-          bottom: var(--space-gutter);
-          right: var(--space-gutter);
+          bottom: 24px;
+          right: 24px;
           display: flex;
           align-items: center;
           gap: var(--space-sm);
@@ -763,20 +764,24 @@ export default function CommunityInfo() {
           color: #ffffff;
           border-radius: var(--radius-xl);
           box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.4);
-          transform: translateY(120%);
-          transition: transform 0.3s ease;
-          z-index: 100;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 0.25s ease, transform 0.25s ease;
+          z-index: 9999;
+          pointer-events: none;
         }
 
         .ci__toast--visible {
+          opacity: 1;
           transform: translateY(0);
+          pointer-events: auto;
         }
 
         .ci__toast .material-symbols-outlined {
           color: var(--color-tertiary-fixed);
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 640px) {
           .ci__form-grid {
             grid-template-columns: 1fr 1fr;
           }
@@ -786,9 +791,13 @@ export default function CommunityInfo() {
           }
         }
 
-        @media (min-width: 1024px) {
+        @media (min-width: 900px) {
           .ci__grid {
-            grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+            grid-template-columns: 260px minmax(0, 1fr);
+          }
+
+          .ci__col-left {
+            max-width: 260px;
           }
         }
       `}</style>

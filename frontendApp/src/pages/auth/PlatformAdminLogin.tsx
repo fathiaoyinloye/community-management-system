@@ -1,46 +1,48 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../store/AuthContext'
+import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 
 interface FieldErrors {
-  identifier?: string
-  password?: string
+  identifier?: string;
+  password?: string;
 }
 
 export default function PlatformAdminLogin() {
-  const { login, logout, isAuthenticating, error } = useAuth()
-  const navigate = useNavigate()
+  const { login, logout, isAuthenticating, error } = useAuth();
+  const navigate = useNavigate();
 
-  const [identifier, setIdentifier] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [portalError, setPortalError] = useState<string | null>(null)
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   const validate = (): boolean => {
-    const errors: FieldErrors = {}
-    if (!identifier.trim()) errors.identifier = 'Username or email is required.'
-    if (!password) errors.password = 'Password is required.'
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+    const errors: FieldErrors = {};
+    if (!identifier.trim())
+      errors.identifier = "Username or email is required.";
+    if (!password) errors.password = "Password is required.";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setPortalError(null)
-    if (!validate()) return
+    event.preventDefault();
+    setPortalError(null);
+    if (!validate()) return;
 
     try {
-      const user = await login({ identifier, password })
-      if (user.role !== 'platform_admin') {
-        logout()
-        setPortalError('This portal is restricted to platform administrators.')
+      const user = await login({ identifier, password });
+      if (user.role !== "platform_admin") {
+        logout();
+        setPortalError("This portal is restricted to platform administrators.");
       } else {
-        navigate('/platform-admin/dashboard', { replace: true })
+        navigate("/platform-admin/dashboard", { replace: true });
       }
     } catch {
       // surfaced via error from useAuth()
     }
-  }
+  };
 
   return (
     <div className="pa-auth">
@@ -49,13 +51,17 @@ export default function PlatformAdminLogin() {
         <div className="pa-auth__glow pa-auth__glow--two" />
         <div className="pa-auth__panel-content">
           <div className="pa-auth__brand">
-            <span className="material-symbols-outlined pa-auth__brand-icon">account_balance</span>
+            <span className="material-symbols-outlined pa-auth__brand-icon">
+              account_balance
+            </span>
             <span className="pa-auth__brand-name">CommunalTrust</span>
           </div>
-          <h2 className="pa-auth__panel-title">Command every community from one dashboard.</h2>
+          <h2 className="pa-auth__panel-title">
+            Command every community from one dashboard.
+          </h2>
           <p className="pa-auth__panel-copy">
-            Platform administrators oversee every community, admin account, and levy
-            configuration across the network, securely, in one place.
+            Platform administrators oversee every community, admin account, and
+            levy configuration across the network, securely, in one place.
           </p>
           <ul className="pa-auth__panel-list">
             <li>
@@ -78,7 +84,9 @@ export default function PlatformAdminLogin() {
         <div className="pa-auth__card">
           {(error || portalError) && (
             <div role="alert" className="pa-auth__alert">
-              <span className="material-symbols-outlined pa-auth__alert-icon">error</span>
+              <span className="material-symbols-outlined pa-auth__alert-icon">
+                error
+              </span>
               {portalError || error}
             </div>
           )}
@@ -86,7 +94,8 @@ export default function PlatformAdminLogin() {
           <form className="pa-auth__form" onSubmit={handleSubmit} noValidate>
             <h1 className="pa-auth__title">Platform Admin Sign In</h1>
             <p className="pa-auth__subtitle">
-              Restricted access. Sign in with your platform administrator credentials.
+              Restricted access. Sign in with your platform administrator
+              credentials.
             </p>
 
             <label className="pa-auth__field">
@@ -100,28 +109,50 @@ export default function PlatformAdminLogin() {
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.identifier)}
               />
-              {fieldErrors.identifier && <span className="pa-auth__field-error">{fieldErrors.identifier}</span>}
+              {fieldErrors.identifier && (
+                <span className="pa-auth__field-error">
+                  {fieldErrors.identifier}
+                </span>
+              )}
             </label>
 
             <label className="pa-auth__field">
               <span className="pa-auth__label">Password</span>
-              <input
-                type="password"
-                className="pa-auth__input"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                
-                disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.password)}
-              />
+              <div className="pa-auth__input-wrap">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="pa-auth__input"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  disabled={isAuthenticating}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                />
+                <button
+                  type="button"
+                  className="pa-auth__pw-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
               {fieldErrors.password && (
-                <span className="pa-auth__field-error">{fieldErrors.password}</span>
+                <span className="pa-auth__field-error">
+                  {fieldErrors.password}
+                </span>
               )}
             </label>
 
-            <button type="submit" className="btn btn-primary pa-auth__submit" disabled={isAuthenticating}>
-              {isAuthenticating ? 'Signing in…' : 'Log In'}
+            <button
+              type="submit"
+              className="btn btn-primary pa-auth__submit"
+              disabled={isAuthenticating}
+            >
+              {isAuthenticating ? "Signing in…" : "Log In"}
             </button>
           </form>
         </div>
@@ -321,6 +352,37 @@ export default function PlatformAdminLogin() {
           opacity: 0.6;
         }
 
+        .pa-auth__input-wrap {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .pa-auth__input-wrap .pa-auth__input {
+          width: 100%;
+          padding-right: 40px;
+        }
+
+        .pa-auth__pw-toggle {
+          position: absolute;
+          right: 10px;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          color: var(--color-on-surface-variant);
+          display: flex;
+          align-items: center;
+        }
+
+        .pa-auth__pw-toggle .material-symbols-outlined {
+          font-size: 20px;
+        }
+
+        .pa-auth__pw-toggle:hover {
+          color: var(--color-on-surface);
+        }
+
         .pa-auth__field-error {
           color: var(--color-error);
           font-size: 13px;
@@ -349,5 +411,5 @@ export default function PlatformAdminLogin() {
         }
       `}</style>
     </div>
-  )
+  );
 }
