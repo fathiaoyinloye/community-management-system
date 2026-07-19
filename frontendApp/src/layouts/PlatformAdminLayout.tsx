@@ -18,16 +18,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Settings', icon: 'settings' },
 ]
 
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
 interface PlatformAdminLayoutProps {
   children: ReactNode
 }
@@ -122,7 +112,7 @@ export default function PlatformAdminLayout({ children }: PlatformAdminLayoutPro
             </button>
             <div className="pa-layout__divider" />
             <div className="pa-layout__profile">
-              <div className="pa-layout__avatar">{user ? getInitials(user.name) : '--'}</div>
+              <span className="pa-layout__profile-name">{user?.name ?? 'Platform Admin'}</span>
               <span className="pa-layout__status-dot" />
             </div>
             <button

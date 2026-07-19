@@ -3,28 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 
 interface FieldErrors {
-  email?: string;
+  identifier?: string;
   password?: string;
-}
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export default function CommunityAdminLogin() {
   const { login, logout, isAuthenticating, error } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [portalError, setPortalError] = useState<string | null>(null);
 
   const validate = (): boolean => {
     const errors: FieldErrors = {};
-    if (!email.trim()) errors.email = "Email is required.";
-    else if (!isValidEmail(email))
-      errors.email = "Enter a valid email address.";
+    if (!identifier.trim()) errors.identifier = "Username or email is required.";
     if (!password) errors.password = "Password is required.";
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -36,7 +30,7 @@ export default function CommunityAdminLogin() {
     if (!validate()) return;
 
     try {
-      const user = await login({ email, password });
+      const user = await login({ identifier, password });
       if (user.role === "resident") {
         logout();
         setPortalError("Residents must sign in via the Resident Portal.");
@@ -102,19 +96,19 @@ export default function CommunityAdminLogin() {
             </p>
 
             <label className="ca-auth__field">
-              <span className="ca-auth__label">Email</span>
+              <span className="ca-auth__label">Username or Email</span>
               <input
-                type="email"
+                type="text"
                 className="ca-auth__input"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
+                autoComplete="username"
                 disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.email)}
+                aria-invalid={Boolean(fieldErrors.identifier)}
               />
-              {fieldErrors.email && (
+              {fieldErrors.identifier && (
                 <span className="ca-auth__field-error">
-                  {fieldErrors.email}
+                  {fieldErrors.identifier}
                 </span>
               )}
             </label>

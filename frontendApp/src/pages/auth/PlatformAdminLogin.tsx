@@ -3,27 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../store/AuthContext'
 
 interface FieldErrors {
-  email?: string
+  identifier?: string
   password?: string
-}
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
 export default function PlatformAdminLogin() {
   const { login, logout, isAuthenticating, error } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [portalError, setPortalError] = useState<string | null>(null)
 
   const validate = (): boolean => {
     const errors: FieldErrors = {}
-    if (!email.trim()) errors.email = 'Email is required.'
-    else if (!isValidEmail(email)) errors.email = 'Enter a valid email address.'
+    if (!identifier.trim()) errors.identifier = 'Username or email is required.'
     if (!password) errors.password = 'Password is required.'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
@@ -35,7 +30,7 @@ export default function PlatformAdminLogin() {
     if (!validate()) return
 
     try {
-      const user = await login({ email, password })
+      const user = await login({ identifier, password })
       if (user.role !== 'platform_admin') {
         logout()
         setPortalError('This portal is restricted to platform administrators.')
@@ -95,17 +90,17 @@ export default function PlatformAdminLogin() {
             </p>
 
             <label className="pa-auth__field">
-              <span className="pa-auth__label">Email</span>
+              <span className="pa-auth__label">Username or Email</span>
               <input
-                type="email"
+                type="text"
                 className="pa-auth__input"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
+                autoComplete="username"
                 disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.email)}
+                aria-invalid={Boolean(fieldErrors.identifier)}
               />
-              {fieldErrors.email && <span className="pa-auth__field-error">{fieldErrors.email}</span>}
+              {fieldErrors.identifier && <span className="pa-auth__field-error">{fieldErrors.identifier}</span>}
             </label>
 
             <label className="pa-auth__field">

@@ -3,12 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 
 interface FieldErrors {
-  email?: string;
+  identifier?: string;
   password?: string;
-}
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export default function ResidentLogin() {
@@ -16,7 +12,7 @@ export default function ResidentLogin() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [portalError, setPortalError] = useState<string | null>(null);
@@ -25,9 +21,7 @@ export default function ResidentLogin() {
 
   const validate = (): boolean => {
     const errors: FieldErrors = {};
-    if (!email.trim()) errors.email = "Email is required.";
-    else if (!isValidEmail(email))
-      errors.email = "Enter a valid email address.";
+    if (!identifier.trim()) errors.identifier = "Username or email is required.";
     if (!password) errors.password = "Password is required.";
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -39,7 +33,7 @@ export default function ResidentLogin() {
     if (!validate()) return;
 
     try {
-      const user = await login({ email, password });
+      const user = await login({ identifier, password });
       if (user.role !== "resident") {
         // Enforce resident-only access
         logout();
@@ -118,19 +112,19 @@ export default function ResidentLogin() {
             </p>
 
             <label className="res-auth__field">
-              <span className="res-auth__label">Email</span>
+              <span className="res-auth__label">Username or Email</span>
               <input
-                type="email"
+                type="text"
                 className="res-auth__input"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
+                value={identifier}
+                onChange={(event) => setIdentifier(event.target.value)}
+                autoComplete="username"
                 disabled={isAuthenticating}
-                aria-invalid={Boolean(fieldErrors.email)}
+                aria-invalid={Boolean(fieldErrors.identifier)}
               />
-              {fieldErrors.email && (
+              {fieldErrors.identifier && (
                 <span className="res-auth__field-error">
-                  {fieldErrors.email}
+                  {fieldErrors.identifier}
                 </span>
               )}
             </label>

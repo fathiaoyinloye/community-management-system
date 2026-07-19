@@ -4,11 +4,12 @@ export interface AuthUser {
   id: string
   name: string
   email: string
+  username?: string
   role: UserRole
 }
 
 export interface LoginPayload {
-  email: string
+  identifier: string
   password: string
 }
 

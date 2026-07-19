@@ -5,6 +5,7 @@ import { mockUpdateHouse } from './house.mock'
 interface StoredAccount {
   user: AuthUser
   password: string
+  username: string
 }
 
 export const accounts: StoredAccount[] = [
@@ -13,27 +14,33 @@ export const accounts: StoredAccount[] = [
       id: 'platform-admin-1',
       name: 'Ada Obi',
       email: 'admin@gmail.com',
+      username: 'admin',
       role: 'platform_admin',
     },
     password: 'Admin@123',
+    username: 'admin',
   },
   {
     user: {
       id: 'community-admin-1',
       name: 'Nelson Adams',
       email: 'nelly@gmail.com',
+      username: 'nelson',
       role: 'community_admin',
     },
     password: 'nelly@123',
+    username: 'nelson',
   },
   {
     user: {
       id: 'resident-1',
       name: 'ekwe emma',
       email: 'emma@gmail.com',
+      username: 'emma',
       role: 'resident',
     },
     password: 'ekwe@123',
+    username: 'emma',
   },
 ]
 
@@ -48,7 +55,7 @@ export function addMockResidentAccount(resident: { firstName: string; lastName: 
     email,
     role: 'resident',
   }
-  accounts.push({ user, password: password || 'password123' })
+  accounts.push({ user, password: password || 'password123', username: email.split('@')[0] })
 }
 
 function delay(ms: number) {
@@ -62,11 +69,15 @@ function issueToken(email: string) {
 export async function mockLogin(payload: LoginPayload): Promise<LoginResponse> {
   await delay(800)
 
-  const email = payload.email.trim().toLowerCase()
-  const account = accounts.find((entry) => entry.user.email === email)
+  const identifier = payload.identifier.trim().toLowerCase()
+  const account = accounts.find(
+    (entry) =>
+      entry.user.email.toLowerCase() === identifier ||
+      entry.username.toLowerCase() === identifier,
+  )
 
   if (!account || account.password !== payload.password) {
-    throw new Error('Invalid email or password.')
+    throw new Error('Invalid username/email or password.')
   }
 
   return { token: issueToken(account.user.email), user: account.user }
@@ -90,10 +101,11 @@ export async function mockCreateCommunityAdmin(payload: CreateCommunityAdminPayl
     id: `community-admin-${accounts.length + 1}`,
     name: payload.name.trim(),
     email,
+    username: email.split('@')[0],
     role: 'community_admin',
   }
 
-  accounts.push({ user, password: payload.temporaryPassword })
+  accounts.push({ user, password: payload.temporaryPassword, username: email.split('@')[0] })
 
   return user
 }
@@ -123,10 +135,11 @@ export async function mockRegisterResident(payload: RegisterResidentPayload): Pr
     id: `resident-${accounts.length + 1}`,
     name: `${payload.firstName.trim()} ${payload.lastName.trim()}`,
     email,
+    username: email.split('@')[0],
     role: 'resident',
   }
 
-  accounts.push({ user, password: payload.password })
+  accounts.push({ user, password: payload.password, username: email.split('@')[0] })
 
   return user
 }

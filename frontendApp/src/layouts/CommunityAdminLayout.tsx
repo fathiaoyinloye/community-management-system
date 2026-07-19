@@ -18,16 +18,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Settings', icon: 'settings' },
 ]
 
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
 interface CommunityAdminLayoutProps {
   children: ReactNode
 }
@@ -84,7 +74,6 @@ export default function CommunityAdminLayout({ children }: CommunityAdminLayoutP
 
         <div className="ca-layout__sidebar-footer">
           <div className="ca-layout__profile-card">
-            <div className="ca-layout__avatar">{user ? getInitials(user.name) : '--'}</div>
             <div className="ca-layout__profile-info">
               <p className="ca-layout__profile-name">{user?.name ?? 'Community Admin'}</p>
               <p className="ca-layout__profile-role">Community Admin</p>
