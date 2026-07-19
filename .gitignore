@@ -6,3 +6,4 @@ target/
 target/
 backend/community-platform/src/main/resources/application-dev.properties
 backend/community-platform/src/main/resources/application-prod.properties
+backend/
