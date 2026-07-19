@@ -1,15 +1,10 @@
 import { useState, type FormEvent } from 'react'
+import type { AssignResidentPayload } from '../types/house'
 
 interface AssignResidentModalProps {
   isOpen: boolean
   onClose: () => void
-  onAssign: (resident: {
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    password?: string
-  }) => Promise<void>
+  onAssign: (resident: AssignResidentPayload) => Promise<void>
   houseNumber: string
 }
 
@@ -18,7 +13,6 @@ interface FormState {
   lastName: string
   email: string
   phone: string
-  password: string
 }
 
 const EMPTY_FORM: FormState = {
@@ -26,7 +20,6 @@ const EMPTY_FORM: FormState = {
   lastName: '',
   email: '',
   phone: '',
-  password: '',
 }
 
 export default function AssignResidentModal({
@@ -67,10 +60,6 @@ export default function AssignResidentModal({
       setError("Please enter the resident's phone number.")
       return
     }
-    if (!form.password || form.password.trim().length < 6) {
-      setError('Please provide a password of at least 6 characters.')
-      return
-    }
 
     setIsSubmitting(true)
     try {
@@ -79,7 +68,6 @@ export default function AssignResidentModal({
         lastName: form.lastName.trim(),
         email: form.email.trim(),
         phone: form.phone.trim(),
-        password: form.password.trim(),
       })
       handleClose()
     } catch (err) {
@@ -163,20 +151,6 @@ export default function AssignResidentModal({
                 required
               />
             </div>
-          </div>
-
-          <div className="arm__field">
-            <label htmlFor="password" className="arm__label">Portal Login Password</label>
-            <input
-              id="password"
-              type="text"
-              className="arm__input"
-              placeholder="Set login password for resident (min 6 characters)"
-              value={form.password}
-              onChange={(e) => updateField('password', e.target.value)}
-              disabled={isSubmitting}
-              required
-            />
           </div>
 
           <div className="arm__actions">

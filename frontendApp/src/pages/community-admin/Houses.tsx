@@ -5,8 +5,8 @@ import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import RegisterHouseModal from '../../components/RegisterHouseModal'
 import AssignResidentModal from '../../components/AssignResidentModal'
-import { getHouses, registerHouse, updateHouse } from '../../api/house'
-import type { House, HouseSummary, PropertyType, RegisterHousePayload } from '../../types/house'
+import { getHouses, registerHouse, assignResident } from '../../api/house'
+import type { House, HouseSummary, PropertyType, RegisterHousePayload, AssignResidentPayload } from '../../types/house'
 
 const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
   single_family: 'Single Family Home',
@@ -71,7 +71,8 @@ export default function Houses() {
   const toggleMaintenanceAlert = async (house: House) => {
     try {
       const nextVal = !house.hasMaintenanceAlert
-      await updateHouse(house.id, { hasMaintenanceAlert: nextVal })
+      // UI-only: no backend endpoint for maintenance alerts
+      house.hasMaintenanceAlert = nextVal
       showToast(`Maintenance alert for ${house.houseNumber} has been ${nextVal ? 'raised' : 'cleared'}.`)
       loadData(keyword, tab)
     } catch (err) {
@@ -88,7 +89,9 @@ export default function Houses() {
         return
       }
       try {
-        await updateHouse(house.id, { status: 'vacant', resident: undefined })
+        // UI-only: vacancy reset has no backend endpoint yet
+        house.status = 'vacant'
+        house.resident = undefined
         showToast(`House ${house.houseNumber} is now vacant.`)
         loadData(keyword, tab)
       } catch (err) {
@@ -103,19 +106,10 @@ export default function Houses() {
     }
   }
 
-  const handleAssignResident = async (residentDetails: {
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    password?: string
-  }) => {
+  const handleAssignResident = async (residentDetails: AssignResidentPayload) => {
     if (!selectedHouseForAssign) return
     try {
-      await updateHouse(selectedHouseForAssign.id, {
-        status: 'occupied',
-        resident: residentDetails,
-      })
+      await assignResident(selectedHouseForAssign.id, residentDetails)
       showToast(`Resident assigned to ${selectedHouseForAssign.houseNumber} successfully.`)
       loadData(keyword, tab)
     } catch (err) {

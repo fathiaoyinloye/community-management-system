@@ -35,7 +35,7 @@ export default function ResidentLogin() {
     if (!validate()) return;
 
     try {
-      const user = await login({ identifier, password });
+      const user = await login({ username: identifier, password });
       if (user.role !== "resident") {
         // Enforce resident-only access
         logout();

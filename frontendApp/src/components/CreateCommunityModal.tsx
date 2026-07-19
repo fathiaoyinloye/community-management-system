@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useCommunities } from "../store/CommunitiesContext";
 import type { CreateCommunityPayload } from "../types/community";
+import type { AssignCommunityAdminPayload } from "../types/community";
+import { assignCommunityAdmin } from "../api/community";
 
 interface CreateCommunityModalProps {
   isOpen: boolean;
@@ -9,33 +11,37 @@ interface CreateCommunityModalProps {
 
 interface FormState {
   name: string;
+  type: string;
+  address: string;
   state: string;
   lga: string;
-  adminName: string;
+  phone: string;
+  email: string;
+  description: string;
+  // Admin fields (used for the assign-admin call after community creation)
+  adminFirstName: string;
+  adminLastName: string;
+  adminPhone: string;
   adminEmail: string;
-  temporaryPassword: string;
 }
 
 const EMPTY_FORM: FormState = {
   name: "",
+  type: "gated_estate",
+  address: "",
   state: "",
   lga: "",
-  adminName: "",
+  phone: "",
+  email: "",
+  description: "",
+  adminFirstName: "",
+  adminLastName: "",
+  adminPhone: "",
   adminEmail: "",
-  temporaryPassword: "",
 };
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function generatePassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz234567890";
-  let result = "";
-  for (let index = 0; index < 10; index += 1) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
 }
 
 export default function CreateCommunityModal({
@@ -49,7 +55,7 @@ export default function CreateCommunityModal({
   const [created, setCreated] = useState<{
     communityName: string;
     adminEmail: string;
-    password: string;
+    activationLink: string;
   } | null>(null);
 
   if (!isOpen) return null;
@@ -69,45 +75,52 @@ export default function CreateCommunityModal({
     event.preventDefault();
     setError(null);
 
-    if (
-      !form.name.trim() ||
-      !form.state.trim() ||
-      !form.lga.trim() ||
-      !form.adminName.trim()
-    ) {
-      setError("Please fill in every field.");
+    if (!form.name.trim() || !form.state.trim() || !form.lga.trim() || !form.address.trim()) {
+      setError("Please fill in all community fields.");
+      return;
+    }
+    if (!form.adminFirstName.trim() || !form.adminLastName.trim()) {
+      setError("Please enter the admin's full name.");
       return;
     }
     if (!isValidEmail(form.adminEmail)) {
       setError("Enter a valid admin email address.");
       return;
     }
-    if (form.temporaryPassword.length < 5) {
-      setError("Temporary password must be at least 5 characters.");
+    if (!form.adminPhone.trim()) {
+      setError("Please enter the admin's phone number.");
       return;
     }
 
-    const payload: CreateCommunityPayload = {
+    const communityPayload: CreateCommunityPayload = {
       name: form.name.trim(),
+      type: form.type,
+      address: form.address.trim(),
       state: form.state.trim(),
       lga: form.lga.trim(),
-      adminName: form.adminName.trim(),
-      adminEmail: form.adminEmail.trim(),
-      temporaryPassword: form.temporaryPassword,
+      phone: form.phone.trim(),
+      email: form.email.trim(),
+      description: form.description.trim(),
+    };
+
+    const adminPayload: AssignCommunityAdminPayload = {
+      firstName: form.adminFirstName.trim(),
+      lastName: form.adminLastName.trim(),
+      phone: form.adminPhone.trim(),
+      email: form.adminEmail.trim(),
     };
 
     setIsSubmitting(true);
     try {
-      const community = await createCommunity(payload);
+      const community = await createCommunity(communityPayload);
+      const activation = await assignCommunityAdmin(community.id, adminPayload);
       setCreated({
         communityName: community.name,
-        adminEmail: payload.adminEmail,
-        password: payload.temporaryPassword,
+        adminEmail: activation.email,
+        activationLink: activation.activationLink,
       });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to create community.",
-      );
+      setError(err instanceof Error ? err.message : "Unable to create community.");
     } finally {
       setIsSubmitting(false);
     }
@@ -132,18 +145,17 @@ export default function CreateCommunityModal({
             </div>
             <h2 className="ccm__title">Community created</h2>
             <p className="ccm__success-copy">
-              <strong>{created.communityName}</strong> is set up. Share these
-              temporary credentials with the community admin so they can sign in
-              and set their own password.
+              <strong>{created.communityName}</strong> is set up. An activation
+              link has been sent to the admin. Share the link below if needed.
             </p>
             <div className="ccm__credentials">
               <div>
-                <span>Email</span>
+                <span>Admin Email</span>
                 <p>{created.adminEmail}</p>
               </div>
               <div>
-                <span>Temporary Password</span>
-                <p>{created.password}</p>
+                <span>Activation Link</span>
+                <p style={{ wordBreak: 'break-all', fontSize: 12 }}>{created.activationLink}</p>
               </div>
             </div>
             <button
@@ -177,10 +189,18 @@ export default function CreateCommunityModal({
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(event) =>
-                      updateField("name", event.target.value)
-                    }
+                    onChange={(event) => updateField("name", event.target.value)}
                     disabled={isSubmitting}
+                  />
+                </label>
+                <label className="ccm__field ccm__field--full">
+                  <span>Address</span>
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={(event) => updateField("address", event.target.value)}
+                    disabled={isSubmitting}
+                    placeholder="e.g. 12 Estate Road, Phase 1"
                   />
                 </label>
                 <label className="ccm__field">
@@ -188,9 +208,7 @@ export default function CreateCommunityModal({
                   <input
                     type="text"
                     value={form.state}
-                    onChange={(event) =>
-                      updateField("state", event.target.value)
-                    }
+                    onChange={(event) => updateField("state", event.target.value)}
                     disabled={isSubmitting}
                   />
                 </label>
@@ -203,18 +221,44 @@ export default function CreateCommunityModal({
                     disabled={isSubmitting}
                   />
                 </label>
+                <label className="ccm__field">
+                  <span>Phone</span>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(event) => updateField("phone", event.target.value)}
+                    disabled={isSubmitting}
+                    placeholder="+234..."
+                  />
+                </label>
+                <label className="ccm__field">
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => updateField("email", event.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </label>
               </div>
 
               <div className="ccm__section-label">Community Admin</div>
               <div className="ccm__grid">
                 <label className="ccm__field">
-                  <span>Admin Name</span>
+                  <span>First Name</span>
                   <input
                     type="text"
-                    value={form.adminName}
-                    onChange={(event) =>
-                      updateField("adminName", event.target.value)
-                    }
+                    value={form.adminFirstName}
+                    onChange={(event) => updateField("adminFirstName", event.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </label>
+                <label className="ccm__field">
+                  <span>Last Name</span>
+                  <input
+                    type="text"
+                    value={form.adminLastName}
+                    onChange={(event) => updateField("adminLastName", event.target.value)}
                     disabled={isSubmitting}
                   />
                 </label>
@@ -223,35 +267,19 @@ export default function CreateCommunityModal({
                   <input
                     type="email"
                     value={form.adminEmail}
-                    onChange={(event) =>
-                      updateField("adminEmail", event.target.value)
-                    }
+                    onChange={(event) => updateField("adminEmail", event.target.value)}
                     disabled={isSubmitting}
                   />
                 </label>
-                <label className="ccm__field ccm__field--full">
-                  <span>Temporary Password</span>
-                  <div className="ccm__password-row">
-                    <input
-                      type="text"
-                      value={form.temporaryPassword}
-                      onChange={(event) =>
-                        updateField("temporaryPassword", event.target.value)
-                      }
-                      disabled={isSubmitting}
-                      placeholder="Set a temporary password"
-                    />
-                    <button
-                      type="button"
-                      className="ccm__generate"
-                      onClick={() =>
-                        updateField("temporaryPassword", generatePassword())
-                      }
-                      disabled={isSubmitting}
-                    >
-                      Generate
-                    </button>
-                  </div>
+                <label className="ccm__field">
+                  <span>Admin Phone</span>
+                  <input
+                    type="tel"
+                    value={form.adminPhone}
+                    onChange={(event) => updateField("adminPhone", event.target.value)}
+                    disabled={isSubmitting}
+                    placeholder="+234..."
+                  />
                 </label>
               </div>
 

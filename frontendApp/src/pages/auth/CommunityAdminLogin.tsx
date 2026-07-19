@@ -32,7 +32,7 @@ export default function CommunityAdminLogin() {
     if (!validate()) return;
 
     try {
-      const user = await login({ identifier, password });
+      const user = await login({ username: identifier, password });
       if (user.role === "resident") {
         logout();
         setPortalError("Residents must sign in via the Resident Portal.");

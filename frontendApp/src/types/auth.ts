@@ -1,29 +1,50 @@
 export type UserRole = 'platform_admin' | 'community_admin' | 'community_staff' | 'resident'
 
-export interface AuthUser {
+// ── Swagger: LoginRequest ─────────────────────────────────────────────────────
+export interface LoginPayload {
+  username: string
+  password: string
+}
+
+// ── Swagger: LoginResponse ────────────────────────────────────────────────────
+export interface LoginResponse {
   id: string
-  name: string
-  email: string
-  username?: string
+  username: string
+  firstName: string
+  lastName: string
   role: UserRole
 }
 
-export interface LoginPayload {
-  identifier: string
-  password: string
-}
-
-export interface LoginResponse {
-  token: string
-  user: AuthUser
-}
-
-export interface RegisterResidentPayload {
+// ── Local convenience: full user stored in context ───────────────────────────
+export interface AuthUser {
+  id: string
+  username: string
   firstName: string
   lastName: string
-  email: string
-  phone: string
-  houseId: string
-  password: string
+  /** Derived display name: firstName + lastName */
+  name: string
+  role: UserRole
 }
 
+// ── Swagger: CompleteAccountSetupRequest ──────────────────────────────────────
+export interface CompleteAccountSetupPayload {
+  token: string
+  password: string
+  confirmPassword: string
+}
+
+// ── Swagger: AccountActivatedResponse ────────────────────────────────────────
+export interface AccountActivatedResponse {
+  username: string
+  message: string
+}
+
+// ── Swagger: UserActivationResponse (returned when assigning resident/admin) ──
+export interface UserActivationResponse {
+  userId: string
+  email: string
+  username: string
+  role: string
+  activationLink: string
+  expiresAt: string
+}

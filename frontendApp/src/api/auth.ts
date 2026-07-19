@@ -1,14 +1,15 @@
-import type { AuthUser, LoginPayload, LoginResponse, RegisterResidentPayload } from '../types/auth'
-import { mockLogin, mockRegisterResident } from '../mocks/auth.mock'
+import type { AuthUser, LoginPayload, LoginResponse, CompleteAccountSetupPayload, AccountActivatedResponse } from '../types/auth'
+import { mockLogin } from '../mocks/auth.mock'
+import { apiUrl } from './config'
 
 const USE_MOCK = true
 
-export async function login(payload: LoginPayload): Promise<LoginResponse> {
+export async function login(payload: LoginPayload): Promise<{ token: string; user: AuthUser }> {
   if (USE_MOCK) {
     return mockLogin(payload)
   }
 
-  const response = await fetch('/api/v1/auth/login', {
+  const response = await fetch(apiUrl('/api/v1/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -16,18 +17,36 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new Error(body?.message ?? 'Invalid email or password.')
+    throw new Error(body?.message ?? 'Invalid username or password.')
   }
 
-  return response.json() as Promise<LoginResponse>
+  const data: LoginResponse = await response.json()
+  const user: AuthUser = {
+    id: data.id,
+    username: data.username,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    name: `${data.firstName} ${data.lastName}`,
+    role: data.role,
+  }
+
+  // Backend doesn't return a token in LoginResponse — use a placeholder until
+  // the backend adds token-based auth. For now store the user id as the token.
+  return { token: data.id, user }
 }
 
-export async function registerResident(payload: RegisterResidentPayload): Promise<AuthUser> {
+export async function logout(): Promise<void> {
+  if (USE_MOCK) return
+
+  await fetch(apiUrl('/api/v1/auth/logout'), { method: 'POST' })
+}
+
+export async function activateAccount(payload: CompleteAccountSetupPayload): Promise<AccountActivatedResponse> {
   if (USE_MOCK) {
-    return mockRegisterResident(payload)
+    return { username: 'mock_user', message: 'Account activated successfully.' }
   }
 
-  const response = await fetch('/api/v1/auth/register-resident', {
+  const response = await fetch(apiUrl('/api/v1/auth/activate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -35,9 +54,8 @@ export async function registerResident(payload: RegisterResidentPayload): Promis
 
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new Error(body?.message ?? 'Unable to register resident.')
+    throw new Error(body?.message ?? 'Unable to activate account.')
   }
 
-  return response.json() as Promise<AuthUser>
+  return response.json() as Promise<AccountActivatedResponse>
 }
-

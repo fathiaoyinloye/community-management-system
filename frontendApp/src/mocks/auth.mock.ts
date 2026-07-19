@@ -1,146 +1,70 @@
-import type { AuthUser, LoginPayload, LoginResponse, RegisterResidentPayload } from '../types/auth'
-import { mockUpdateHouse } from './house.mock'
-
+import type { AuthUser, LoginPayload } from '../types/auth'
 
 interface StoredAccount {
   user: AuthUser
   password: string
-  username: string
 }
 
 export const accounts: StoredAccount[] = [
   {
     user: {
       id: 'platform-admin-1',
-      name: 'Ada Obi',
-      email: 'admin@gmail.com',
       username: 'admin',
+      firstName: 'Ada',
+      lastName: 'Obi',
+      name: 'Ada Obi',
       role: 'platform_admin',
     },
     password: 'Admin@123',
-    username: 'admin',
   },
   {
     user: {
       id: 'community-admin-1',
-      name: 'Nelson Adams',
-      email: 'nelly@gmail.com',
       username: 'nelson',
+      firstName: 'Nelson',
+      lastName: 'Adams',
+      name: 'Nelson Adams',
       role: 'community_admin',
     },
     password: 'nelly@123',
-    username: 'nelson',
   },
   {
     user: {
       id: 'resident-1',
-      name: 'ekwe emma',
-      email: 'emma@gmail.com',
       username: 'emma',
+      firstName: 'Ekwe',
+      lastName: 'Emma',
+      name: 'Ekwe Emma',
       role: 'resident',
     },
     password: 'ekwe@123',
-    username: 'emma',
   },
 ]
-
-export function addMockResidentAccount(resident: { firstName: string; lastName: string; email: string }, password?: string) {
-  const email = resident.email.trim().toLowerCase()
-  if (accounts.some((entry) => entry.user.email === email)) {
-    return
-  }
-  const user: AuthUser = {
-    id: `resident-${accounts.length + 1}`,
-    name: `${resident.firstName.trim()} ${resident.lastName.trim()}`,
-    email,
-    role: 'resident',
-  }
-  accounts.push({ user, password: password || 'password123', username: email.split('@')[0] })
-}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function issueToken(email: string) {
-  return `mock-jwt.${btoa(email)}.${Date.now()}`
+function issueToken(id: string) {
+  return `mock-jwt.${btoa(id)}.${Date.now()}`
 }
 
-export async function mockLogin(payload: LoginPayload): Promise<LoginResponse> {
+export async function mockLogin(
+  payload: LoginPayload,
+): Promise<{ token: string; user: AuthUser }> {
   await delay(800)
 
-  const identifier = payload.identifier.trim().toLowerCase()
-  const account = accounts.find(
-    (entry) =>
-      entry.user.email.toLowerCase() === identifier ||
-      entry.username.toLowerCase() === identifier,
-  )
+  const identifier = payload.username.trim().toLowerCase()
+  const account = accounts.find((a) => a.user.username.toLowerCase() === identifier)
 
   if (!account || account.password !== payload.password) {
-    throw new Error('Invalid username/email or password.')
+    throw new Error('Invalid username or password.')
   }
 
-  return { token: issueToken(account.user.email), user: account.user }
+  return { token: issueToken(account.user.id), user: account.user }
 }
 
-interface CreateCommunityAdminPayload {
-  name: string
-  email: string
-  temporaryPassword: string
+export function addMockAccount(user: AuthUser, password: string) {
+  if (accounts.some((a) => a.user.username === user.username)) return
+  accounts.push({ user, password })
 }
-
-export async function mockCreateCommunityAdmin(payload: CreateCommunityAdminPayload): Promise<AuthUser> {
-  await delay(500)
-
-  const email = payload.email.trim().toLowerCase()
-  if (accounts.some((entry) => entry.user.email === email)) {
-    throw new Error('An account with this email already exists.')
-  }
-
-  const user: AuthUser = {
-    id: `community-admin-${accounts.length + 1}`,
-    name: payload.name.trim(),
-    email,
-    username: email.split('@')[0],
-    role: 'community_admin',
-  }
-
-  accounts.push({ user, password: payload.temporaryPassword, username: email.split('@')[0] })
-
-  return user
-}
-
-export async function mockRegisterResident(payload: RegisterResidentPayload): Promise<AuthUser> {
-  await delay(800)
-
-  const email = payload.email.trim().toLowerCase()
-  if (accounts.some((entry) => entry.user.email === email)) {
-    throw new Error('An account with this email already exists.')
-  }
-
-  const resident = {
-    firstName: payload.firstName.trim(),
-    lastName: payload.lastName.trim(),
-    email,
-    phone: payload.phone.trim(),
-  }
-
-  // Update the corresponding house in the mock database
-  await mockUpdateHouse(payload.houseId, {
-    status: 'occupied',
-    resident,
-  })
-
-  const user: AuthUser = {
-    id: `resident-${accounts.length + 1}`,
-    name: `${payload.firstName.trim()} ${payload.lastName.trim()}`,
-    email,
-    username: email.split('@')[0],
-    role: 'resident',
-  }
-
-  accounts.push({ user, password: payload.password, username: email.split('@')[0] })
-
-  return user
-}
-

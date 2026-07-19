@@ -32,7 +32,7 @@ export default function PlatformAdminLogin() {
     if (!validate()) return;
 
     try {
-      const user = await login({ identifier, password });
+      const user = await login({ username: identifier, password });
       if (user.role !== "platform_admin") {
         logout();
         setPortalError("This portal is restricted to platform administrators.");

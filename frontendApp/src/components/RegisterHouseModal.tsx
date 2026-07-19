@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import type { PropertyType, RegisterHousePayload } from '../types/house'
+import type { RegisterHousePayload } from '../types/house'
 
 interface RegisterHouseModalProps {
   isOpen: boolean
@@ -10,25 +10,11 @@ interface RegisterHouseModalProps {
 interface FormState {
   houseNumber: string
   street: string
-  propertyType: PropertyType
-  addResident: boolean
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  password?: string
 }
 
 const EMPTY_FORM: FormState = {
   houseNumber: '',
   street: '',
-  propertyType: 'single_family',
-  addResident: false,
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  password: '',
 }
 
 export default function RegisterHouseModal({ isOpen, onClose, onRegister }: RegisterHouseModalProps) {
@@ -61,38 +47,9 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
       return
     }
 
-    if (form.addResident) {
-      if (!form.firstName.trim() || !form.lastName.trim()) {
-        setError("Please enter the resident's full name.")
-        return
-      }
-      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-        setError('Please enter a valid email address.')
-        return
-      }
-      if (!form.phone.trim()) {
-        setError("Please enter the resident's phone number.")
-        return
-      }
-      if (!form.password || form.password.trim().length < 6) {
-        setError('Please provide a password of at least 6 characters.')
-        return
-      }
-    }
-
     const payload: RegisterHousePayload = {
       houseNumber: form.houseNumber.trim(),
       street: form.street.trim(),
-      propertyType: form.propertyType,
-      resident: form.addResident
-        ? {
-            firstName: form.firstName.trim(),
-            lastName: form.lastName.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            password: form.password?.trim(),
-          }
-        : undefined,
     }
 
     setIsSubmitting(true)
@@ -142,119 +99,23 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
             </div>
 
             <div className="rhm__field">
-              <label htmlFor="propertyType" className="rhm__label">Property Type</label>
-              <select
-                id="propertyType"
-                className="rhm__input"
-                value={form.propertyType}
-                onChange={(e) => updateField('propertyType', e.target.value as PropertyType)}
-                disabled={isSubmitting}
-              >
-                <option value="single_family">Single Family Home</option>
-                <option value="townhouse">Townhouse</option>
-                <option value="apartment">Modern Apartment</option>
-                <option value="duplex">Duplex</option>
-                <option value="condominium">Condominium</option>
-                <option value="commercial">Commercial</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="rhm__field">
-            <label htmlFor="street" className="rhm__label">Street Address</label>
-            <input
-              id="street"
-              type="text"
-              className="rhm__input"
-              placeholder="e.g. 1422 Oakwood Avenue"
-              value={form.street}
-              onChange={(e) => updateField('street', e.target.value)}
-              disabled={isSubmitting}
-              required
-            />
-          </div>
-
-          <div className="rhm__checkbox-container">
-            <label className="rhm__checkbox-label">
+              <label htmlFor="street" className="rhm__label">Street Address</label>
               <input
-                type="checkbox"
-                checked={form.addResident}
-                onChange={(e) => updateField('addResident', e.target.checked)}
+                id="street"
+                type="text"
+                className="rhm__input"
+                placeholder="e.g. 1422 Oakwood Avenue"
+                value={form.street}
+                onChange={(e) => updateField('street', e.target.value)}
                 disabled={isSubmitting}
+                required
               />
-              Assign Primary Resident Now
-            </label>
+            </div>
           </div>
 
-          {form.addResident && (
-            <div className="rhm__resident-box">
-              <h3 className="rhm__section-title">Primary Resident Details</h3>
-              <div className="rhm__grid">
-                <div className="rhm__field">
-                  <label htmlFor="firstName" className="rhm__label">First Name</label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    className="rhm__input"
-                    value={form.firstName}
-                    onChange={(e) => updateField('firstName', e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="rhm__field">
-                  <label htmlFor="lastName" className="rhm__label">Last Name</label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    className="rhm__input"
-                    value={form.lastName}
-                    onChange={(e) => updateField('lastName', e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="rhm__grid">
-                <div className="rhm__field">
-                  <label htmlFor="email" className="rhm__label">Email Address</label>
-                  <input
-                    id="email"
-                    type="email"
-                    className="rhm__input"
-                    placeholder="e.g. resident@example.com"
-                    value={form.email}
-                    onChange={(e) => updateField('email', e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="rhm__field">
-                  <label htmlFor="phone" className="rhm__label">Phone Number</label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    className="rhm__input"
-                    placeholder="e.g. 08012345678"
-                    value={form.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="rhm__field" style={{ marginTop: '12px' }}>
-                <label htmlFor="password" className="rhm__label">Portal Login Password</label>
-                <input
-                  id="password"
-                  type="text"
-                  className="rhm__input"
-                  placeholder="Set temporary/login password (min 6 chars)"
-                  value={form.password || ''}
-                  onChange={(e) => updateField('password', e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-          )}
+          <p className="rhm__hint">
+            To assign a resident, register the house first then use the "Set Occupied" action on the house.
+          </p>
 
           <div className="rhm__actions">
             <button
@@ -395,7 +256,12 @@ export default function RegisterHouseModal({ isOpen, onClose, onRegister }: Regi
           box-shadow: 0 0 0 2px rgba(70, 72, 212, 0.25);
         }
 
-        .rhm__checkbox-container {
+        .rhm__hint {
+          font-size: 13px;
+          color: var(--color-on-surface-variant);
+          font-style: italic;
+          padding: var(--space-xs) 0;
+        }
           display: flex;
           align-items: center;
           margin: var(--space-xs) 0;
