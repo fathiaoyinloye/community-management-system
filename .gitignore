@@ -1,0 +1,8 @@
+.idea/
+target/
+*.iml
+.idea/
+*.iml
+target/
+backend/community-platform/src/main/resources/application-dev.properties
+backend/community-platform/src/main/resources/application-prod.properties
