@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +35,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private final OriginValidationFilter originValidationFilter;
+    private final Optional<OriginValidationFilter> originValidationFilter;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -65,11 +67,15 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(originValidationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider());
+        originValidationFilter.ifPresent(filter ->
+                http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+        );
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
