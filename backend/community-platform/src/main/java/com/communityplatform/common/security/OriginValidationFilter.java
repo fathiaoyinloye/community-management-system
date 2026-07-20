@@ -47,7 +47,7 @@ public class OriginValidationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         if (!STATE_CHANGING_METHODS.contains(request.getMethod())) {
-            filterChain.doFilter(request, response); // GET/OPTIONS pass through untouched
+            filterChain.doFilter(request, response);
             return;
         }
 
