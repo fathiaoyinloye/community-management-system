@@ -27,7 +27,7 @@ export default function Navbar() {
         </div>
 
         <div className="navbar__actions">
-          <Link to="/resident/register" className="btn btn-primary navbar__cta">Get Started</Link>
+          <Link to="/login" className="btn btn-primary navbar__cta">Get Started</Link>
         </div>
 
         <button
@@ -57,7 +57,7 @@ export default function Navbar() {
             ))}
           </div>
           <div className="navbar__mobile-actions">
-            <Link to="/resident/register" className="btn btn-primary navbar__cta" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/login" className="btn btn-primary navbar__cta" onClick={() => setIsMenuOpen(false)}>
               Get Started
             </Link>
           </div>

@@ -5,8 +5,9 @@ export default function ResidentRegister() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/resident/login", { replace: true });
+    navigate("/login", { replace: true });
   }, [navigate]);
 
   return null;
 }
+

@@ -28,7 +28,7 @@ export default function ResidentLayout({ children, onNewRequest }: ResidentLayou
 
   const handleLogout = () => {
     logout()
-    navigate('/resident/login', { replace: true })
+    navigate('/login', { replace: true })
   }
 
   return (

@@ -34,7 +34,7 @@ export default function CommunityAdminLayout({
 
   const handleLogout = () => {
     logout();
-    navigate("/community-admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   return (

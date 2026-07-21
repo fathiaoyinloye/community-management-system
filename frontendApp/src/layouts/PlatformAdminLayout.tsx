@@ -31,7 +31,7 @@ export default function PlatformAdminLayout({
 
   const handleLogout = () => {
     logout();
-    navigate("/platform-admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -84,7 +84,7 @@ export default function PlatformAdminLayout({
             <span className="material-symbols-outlined">domain_add</span>
             New Community
           </button>
-          <button type="button" className="pa-layout__footer-link" disabled>
+          {/* <button type="button" className="pa-layout__footer-link" disabled>
             <span className="material-symbols-outlined">contact_support</span>
             Support
           </button>
@@ -95,7 +95,7 @@ export default function PlatformAdminLayout({
           >
             <span className="material-symbols-outlined">logout</span>
             Sign Out
-          </button>
+          </button> */}
         </div>
       </aside>
 
