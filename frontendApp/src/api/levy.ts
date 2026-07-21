@@ -13,12 +13,12 @@ import {
   mockGetScheduledAdjustments,
   mockUpdateLevyStatus,
 } from '../mocks/levy.mock'
-import { apiUrl } from './config'
+import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
 // POST /levies — implemented
-const USE_MOCK_WRITE = false
+const USE_MOCK_WRITE = GLOBAL_USE_MOCK
 // GET /levies/my-balance — implemented
-const USE_MOCK_BALANCE = false
+const USE_MOCK_BALANCE = GLOBAL_USE_MOCK
 
 /** Community staff: create a new levy type — POST /api/v1/levies */
 export async function createLevyType(payload: CreateLevyTypePayload): Promise<LevyType> {

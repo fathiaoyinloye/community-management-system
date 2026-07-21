@@ -12,12 +12,12 @@ import {
   mockRejectPayment,
   mockUploadPayment,
 } from '../mocks/payment.mock'
-import { apiUrl } from './config'
+import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
 // POST /payments — implemented
-const USE_MOCK_UPLOAD = false
+const USE_MOCK_UPLOAD = GLOBAL_USE_MOCK
 // POST /payments/{id}/verify and /reject — implemented
-const USE_MOCK_ACTIONS = false
+const USE_MOCK_ACTIONS = GLOBAL_USE_MOCK
 
 /** Resident: upload proof of payment — POST /api/v1/payments */
 export async function uploadPayment(payload: UploadPaymentPayload): Promise<{ message: string }> {

@@ -6,9 +6,9 @@ import type {
   AccountActivatedResponse,
 } from '../types/auth'
 import { mockLogin } from '../mocks/auth.mock'
-import { apiUrl } from './config'
+import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
-const USE_MOCK = false
+const USE_MOCK = GLOBAL_USE_MOCK
 
 // Normalize role — backend returns uppercase e.g. "PLATFORM_ADMIN"
 function normalizeRole(raw: string): AuthUser['role'] {

@@ -170,8 +170,7 @@ export default function CreateCommunityModal({
           <>
             <h2 className="ccm__title">New Community</h2>
             <p className="ccm__subtitle">
-              Create a community and issue its admin a temporary password. They
-              can change it after signing in.
+              Create a community and configure its administrator. An activation link will be generated for them to set up their password.
             </p>
 
             {error && (

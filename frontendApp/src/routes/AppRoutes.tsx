@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import App from '../App'
 import Login from '../pages/auth/Login'
 import ResidentRegister from '../pages/auth/ResidentRegister'
+import ActivateAccount from '../pages/auth/ActivateAccount'
 
 import PlatformAdminDashboard from '../pages/platform-admin/PlatformAdminDashboard'
 import PlatformAdminCommunities from '../pages/platform-admin/PlatformAdminCommunities'
@@ -20,6 +21,9 @@ export default function AppRoutes() {
 
       {/* Unified Login page */}
       <Route path="/login" element={<Login />} />
+
+      {/* Account Activation page */}
+      <Route path="/activate-account" element={<ActivateAccount />} />
 
       {/* Redirect old login pages to the unified login page */}
       <Route path="/platform-admin/login" element={<Navigate to="/login" replace />} />

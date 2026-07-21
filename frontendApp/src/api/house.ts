@@ -1,12 +1,12 @@
 import type { House, HouseSummary, RegisterHousePayload, AssignResidentPayload } from '../types/house'
 import type { UserActivationResponse } from '../types/auth'
 import { mockGetHouses, mockRegisterHouse, mockAssignResident } from '../mocks/house.mock'
-import { apiUrl } from './config'
+import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
 // GET /houses — not yet implemented on backend, keep mocked
 const USE_MOCK_LIST = true
 // POST /houses and /assign-resident — implemented
-const USE_MOCK_WRITE = false
+const USE_MOCK_WRITE = GLOBAL_USE_MOCK
 
 export async function getHouses(
   keyword?: string,

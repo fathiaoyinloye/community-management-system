@@ -12,12 +12,12 @@ import {
   mockGetCommunityProfile,
   mockUpdateCommunityProfile,
 } from '../mocks/community.mock'
-import { apiUrl } from './config'
+import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
 // GET /communities — not yet implemented on backend, keep mocked
 const USE_MOCK_LIST = true
 // POST /communities and /assign-admin — implemented
-const USE_MOCK_WRITE = false
+const USE_MOCK_WRITE = GLOBAL_USE_MOCK
 // GET/PUT community profile — not yet implemented on backend, keep mocked
 const USE_MOCK_PROFILE = true
 
