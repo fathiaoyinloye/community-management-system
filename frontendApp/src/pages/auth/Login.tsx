@@ -47,17 +47,6 @@ export default function Login() {
     }
   };
 
-  // Helper to show mock user hints for demo/testing purposes
-  const getRoleHint = (username: string) => {
-    const val = username.trim().toLowerCase();
-    if (val === "admin") return { name: "Platform Admin", class: "pa", icon: "account_balance" };
-    if (val === "nelson") return { name: "Community Admin", class: "ca", icon: "corporate_fare" };
-    if (val === "emma") return { name: "Resident", class: "res", icon: "home" };
-    return null;
-  };
-
-  const hint = getRoleHint(identifier);
-
   return (
     <div className="uni-auth">
       {/* Left decorative/benefit panel */}
@@ -98,16 +87,9 @@ export default function Login() {
             <p className="uni-auth__subtitle">
               Enter your credentials to access your CommunalTrust workspace.
             </p>
-
             <label className="uni-auth__field">
               <span className="uni-auth__label">
                 Username or Email
-                {hint && (
-                  <span className={`uni-auth__hint-badge uni-auth__hint-badge--${hint.class}`}>
-                    <span className="material-symbols-outlined">{hint.icon}</span>
-                    {hint.name} detected
-                  </span>
-                )}
               </span>
               <input
                 type="text"
