@@ -40,9 +40,10 @@ public class LevyServiceImpl implements LevyService {
     @Override
     @Transactional
     public LevyTypeResponse createLevy(CreateLevyRequest request) {
-        User currentStaff = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
-        assert currentStaff != null;
-        UUID communityId = currentStaff.getCommunityId();
+
+        User currentAdmin = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert currentAdmin != null;
+        UUID communityId = currentAdmin.getCommunityId();
 
         LevyType levyType = LevyMapper.mapCreateLevyRequest(request, communityId);
         levyTypeRepository.save(levyType);
@@ -72,6 +73,7 @@ public class LevyServiceImpl implements LevyService {
     public List<HouseLevyResponse> viewMyOutstandingBalance() {
         User currentResident = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
+        assert currentResident != null;
         House house = houseRepository.findByResidentId(currentResident.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("No house is registered to this resident"));
 

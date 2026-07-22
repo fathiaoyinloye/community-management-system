@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,6 +35,12 @@ public class HouseController {
             @Valid @RequestBody AssignResidentRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(houseService.assignResident(houseId, request));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('COMMUNITY_ADMIN') or hasRole('COMMUNITY_STAFF')")
+    public ResponseEntity<List<HouseResponse>> getHousesInMyCommunity() {
+        return ResponseEntity.ok(houseService.getHousesInMyCommunity());
     }
 }
 
