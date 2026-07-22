@@ -1,37 +1,19 @@
 import type {
   Community,
-  CommunityProfile,
   CreateCommunityPayload,
   AssignCommunityAdminPayload,
   InviteStaffPayload,
 } from '../types/community'
 import type { UserActivationResponse } from '../types/auth'
-import {
-  mockCreateCommunity,
-  mockGetCommunities,
-  mockGetCommunityProfile,
-  mockUpdateCommunityProfile,
-} from '../mocks/community.mock'
-import { apiUrl, GLOBAL_USE_MOCK } from './config'
-
-// GET /communities — keep mocked if global mock is enabled
-const USE_MOCK_LIST = GLOBAL_USE_MOCK
-// POST /communities and /assign-admin — implemented
-const USE_MOCK_WRITE = GLOBAL_USE_MOCK
-// GET/PUT community profile — keep mocked if global mock is enabled
-const USE_MOCK_PROFILE = GLOBAL_USE_MOCK
+import { apiUrl } from './config'
 
 export async function getCommunities(): Promise<Community[]> {
-  if (USE_MOCK_LIST) return mockGetCommunities()
-
   const response = await fetch(apiUrl('/communities'), { credentials: 'include' })
   if (!response.ok) throw new Error('Unable to load communities.')
   return response.json() as Promise<Community[]>
 }
 
 export async function createCommunity(payload: CreateCommunityPayload): Promise<Community> {
-  if (USE_MOCK_WRITE) return mockCreateCommunity(payload)
-
   const response = await fetch(apiUrl('/communities'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -51,17 +33,6 @@ export async function assignCommunityAdmin(
   communityId: string,
   payload: AssignCommunityAdminPayload,
 ): Promise<UserActivationResponse> {
-  if (USE_MOCK_WRITE) {
-    return {
-      userId: `admin-${Date.now()}`,
-      email: payload.email ?? '',
-      username: `${payload.firstName.toLowerCase()}.${payload.lastName.toLowerCase()}`,
-      role: 'community_admin',
-      activationLink: `https://communaltrust.app/activate-account?token=mock`,
-      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-    }
-  }
-
   const response = await fetch(apiUrl(`/communities/${communityId}/assign-admin`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -78,17 +49,6 @@ export async function assignCommunityAdmin(
 }
 
 export async function inviteStaff(payload: InviteStaffPayload): Promise<UserActivationResponse> {
-  if (GLOBAL_USE_MOCK) {
-    return {
-      userId: `staff-${Date.now()}`,
-      email: payload.email,
-      username: `${payload.firstName.toLowerCase()}.${payload.lastName.toLowerCase()}`,
-      role: 'community_staff',
-      activationLink: `https://communaltrust.app/activate-account?token=mock`,
-      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-    }
-  }
-
   const response = await fetch(apiUrl('/communities/staff/invite'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -102,28 +62,4 @@ export async function inviteStaff(payload: InviteStaffPayload): Promise<UserActi
   }
 
   return response.json() as Promise<UserActivationResponse>
-}
-
-export async function getCommunityProfile(id?: string): Promise<CommunityProfile> {
-  if (USE_MOCK_PROFILE) return mockGetCommunityProfile()
-
-  const response = await fetch(apiUrl(`/communities/${id ?? 'me'}`), {
-    credentials: 'include',
-  })
-  if (!response.ok) throw new Error('Unable to load community profile.')
-  return response.json() as Promise<CommunityProfile>
-}
-
-export async function updateCommunityProfile(profile: CommunityProfile): Promise<CommunityProfile> {
-  if (USE_MOCK_PROFILE) return mockUpdateCommunityProfile(profile)
-
-  const response = await fetch(apiUrl(`/communities/${profile.id}`), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(profile),
-  })
-
-  if (!response.ok) throw new Error('Unable to update community profile.')
-  return response.json() as Promise<CommunityProfile>
 }

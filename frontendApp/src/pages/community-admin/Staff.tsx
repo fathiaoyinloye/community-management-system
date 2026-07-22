@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";
 import EmptyState from "../../components/ui/EmptyState";
 import { inviteStaff } from "../../api/community";
 import type { UserActivationResponse } from "../../types/auth";
+import { useAuth } from "../../store/AuthContext";
 
 interface StaffMember {
   id: string;
@@ -15,33 +16,20 @@ interface StaffMember {
   role: string;
   status: "active" | "pending_setup";
   createdAt: string;
+  communityName?: string;
+  communityId?: string;
 }
 
-const INITIAL_STAFF: StaffMember[] = [
-  {
-    id: "staff-1",
-    firstName: "Adewale",
-    lastName: "Ojo",
-    email: "a.ojo@communaltrust.app",
-    phone: "+2348033221100",
-    role: "Community Staff",
-    status: "active",
-    createdAt: "2026-05-10",
-  },
-  {
-    id: "staff-2",
-    firstName: "Blessing",
-    lastName: "Nwachukwu",
-    email: "b.nwachukwu@communaltrust.app",
-    phone: "+2348122334455",
-    role: "Community Staff",
-    status: "active",
-    createdAt: "2026-06-15",
-  },
-];
-
 export default function Staff() {
-  const [staffList, setStaffList] = useState<StaffMember[]>(INITIAL_STAFF);
+  const { user } = useAuth();
+  const [staffList, setStaffList] = useState<StaffMember[]>(() => {
+    const stored = localStorage.getItem("ct_staff");
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("ct_staff", JSON.stringify(staffList));
+  }, [staffList]);
   const [search, setSearch] = useState("");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,6 +97,20 @@ export default function Staff() {
       const localActivationLink = `${window.location.origin}/activate-account?token=${token}&username=${encodeURIComponent(response.username)}`;
 
       // Add to local state
+      let communityName = "CommunalTrust";
+      let communityId = "Unknown";
+      try {
+        const storedAdmins = localStorage.getItem("ct_community_admins");
+        const admins = storedAdmins ? JSON.parse(storedAdmins) : [];
+        const myAdminRecord = admins.find((a: any) => a.id === user?.id || a.email === user?.username);
+        if (myAdminRecord) {
+          communityName = myAdminRecord.communityName;
+          communityId = myAdminRecord.communityId;
+        }
+      } catch (err) {
+        console.error("Failed to lookup admin community:", err);
+      }
+
       const newStaff: StaffMember = {
         id: response.userId || `staff-${Date.now()}`,
         firstName: firstName.trim(),
@@ -118,6 +120,8 @@ export default function Staff() {
         role: "Community Staff",
         status: "pending_setup",
         createdAt: new Date().toISOString().slice(0, 10),
+        communityName,
+        communityId,
       };
 
       setStaffList((prev) => [newStaff, ...prev]);

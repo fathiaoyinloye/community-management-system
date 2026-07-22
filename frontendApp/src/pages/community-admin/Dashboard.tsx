@@ -3,15 +3,66 @@ import { useNavigate } from "react-router-dom";
 import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
 import Badge from "../../components/ui/Badge";
 import { useAuth } from "../../store/AuthContext";
+import { getHouses } from "../../api/house";
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  });
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [stats, setStats] = useState({
+    totalResidents: 0,
+    occupancyRate: 0,
+    totalRevenue: 0,
+    pendingMaintenance: 0,
+  });
+  const [recentUpdates, setRecentUpdates] = useState<any[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 150);
-    return () => clearTimeout(timer);
+    async function loadData() {
+      try {
+        const { houses, summary } = await getHouses();
+
+        // Calculate revenue from verified payments in localStorage
+        const paymentsStr = localStorage.getItem("ct_payments");
+        const paymentsList = paymentsStr ? JSON.parse(paymentsStr) : [];
+        const verifiedPayments = paymentsList.filter((p: any) => p.status === "verified");
+        const totalRevenue = verifiedPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
+
+        setStats({
+          totalResidents: summary.occupiedCount,
+          occupancyRate: summary.occupancyRate,
+          totalRevenue,
+          pendingMaintenance: summary.maintenanceAlertCount,
+        });
+
+        // Filter for occupied houses as resident updates
+        const occupied = houses.filter((h) => h.status === "occupied");
+        setRecentUpdates(occupied.slice(0, 3));
+      } catch (err) {
+        console.error("Failed to load dashboard statistics:", err);
+      } finally {
+        setIsLoaded(true);
+      }
+    }
+    loadData();
   }, []);
 
   const formattedDate = new Date().toLocaleDateString("en-US", {
@@ -28,7 +79,7 @@ export default function Dashboard() {
           <div>
             <h2 className="db-page__title">Executive Overview</h2>
             <p className="db-page__subtitle">
-              Good morning, {user?.firstName || "Administrator"}. Here's what's happening in CommUnity today.
+              Good morning, {user?.firstName || "Administrator"}. Here's what's happening in CommunalTrust today.
             </p>
           </div>
           <div className="db-page__date-badge">
@@ -44,11 +95,11 @@ export default function Dashboard() {
               <span className="db-kpi-card__icon">
                 <span className="material-symbols-outlined">group</span>
               </span>
-              <span className="db-kpi-card__badge">+4.2%</span>
+              <span className="db-kpi-card__badge">+0.0%</span>
             </div>
             <div className="db-kpi-card__bottom">
               <p className="db-kpi-card__label">Total Residents</p>
-              <h3 className="db-kpi-card__value">1,284</h3>
+              <h3 className="db-kpi-card__value">{stats.totalResidents}</h3>
             </div>
           </div>
 
@@ -57,11 +108,11 @@ export default function Dashboard() {
               <span className="db-kpi-card__icon">
                 <span className="material-symbols-outlined">home_work</span>
               </span>
-              <span className="db-kpi-card__badge">Stable</span>
+              <span className="db-kpi-card__badge">Live</span>
             </div>
             <div className="db-kpi-card__bottom">
               <p className="db-kpi-card__label">Occupancy Rate</p>
-              <h3 className="db-kpi-card__value">94.8%</h3>
+              <h3 className="db-kpi-card__value">{stats.occupancyRate.toFixed(1)}%</h3>
             </div>
           </div>
 
@@ -70,11 +121,11 @@ export default function Dashboard() {
               <span className="db-kpi-card__icon">
                 <span className="material-symbols-outlined">payments</span>
               </span>
-              <span className="db-kpi-card__badge">Record High</span>
+              <span className="db-kpi-card__badge">Total</span>
             </div>
             <div className="db-kpi-card__bottom">
-              <p className="db-kpi-card__label">Total Revenue (Monthly)</p>
-              <h3 className="db-kpi-card__value">$42,500</h3>
+              <p className="db-kpi-card__label">Total Revenue</p>
+              <h3 className="db-kpi-card__value">{formatCurrency(stats.totalRevenue)}</h3>
             </div>
           </div>
 
@@ -83,11 +134,11 @@ export default function Dashboard() {
               <span className="db-kpi-card__icon db-kpi-card__icon--error">
                 <span className="material-symbols-outlined">engineering</span>
               </span>
-              <span className="db-kpi-card__badge db-kpi-card__badge--error">Urgent</span>
+              <span className="db-kpi-card__badge db-kpi-card__badge--error">Alerts</span>
             </div>
             <div className="db-kpi-card__bottom">
               <p className="db-kpi-card__label">Pending Maintenance</p>
-              <h3 className="db-kpi-card__value">18</h3>
+              <h3 className="db-kpi-card__value">{stats.pendingMaintenance}</h3>
             </div>
           </div>
         </section>
@@ -99,7 +150,7 @@ export default function Dashboard() {
             <div className="db-chart-card__header">
               <div className="db-chart-card__title-wrap">
                 <h4 className="db-chart-card__title">Levy Collection Trends</h4>
-                <p className="db-chart-card__subtitle">Monthly revenue comparison for 2023</p>
+                <p className="db-chart-card__subtitle">Monthly revenue comparison for 2026</p>
               </div>
               <div className="db-chart-card__actions">
                 <button className="db-chart-card__btn" type="button">6 Months</button>
@@ -112,7 +163,7 @@ export default function Dashboard() {
                 <div className="db-chart-bar-bg">
                   <div
                     className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "65%" : "0%" }}
+                    style={{ height: isLoaded ? "40%" : "0%" }}
                   />
                 </div>
                 <span className="db-chart-label">Jun</span>
@@ -122,7 +173,7 @@ export default function Dashboard() {
                 <div className="db-chart-bar-bg">
                   <div
                     className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "75%" : "0%" }}
+                    style={{ height: isLoaded ? "50%" : "0%" }}
                   />
                 </div>
                 <span className="db-chart-label">Jul</span>
@@ -132,7 +183,7 @@ export default function Dashboard() {
                 <div className="db-chart-bar-bg">
                   <div
                     className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "55%" : "0%" }}
+                    style={{ height: isLoaded ? "60%" : "0%" }}
                   />
                 </div>
                 <span className="db-chart-label">Aug</span>
@@ -142,7 +193,7 @@ export default function Dashboard() {
                 <div className="db-chart-bar-bg">
                   <div
                     className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "85%" : "0%" }}
+                    style={{ height: isLoaded ? "70%" : "0%" }}
                   />
                 </div>
                 <span className="db-chart-label">Sep</span>
@@ -152,7 +203,7 @@ export default function Dashboard() {
                 <div className="db-chart-bar-bg">
                   <div
                     className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "95%" : "0%" }}
+                    style={{ height: isLoaded ? "80%" : "0%" }}
                   />
                 </div>
                 <span className="db-chart-label">Oct</span>
@@ -233,53 +284,40 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="db-table__tr">
-                  <td className="db-table__td">
-                    <div className="db-table__resident-cell">
-                      <div className="db-table__avatar">JM</div>
-                      <span>John Maxwell</span>
-                    </div>
-                  </td>
-                  <td className="db-table__td">Block A - 402</td>
-                  <td className="db-table__td">
-                    <Badge variant="success">New Move-in</Badge>
-                  </td>
-                  <td className="db-table__td">
-                    <span className="db-table__date">2h ago</span>
-                  </td>
-                </tr>
-
-                <tr className="db-table__tr">
-                  <td className="db-table__td">
-                    <div className="db-table__resident-cell">
-                      <div className="db-table__avatar db-table__avatar--primary">EL</div>
-                      <span>Elena Lucas</span>
-                    </div>
-                  </td>
-                  <td className="db-table__td">Villa 12</td>
-                  <td className="db-table__td">
-                    <Badge variant="neutral">Updated Profile</Badge>
-                  </td>
-                  <td className="db-table__td">
-                    <span className="db-table__date">5h ago</span>
-                  </td>
-                </tr>
-
-                <tr className="db-table__tr">
-                  <td className="db-table__td">
-                    <div className="db-table__resident-cell">
-                      <div className="db-table__avatar db-table__avatar--neutral">RB</div>
-                      <span>Robert Brown</span>
-                    </div>
-                  </td>
-                  <td className="db-table__td">Block C - 105</td>
-                  <td className="db-table__td">
-                    <Badge variant="danger">Lease Expired</Badge>
-                  </td>
-                  <td className="db-table__td">
-                    <span className="db-table__date">Yesterday</span>
-                  </td>
-                </tr>
+                {recentUpdates.length > 0 ? (
+                  recentUpdates.map((house) => {
+                    const fullName = `${house.resident.firstName} ${house.resident.lastName}`;
+                    return (
+                      <tr className="db-table__tr" key={house.id}>
+                        <td className="db-table__td">
+                          <div className="db-table__resident-cell">
+                            <div className="db-table__avatar">
+                              {getInitials(fullName)}
+                            </div>
+                            <span>{fullName}</span>
+                          </div>
+                        </td>
+                        <td className="db-table__td">
+                          {house.houseNumber}, {house.street}
+                        </td>
+                        <td className="db-table__td">
+                          <Badge variant="success">Occupied</Badge>
+                        </td>
+                        <td className="db-table__td">
+                          <span className="db-table__date">
+                            {house.createdAt ? house.createdAt.slice(0, 10) : "Recently"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr className="db-table__tr">
+                    <td className="db-table__td" colSpan={4} style={{ textAlign: "center", padding: "20px 0" }}>
+                      No resident updates to display yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

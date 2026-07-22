@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import CreateCommunityModal from "../components/CreateCommunityModal";
+import { CommunitiesProvider } from "../store/CommunitiesContext";
 
 interface NavItem {
   label: string;
@@ -12,7 +13,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: "dashboard", to: "/platform-admin/dashboard" },
   { label: "Communities", icon: "domain", to: "/platform-admin/communities" },
-  { label: "Admins", icon: "manage_accounts" },
+  { label: "Admins", icon: "manage_accounts", to: "/platform-admin/admins" },
   { label: "Payments", icon: "payments" },
   { label: "Reports", icon: "monitoring" },
   { label: "Settings", icon: "settings" },
@@ -35,7 +36,8 @@ export default function PlatformAdminLayout({
   };
 
   return (
-    <div className="pa-layout">
+    <CommunitiesProvider>
+      <div className="pa-layout">
       <aside className="pa-layout__sidebar">
         <div className="pa-layout__brand">
           <div className="pa-layout__brand-mark">CT</div>
@@ -448,6 +450,7 @@ export default function PlatformAdminLayout({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
-    </div>
+      </div>
+    </CommunitiesProvider>
   );
 }

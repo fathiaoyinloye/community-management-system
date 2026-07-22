@@ -19,7 +19,17 @@ export function CommunitiesProvider({ children }: { children: ReactNode }) {
 
     getCommunities().then((data) => {
       if (!cancelled) {
-        setCommunities(data)
+        const storedAdmins = localStorage.getItem("ct_community_admins");
+        const admins = storedAdmins ? JSON.parse(storedAdmins) : [];
+        const enriched = data.map((c) => {
+          const admin = admins.find((a: any) => a.communityId === c.id);
+          return {
+            ...c,
+            adminName: admin ? `${admin.firstName} ${admin.lastName}` : undefined,
+            status: admin ? ("active" as const) : ("pending_setup" as const),
+          };
+        });
+        setCommunities(enriched)
         setIsLoading(false)
       }
     })

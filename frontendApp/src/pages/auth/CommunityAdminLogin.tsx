@@ -52,7 +52,7 @@ export default function CommunityAdminLogin() {
         <div className="ca-auth__panel-content">
           <div className="ca-auth__brand">
             <span className="material-symbols-outlined ca-auth__brand-icon">
-              corporate_fare
+              account_balance
             </span>
             <span className="ca-auth__brand-name">CommunalTrust Admin</span>
           </div>

@@ -106,9 +106,8 @@ export default function Houses() {
         return;
       }
       try {
-        // UI-only: vacancy reset has no backend endpoint yet
-        house.status = "vacant";
-        house.resident = undefined;
+        // UI-only: vacancy reset has no backend endpoint yet, persist in localStorage
+        localStorage.setItem(`vacated_house_${house.id}`, "true");
         showToast(`House ${house.houseNumber} is now vacant.`);
         loadData(keyword, tab);
       } catch (err) {

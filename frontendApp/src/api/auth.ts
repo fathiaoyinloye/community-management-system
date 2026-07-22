@@ -5,10 +5,7 @@ import type {
   CompleteAccountSetupPayload,
   AccountActivatedResponse,
 } from '../types/auth'
-import { mockLogin } from '../mocks/auth.mock'
-import { apiUrl, GLOBAL_USE_MOCK } from './config'
-
-const USE_MOCK = GLOBAL_USE_MOCK
+import { apiUrl } from './config'
 
 // Normalize role — backend returns uppercase e.g. "PLATFORM_ADMIN"
 function normalizeRole(raw: string): AuthUser['role'] {
@@ -16,8 +13,6 @@ function normalizeRole(raw: string): AuthUser['role'] {
 }
 
 export async function login(payload: LoginPayload): Promise<{ token: string; user: AuthUser }> {
-  if (USE_MOCK) return mockLogin(payload)
-
   const response = await fetch(apiUrl('/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -46,8 +41,6 @@ export async function login(payload: LoginPayload): Promise<{ token: string; use
 }
 
 export async function logout(): Promise<void> {
-  if (USE_MOCK) return
-
   await fetch(apiUrl('/auth/logout'), {
     method: 'POST',
     credentials: 'include',
@@ -57,10 +50,6 @@ export async function logout(): Promise<void> {
 export async function activateAccount(
   payload: CompleteAccountSetupPayload,
 ): Promise<AccountActivatedResponse> {
-  if (USE_MOCK) {
-    return { username: 'mock_user', message: 'Account activated successfully.' }
-  }
-
   const response = await fetch(apiUrl('/auth/activate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

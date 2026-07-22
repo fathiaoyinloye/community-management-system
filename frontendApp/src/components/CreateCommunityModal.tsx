@@ -178,6 +178,28 @@ export default function CreateCommunityModal({
     try {
       const activation = await assignCommunityAdmin(createdCommunity.id, adminPayload);
       
+      try {
+        const storedAdmins = localStorage.getItem("ct_community_admins");
+        const admins = storedAdmins ? JSON.parse(storedAdmins) : [];
+        admins.unshift({
+          id: activation.userId || `admin-${Date.now()}`,
+          firstName: adminPayload.firstName,
+          lastName: adminPayload.lastName,
+          email: adminPayload.email,
+          phone: adminPayload.phone,
+          communityId: createdCommunity.id,
+          communityName: createdCommunity.name,
+          role: "Community Admin",
+          lastLogin: "Just now",
+          mfaStatus: "Verified MFA",
+          status: "active",
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem("ct_community_admins", JSON.stringify(admins));
+      } catch (err) {
+        console.error("Failed to save admin locally:", err);
+      }
+      
       // Parse token from the activationLink
       let token = "mock";
       try {

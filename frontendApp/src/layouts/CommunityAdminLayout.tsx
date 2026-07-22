@@ -10,11 +10,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: "dashboard", to: "/community-admin/dashboard" },
-  {
-    label: "Community Info",
-    icon: "info",
-    to: "/community-admin/community-info",
-  },
   { label: "Houses", icon: "home_work", to: "/community-admin/houses" },
   { label: "Levies", icon: "receipt_long", to: "/community-admin/levies" },
   { label: "Payments", icon: "payments", to: "/community-admin/payments" },
@@ -37,21 +32,31 @@ export default function CommunityAdminLayout({
     navigate("/login", { replace: true });
   };
 
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (user?.role === "community_admin") {
+      return ["Dashboard", "Levies", "Staff", "Settings"].includes(item.label);
+    }
+    if (user?.role === "community_staff") {
+      return ["Dashboard", "Houses", "Payments", "Settings"].includes(item.label);
+    }
+    return true;
+  });
+
   return (
     <div className="ca-layout">
       <aside className="ca-layout__sidebar">
         <div className="ca-layout__brand">
           <div className="ca-layout__brand-mark">
-            <span className="material-symbols-outlined">corporate_fare</span>
+            <span className="material-symbols-outlined">account_balance</span>
           </div>
           <div>
-            <h1 className="ca-layout__brand-name">CommUnity Admin</h1>
+            <h1 className="ca-layout__brand-name">CommunalTrust Admin</h1>
             <p className="ca-layout__brand-label">Management Portal</p>
           </div>
         </div>
 
         <nav className="ca-layout__nav">
-          {NAV_ITEMS.map((item) =>
+          {filteredNavItems.map((item) =>
             item.to ? (
               <NavLink
                 key={item.label}
@@ -115,7 +120,7 @@ export default function CommunityAdminLayout({
               <span className="material-symbols-outlined">help_outline</span>
             </button>
             <div className="ca-layout__divider" />
-            <span className="ca-layout__brand-tag">CommUnity</span>
+            <span className="ca-layout__brand-tag">CommunalTrust</span>
           </div>
         </header>
 

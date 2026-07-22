@@ -7,7 +7,6 @@ import {
   createLevyType,
   getLevySummary,
   getLevyTypes,
-  getScheduledAdjustments,
   updateLevyStatus,
 } from "../../api/levy";
 import type {
@@ -15,7 +14,6 @@ import type {
   LevyFrequency,
   LevySummary,
   LevyType,
-  ScheduledAdjustment,
 } from "../../types/levy";
 import CreateLevyTypeModal from "../../components/CreateLevyTypeModal";
 
@@ -41,9 +39,6 @@ function formatCurrency(value: number, maximumFractionDigits = 2) {
 export default function LevyTypes() {
   const [levyTypes, setLevyTypes] = useState<LevyType[]>([]);
   const [summary, setSummary] = useState<LevySummary | null>(null);
-  const [scheduledAdjustments, setScheduledAdjustments] = useState<
-    ScheduledAdjustment[]
-  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -62,12 +57,10 @@ export default function LevyTypes() {
     Promise.all([
       getLevyTypes(),
       getLevySummary(),
-      getScheduledAdjustments(),
-    ]).then(([levyTypesData, summaryData, scheduledAdjustmentsData]) => {
+    ]).then(([levyTypesData, summaryData]) => {
       if (!cancelled) {
         setLevyTypes(levyTypesData);
         setSummary(summaryData);
-        setScheduledAdjustments(scheduledAdjustmentsData);
         setIsLoading(false);
       }
     });
@@ -297,49 +290,6 @@ export default function LevyTypes() {
                 Previous
               </button>
               <button type="button">Next</button>
-            </div>
-          </div>
-        </section>
-
-        <section className="lv__bottom">
-          <div className="lv__schedule-card">
-            <div className="lv__schedule-head">
-              <span className="material-symbols-outlined">update</span>
-              <h5 className="lv__card-title">Scheduled Adjustments</h5>
-            </div>
-            <div className="lv__schedule-list">
-              {scheduledAdjustments.map((item) => (
-                <div key={item.id} className="lv__schedule-item">
-                  <div className="lv__schedule-item-label">
-                    <span className="lv__schedule-dot" />
-                    <p>{item.label}</p>
-                  </div>
-                  <p className="lv__schedule-date">{item.effectiveLabel}</p>
-                </div>
-              ))}
-            </div>
-            <button type="button" className="lv__schedule-link">
-              Manage all schedules
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </button>
-          </div>
-
-          <div className="lv__wizard-card">
-            <h5 className="lv__wizard-title">Need a custom levy type?</h5>
-            <p className="lv__wizard-copy">
-              Special levies for one-off projects can be created and targeted to
-              specific property clusters.
-            </p>
-            <div className="lv__wizard-actions">
-              <button type="button" className="lv__wizard-btn">
-                Start Wizard
-              </button>
-              <button
-                type="button"
-                className="lv__wizard-btn lv__wizard-btn--ghost"
-              >
-                Documentation
-              </button>
             </div>
           </div>
         </section>
