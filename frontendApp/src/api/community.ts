@@ -14,12 +14,12 @@ import {
 } from '../mocks/community.mock'
 import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
-// GET /communities — not yet implemented on backend, keep mocked
-const USE_MOCK_LIST = true
+// GET /communities — keep mocked if global mock is enabled
+const USE_MOCK_LIST = GLOBAL_USE_MOCK
 // POST /communities and /assign-admin — implemented
 const USE_MOCK_WRITE = GLOBAL_USE_MOCK
-// GET/PUT community profile — not yet implemented on backend, keep mocked
-const USE_MOCK_PROFILE = true
+// GET/PUT community profile — keep mocked if global mock is enabled
+const USE_MOCK_PROFILE = GLOBAL_USE_MOCK
 
 export async function getCommunities(): Promise<Community[]> {
   if (USE_MOCK_LIST) return mockGetCommunities()

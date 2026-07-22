@@ -12,7 +12,7 @@ export function apiUrl(path: string): string {
 // ── GLOBAL MOCK TOGGLE ────────────────────────────────────────────────────────
 // Set this to true to run the frontend entirely with mock data in-memory.
 // Set to false to connect to the backend (either local or live Render backend).
-// Defaults to true (using mock data) unless explicitly set to 'false'.
-export const GLOBAL_USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+// Defaults to false unless explicitly set to 'true'.
+export const GLOBAL_USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 

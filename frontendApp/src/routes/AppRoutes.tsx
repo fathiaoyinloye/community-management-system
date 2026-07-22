@@ -10,6 +10,7 @@ import CommunityInfo from '../pages/community-admin/CommunityInfo'
 import LevyTypes from '../pages/community-admin/LevyTypes'
 import Houses from '../pages/community-admin/Houses'
 import Payments from '../pages/community-admin/Payments'
+import Staff from '../pages/community-admin/Staff'
 import ResidentDashboard from '../pages/resident/Dashboard'
 import ResidentPayments from '../pages/resident/Payments'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -76,6 +77,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
             <Payments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/community-admin/staff"
+        element={
+          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+            <Staff />
           </ProtectedRoute>
         }
       />

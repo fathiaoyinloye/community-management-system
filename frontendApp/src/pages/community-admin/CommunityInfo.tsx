@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useState } from 'react'
 import CommunityAdminLayout from '../../layouts/CommunityAdminLayout'
 import Spinner from '../../components/ui/Spinner'
-import { getCommunityProfile, updateCommunityProfile } from '../../api/community'
+import { getCommunityProfile } from '../../api/community'
 import type { CommunityProfile, CommunityType } from '../../types/community'
 
 const TYPE_OPTIONS: { value: CommunityType; label: string }[] = [
@@ -15,11 +15,7 @@ const DESCRIPTION_LIMIT = 1000
 
 export default function CommunityInfo() {
   const [profile, setProfile] = useState<CommunityProfile | null>(null)
-  const [form, setForm] = useState<CommunityProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [showToast, setShowToast] = useState(false)
-  const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -27,7 +23,6 @@ export default function CommunityInfo() {
     getCommunityProfile().then((data) => {
       if (!cancelled) {
         setProfile(data)
-        setForm(data)
         setIsLoading(false)
       }
     })
@@ -37,40 +32,7 @@ export default function CommunityInfo() {
     }
   }, [])
 
-  const updateField = <K extends keyof CommunityProfile>(field: K, value: CommunityProfile[K]) => {
-    setForm((current) => (current ? { ...current, [field]: value } : current))
-  }
-
-  const handleDiscard = () => {
-    setForm(profile)
-  }
-
-  const handleSave = async () => {
-    if (!form) return
-    setIsSaving(true)
-    try {
-      const updated = await updateCommunityProfile(form)
-      setProfile(updated)
-      setForm(updated)
-      setShowToast(true)
-      setTimeout(() => setShowToast(false), 3000)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    updateField('logoUrl', URL.createObjectURL(file))
-    event.target.value = ''
-  }
-
-  const handleLogoRemove = () => {
-    updateField('logoUrl', null)
-  }
-
-  if (isLoading || !form) {
+  if (isLoading || !profile) {
     return (
       <CommunityAdminLayout>
         <div className="ci-loading">
@@ -89,92 +51,30 @@ export default function CommunityInfo() {
             <nav className="ci__breadcrumb">
               <span>Admin</span>
               <span className="material-symbols-outlined">chevron_right</span>
-              <span className="ci__breadcrumb-active">Manage Community Information</span>
+              <span className="ci__breadcrumb-active">Community Profile</span>
             </nav>
             <h2 className="ci__title">Community Profile</h2>
             <p className="ci__subtitle">
-              Update your community&apos;s identity, contact details, and location metadata.
+              Detailed view of your community's identity, contact details, and location metadata.
             </p>
-          </div>
-          <div className="ci__actions">
-            <button type="button" className="ci__discard" onClick={handleDiscard} disabled={isSaving}>
-              Discard
-            </button>
-            <button type="button" className="ci__save" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <span className="material-symbols-outlined ci__save-spinner">sync</span>
-                  Saving…
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </button>
           </div>
         </div>
 
         <div className="ci__grid">
           <div className="ci__col-left">
             <section className="ci__card">
-              <h3 className="ci__card-title">Community Logo</h3>
-              <div className="ci__logo-wrap">
-                <div className="ci__logo-frame">
-                  {form.logoUrl ? (
-                    <img src={form.logoUrl} alt="Community logo" />
-                  ) : (
-                    <span className="material-symbols-outlined ci__logo-placeholder">apartment</span>
-                  )}
-                  <button
-                    type="button"
-                    className="ci__logo-overlay"
-                    onClick={() => logoInputRef.current?.click()}
-                    aria-label="Upload community logo"
-                  >
-                    <span className="material-symbols-outlined">upload</span>
-                  </button>
-                </div>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/png,image/svg+xml,image/jpeg"
-                  hidden
-                  onChange={handleLogoChange}
-                />
-                <p className="ci__logo-hint">
-                  Recommended size: 512x512px.
-                  <br />
-                  PNG or SVG format preferred.
-                </p>
-                <div className="ci__logo-buttons">
-                  <button type="button" className="ci__logo-change" onClick={() => logoInputRef.current?.click()}>
-                    Change
-                  </button>
-                  <button
-                    type="button"
-                    className="ci__logo-delete"
-                    onClick={handleLogoRemove}
-                    disabled={!form.logoUrl}
-                    aria-label="Remove logo"
-                  >
-                    <span className="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <section className="ci__card">
               <h3 className="ci__card-eyebrow">Profile Completeness</h3>
               <div className="ci__status">
                 <div className="ci__status-row">
                   <span>Public Visibility</span>
-                  <span className={form.isPublic ? 'ci__status-badge' : 'ci__status-badge ci__status-badge--off'}>
-                    {form.isPublic ? 'ACTIVE' : 'HIDDEN'}
+                  <span className={profile.isPublic ? 'ci__status-badge' : 'ci__status-badge ci__status-badge--off'}>
+                    {profile.isPublic ? 'ACTIVE' : 'HIDDEN'}
                   </span>
                 </div>
                 <div className="ci__meter">
-                  <div className="ci__meter-fill" style={{ width: `${form.profileCompleteness}%` }} />
+                  <div className="ci__meter-fill" style={{ width: `${profile.profileCompleteness}%` }} />
                 </div>
-                <p className="ci__status-note">Add a detailed description to reach 100%.</p>
+                <p className="ci__status-note">Community details are managed by the Platform Administrator.</p>
               </div>
             </section>
           </div>
@@ -191,15 +91,15 @@ export default function CommunityInfo() {
                     <span>Community Name</span>
                     <input
                       type="text"
-                      value={form.name}
-                      onChange={(event) => updateField('name', event.target.value)}
+                      value={profile.name}
+                      disabled
                     />
                   </label>
                   <label className="ci__field">
                     <span>Community Type</span>
                     <select
-                      value={form.type}
-                      onChange={(event) => updateField('type', event.target.value as CommunityType)}
+                      value={profile.type}
+                      disabled
                     >
                       {TYPE_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -212,24 +112,24 @@ export default function CommunityInfo() {
                     <span>Full Address</span>
                     <input
                       type="text"
-                      value={form.address}
-                      onChange={(event) => updateField('address', event.target.value)}
+                      value={profile.address}
+                      disabled
                     />
                   </label>
                   <label className="ci__field">
                     <span>State</span>
                     <input
                       type="text"
-                      value={form.state}
-                      onChange={(event) => updateField('state', event.target.value)}
+                      value={profile.state}
+                      disabled
                     />
                   </label>
                   <label className="ci__field">
                     <span>LGA</span>
                     <input
                       type="text"
-                      value={form.lga}
-                      onChange={(event) => updateField('lga', event.target.value)}
+                      value={profile.lga}
+                      disabled
                     />
                   </label>
                 </div>
@@ -247,8 +147,8 @@ export default function CommunityInfo() {
                       <span className="material-symbols-outlined">call</span>
                       <input
                         type="tel"
-                        value={form.phone}
-                        onChange={(event) => updateField('phone', event.target.value)}
+                        value={profile.phone}
+                        disabled
                       />
                     </div>
                   </label>
@@ -258,8 +158,8 @@ export default function CommunityInfo() {
                       <span className="material-symbols-outlined">mail</span>
                       <input
                         type="email"
-                        value={form.email}
-                        onChange={(event) => updateField('email', event.target.value)}
+                        value={profile.email}
+                        disabled
                       />
                     </div>
                   </label>
@@ -276,38 +176,18 @@ export default function CommunityInfo() {
                   <textarea
                     rows={4}
                     maxLength={DESCRIPTION_LIMIT}
-                    placeholder="Enter a brief history and description of the community…"
-                    value={form.description}
-                    onChange={(event) => updateField('description', event.target.value)}
+                    placeholder="Brief history and description of the community…"
+                    value={profile.description}
+                    disabled
                   />
                   <p className="ci__char-count">
-                    {form.description.length} / {DESCRIPTION_LIMIT} characters
+                    {profile.description.length} / {DESCRIPTION_LIMIT} characters
                   </p>
                 </label>
               </div>
             </div>
-
-            <div className="ci__location">
-              <div className="ci__location-icon">
-                <span className="material-symbols-outlined">location_on</span>
-              </div>
-              <div className="ci__location-copy">
-                <h4>Location Verified</h4>
-                <p>
-                  Your community coordinates are correctly mapped to {form.lga}, {form.state}.
-                </p>
-              </div>
-              <button type="button" className="ci__location-edit">
-                Edit Map
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-
-      <div className={showToast ? 'ci__toast ci__toast--visible' : 'ci__toast'}>
-        <span className="material-symbols-outlined">check_circle</span>
-        Changes saved successfully
       </div>
 
       <style>{`

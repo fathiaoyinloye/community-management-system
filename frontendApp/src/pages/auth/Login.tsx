@@ -99,7 +99,7 @@ export default function Login() {
                 autoComplete="username"
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.identifier)}
-                placeholder="e.g. nelson"
+                placeholder="e.g. username"
               />
               {fieldErrors.identifier && (
                 <span className="uni-auth__field-error">

@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Houses", icon: "home_work", to: "/community-admin/houses" },
   { label: "Levies", icon: "receipt_long", to: "/community-admin/levies" },
   { label: "Payments", icon: "payments", to: "/community-admin/payments" },
-  { label: "Staff", icon: "group" },
+  { label: "Staff", icon: "group", to: "/community-admin/staff" },
   { label: "Settings", icon: "settings" },
 ];
 

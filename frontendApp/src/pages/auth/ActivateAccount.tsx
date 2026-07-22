@@ -10,6 +10,7 @@ interface FieldErrors {
 export default function ActivateAccount() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
+  const username = searchParams.get("username") || "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -107,6 +108,13 @@ export default function ActivateAccount() {
                 <div role="alert" className="act-page__alert act-page__alert--error">
                   <span className="material-symbols-outlined">error</span>
                   {apiError}
+                </div>
+              )}
+
+              {username && (
+                <div className="act-page__username-box">
+                  <span className="act-page__username-label">Username (System Generated)</span>
+                  <div className="act-page__username-value">{username}</div>
                 </div>
               )}
 
@@ -413,6 +421,32 @@ export default function ActivateAccount() {
           padding: 12px 24px;
           width: 100%;
           font-size: 16px;
+        }
+
+        .act-page__username-box {
+          background: var(--color-surface-container-low, #f1f5f9);
+          border: 1px solid var(--color-outline-variant, #cbd5e1);
+          border-radius: var(--radius-lg, 12px);
+          padding: var(--space-sm, 16px);
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          text-align: left;
+        }
+
+        .act-page__username-label {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--color-on-surface-variant, #64748b);
+        }
+
+        .act-page__username-value {
+          font-family: var(--font-display, inherit);
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--color-secondary, #4648d4);
         }
       `}</style>
     </div>

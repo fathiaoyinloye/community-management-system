@@ -3,8 +3,8 @@ import type { UserActivationResponse } from '../types/auth'
 import { mockGetHouses, mockRegisterHouse, mockAssignResident } from '../mocks/house.mock'
 import { apiUrl, GLOBAL_USE_MOCK } from './config'
 
-// GET /houses — not yet implemented on backend, keep mocked
-const USE_MOCK_LIST = true
+// GET /houses — keep mocked if global mock is enabled
+const USE_MOCK_LIST = GLOBAL_USE_MOCK
 // POST /houses and /assign-resident — implemented
 const USE_MOCK_WRITE = GLOBAL_USE_MOCK
 
