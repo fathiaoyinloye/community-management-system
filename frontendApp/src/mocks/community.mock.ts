@@ -1,4 +1,4 @@
-import type { Community, CommunityProfile, CreateCommunityPayload } from '../types/community'
+import type { Community, CreateCommunityPayload } from '../types/community'
 
 const communities: Community[] = [
   {
@@ -48,21 +48,6 @@ const communities: Community[] = [
   },
 ]
 
-let communityProfile: CommunityProfile = {
-  id: 'c1',
-  name: 'Journalist Estate',
-  type: 'apartment_complex',
-  address: '128 Maplewood Avenue, Phase 2, Highland District',
-  state: 'Lagos State',
-  lga: 'Arepo',
-  phone: '+234 809 123 4567',
-  email: 'admin@journalist.com',
-  description:
-    'Journalist Estate is a premium apartment complex nestled in the heart of the Highland District',
-  logoUrl: null,
-  profileCompleteness: 65,
-  isPublic: true,
-}
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -93,13 +78,3 @@ export async function mockCreateCommunity(payload: CreateCommunityPayload): Prom
   return community
 }
 
-export async function mockGetCommunityProfile(): Promise<CommunityProfile> {
-  await delay(500)
-  return communityProfile
-}
-
-export async function mockUpdateCommunityProfile(updates: CommunityProfile): Promise<CommunityProfile> {
-  await delay(900)
-  communityProfile = updates
-  return communityProfile
-}

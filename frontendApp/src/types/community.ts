@@ -44,25 +44,4 @@ export interface InviteStaffPayload {
   email: string
 }
 
-// ── CommunityProfile: used by CommunityInfo page ─────────────────────────────
-// Maps to CommunityResponse fields + local UI state
-export type CommunityType =
-  | 'gated_estate'
-  | 'apartment_complex'
-  | 'residential_association'
-  | 'commercial_plaza'
 
-export interface CommunityProfile {
-  id: string
-  name: string
-  type: CommunityType
-  address: string
-  state: string
-  lga: string
-  phone: string
-  email: string
-  description: string
-  logoUrl: string | null
-  profileCompleteness: number
-  isPublic: boolean
-}

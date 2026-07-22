@@ -37,7 +37,7 @@ export default function CommunityAdminLogin() {
         logout();
         setPortalError("Residents must sign in via the Resident Portal.");
       } else {
-        navigate("/community-admin/community-info", { replace: true });
+        navigate("/community-admin/dashboard", { replace: true });
       }
     } catch {
       // surfaced via error from useAuth()
