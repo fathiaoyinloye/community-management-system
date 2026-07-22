@@ -6,6 +6,7 @@ import com.communityplatform.community.dtos.request.InviteStaffRequest;
 import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface CommunityService {
@@ -14,5 +15,6 @@ public interface CommunityService {
 
     UserActivationResponse assignCommunityAdministrator(UUID communityId, AssignCommunityAdminRequest request);
     UserActivationResponse inviteStaff(InviteStaffRequest request);
+    List<CommunityResponse> getAllCommunities();
 }
 

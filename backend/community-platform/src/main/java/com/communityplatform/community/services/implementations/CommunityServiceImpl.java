@@ -10,6 +10,7 @@ import com.communityplatform.auth.dto.request.CreatePendingUserRequest;
 import com.communityplatform.community.dtos.request.InviteStaffRequest;
 import com.communityplatform.community.dtos.responses.CommunityResponse;
 import com.communityplatform.auth.dto.response.UserActivationResponse;
+import com.communityplatform.community.mapper.CommunityMapper;
 import com.communityplatform.community.services.interfaces.CommunityService;
 import com.communityplatform.auth.services.interfaces.UserService;
 import com.communityplatform.common.exception.ResourceNotFoundException;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.communityplatform.community.mapper.CommunityMapper.toResponse;
@@ -92,6 +94,14 @@ public class CommunityServiceImpl implements CommunityService {
 
         log.info("Staff invited by admin={} into community={}", currentAdmin.getUsername(), currentAdmin.getCommunityId());
         return response;
+    }
+
+
+    @Override
+    public List<CommunityResponse> getAllCommunities() {
+        return communityRepository.findAll().stream()
+                .map(CommunityMapper::toResponse)
+                .toList();
     }
 
 

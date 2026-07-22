@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -74,5 +76,17 @@ public class HouseServiceImpl implements HouseService {
 
         log.info("Resident assigned to house={}: residentId={}", house.getId(), response.userId());
         return response;
+    }
+
+
+    @Override
+    public List<HouseResponse> getHousesInMyCommunity() {
+        User currentUser = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert currentUser != null;
+        UUID communityId = currentUser.getCommunityId();
+
+        return houseRepository.findByCommunityId(communityId).stream()
+                .map(HouseMapper::toResponse)
+                .toList();
     }
 }

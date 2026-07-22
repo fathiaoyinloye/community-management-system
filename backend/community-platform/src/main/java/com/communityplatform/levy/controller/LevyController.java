@@ -22,7 +22,7 @@ public class LevyController {
     private final LevyService levyService;
 
     @PostMapping
-    @PreAuthorize("hasRole('COMMUNITY_STAFF')")
+    @PreAuthorize("hasRole('COMMUNITY_ADMIN')")
     public ResponseEntity<LevyTypeResponse> createLevy(@Valid @RequestBody CreateLevyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(levyService.createLevy(request));
     }

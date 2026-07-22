@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -43,5 +44,11 @@ public class CommunityController {
     @PreAuthorize("hasRole('COMMUNITY_ADMIN')")
     public ResponseEntity<UserActivationResponse> inviteStaff(@Valid @RequestBody InviteStaffRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(communityService.inviteStaff(request));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('PLATFORM_ADMIN')")
+    public ResponseEntity<List<CommunityResponse>> getAllCommunities() {
+        return ResponseEntity.ok(communityService.getAllCommunities());
     }
 }

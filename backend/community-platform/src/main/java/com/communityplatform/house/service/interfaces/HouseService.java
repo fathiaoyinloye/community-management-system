@@ -5,10 +5,12 @@ import com.communityplatform.house.dtos.request.AssignResidentRequest;
 import com.communityplatform.house.dtos.request.RegisterHouseRequest;
 import com.communityplatform.house.dtos.response.HouseResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface HouseService {
     HouseResponse registerHouse(RegisterHouseRequest request);
     UserActivationResponse assignResident(UUID houseId, AssignResidentRequest request);
+    List<HouseResponse> getHousesInMyCommunity();
 }
 
