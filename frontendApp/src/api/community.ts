@@ -78,6 +78,17 @@ export async function assignCommunityAdmin(
 }
 
 export async function inviteStaff(payload: InviteStaffPayload): Promise<UserActivationResponse> {
+  if (GLOBAL_USE_MOCK) {
+    return {
+      userId: `staff-${Date.now()}`,
+      email: payload.email,
+      username: `${payload.firstName.toLowerCase()}.${payload.lastName.toLowerCase()}`,
+      role: 'community_staff',
+      activationLink: `https://communaltrust.app/activate-account?token=mock`,
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+    }
+  }
+
   const response = await fetch(apiUrl('/communities/staff/invite'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

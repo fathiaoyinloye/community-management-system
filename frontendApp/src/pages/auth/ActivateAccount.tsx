@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { activateAccount } from "../../api/auth";
 
 interface FieldErrors {
@@ -10,7 +10,6 @@ interface FieldErrors {
 export default function ActivateAccount() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
-  const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

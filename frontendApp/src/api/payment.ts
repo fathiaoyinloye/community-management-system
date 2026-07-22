@@ -81,6 +81,19 @@ export async function rejectPayment(id: string, remarks = ''): Promise<Payment> 
 
 /** Resident or staff: download receipt — GET /api/v1/payments/{id}/receipt */
 export async function getReceipt(paymentId: string): Promise<ReceiptResponse> {
+  if (GLOBAL_USE_MOCK) {
+    return {
+      id: `rec-${paymentId}`,
+      receiptNumber: `REC-${Date.now()}`,
+      communityName: 'Journalist Estate',
+      houseNumber: 'B-124',
+      residentName: 'Dotun Ola',
+      levyName: 'Annual Levy',
+      amount: 1250,
+      datePaid: new Date().toISOString().slice(0, 10),
+    }
+  }
+
   const response = await fetch(apiUrl(`/payments/${paymentId}/receipt`), {
     credentials: 'include',
   })
