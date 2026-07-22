@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";

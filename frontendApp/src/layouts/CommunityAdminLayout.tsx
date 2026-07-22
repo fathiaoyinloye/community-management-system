@@ -9,7 +9,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", icon: "dashboard" },
+  { label: "Dashboard", icon: "dashboard", to: "/community-admin/dashboard" },
   {
     label: "Community Info",
     icon: "info",

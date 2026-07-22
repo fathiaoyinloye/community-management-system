@@ -6,6 +6,7 @@ import ActivateAccount from '../pages/auth/ActivateAccount'
 
 import PlatformAdminDashboard from '../pages/platform-admin/PlatformAdminDashboard'
 import PlatformAdminCommunities from '../pages/platform-admin/PlatformAdminCommunities'
+import CommunityAdminDashboard from '../pages/community-admin/Dashboard'
 import CommunityInfo from '../pages/community-admin/CommunityInfo'
 import LevyTypes from '../pages/community-admin/LevyTypes'
 import Houses from '../pages/community-admin/Houses'
@@ -49,9 +50,17 @@ export default function AppRoutes() {
       />
 
       <Route
+        path="/community-admin/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
+            <CommunityAdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/community-admin/community-info"
         element={
-          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
             <CommunityInfo />
           </ProtectedRoute>
         }
@@ -59,7 +68,7 @@ export default function AppRoutes() {
       <Route
         path="/community-admin/houses"
         element={
-          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
             <Houses />
           </ProtectedRoute>
         }
@@ -67,7 +76,7 @@ export default function AppRoutes() {
       <Route
         path="/community-admin/levies"
         element={
-          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
             <LevyTypes />
           </ProtectedRoute>
         }
@@ -75,7 +84,7 @@ export default function AppRoutes() {
       <Route
         path="/community-admin/payments"
         element={
-          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
             <Payments />
           </ProtectedRoute>
         }
@@ -83,7 +92,7 @@ export default function AppRoutes() {
       <Route
         path="/community-admin/staff"
         element={
-          <ProtectedRoute allowedRoles={['community_admin']} redirectTo="/login">
+          <ProtectedRoute allowedRoles={['community_admin', 'community_staff']} redirectTo="/login">
             <Staff />
           </ProtectedRoute>
         }

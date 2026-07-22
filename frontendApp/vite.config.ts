@@ -10,8 +10,8 @@ export default defineConfig({
         target: 'https://community-management-system-41c7.onrender.com',
         changeOrigin: true,
         secure: false,
-        configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, _req, _res) => {
+        configure: (proxy: any, _options: any) => {
+          proxy.on('proxyReq', (proxyReq: any, _req: any, _res: any) => {
             proxyReq.removeHeader('origin');
             proxyReq.removeHeader('Origin');
           });

@@ -36,7 +36,7 @@ export default function Login() {
       if (user.role === "platform_admin") {
         navigate("/platform-admin/dashboard", { replace: true });
       } else if (user.role === "community_admin" || user.role === "community_staff") {
-        navigate("/community-admin/community-info", { replace: true });
+        navigate("/community-admin/dashboard", { replace: true });
       } else if (user.role === "resident") {
         navigate("/resident/dashboard", { replace: true });
       } else {
