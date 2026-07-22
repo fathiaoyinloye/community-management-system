@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import PlatformAdminLayout from "../../layouts/PlatformAdminLayout";
-import { getCommunities } from "../../api/community";
 
 interface AdminRecord {
   id: string;
@@ -24,9 +23,9 @@ export default function PlatformAdminAdmins() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
-  // Load admins and staff
+  // Load staff only
   useEffect(() => {
-    // 1. Get staff list
+    // Get staff list
     const storedStaff = localStorage.getItem("ct_staff");
     const staffList = storedStaff ? JSON.parse(storedStaff) : [];
     const mappedStaff = staffList.map((s: any) => ({
@@ -44,57 +43,7 @@ export default function PlatformAdminAdmins() {
       createdAt: s.createdAt,
     }));
 
-    // 2. Fetch communities and load/synthesize admins
-    getCommunities()
-      .then((communitiesList) => {
-        const storedAdmins = localStorage.getItem("ct_community_admins");
-        let adminsList = storedAdmins ? JSON.parse(storedAdmins) : [];
-
-        // Clean up mock seed data
-        adminsList = adminsList.filter(
-          (a: any) =>
-            a.id !== "admin-1" &&
-            a.id !== "admin-2" &&
-            a.id !== "admin-3" &&
-            a.id !== "admin-4" &&
-            a.role !== "Super Admin" &&
-            a.role !== "Admin"
-        );
-        localStorage.setItem("ct_community_admins", JSON.stringify(adminsList));
-
-        // Synthesize admin details for any community not present in ct_community_admins
-        const synthesized: AdminRecord[] = [];
-        communitiesList.forEach((comm) => {
-          const exists = adminsList.some((a: any) => a.communityId === comm.id);
-          if (!exists) {
-            synthesized.push({
-              id: `synth-admin-${comm.id}`,
-              firstName: "Admin",
-              lastName: `of ${comm.name}`,
-              email: comm.email,
-              phone: comm.phone,
-              communityId: comm.id,
-              communityName: comm.name,
-              role: "Community Admin",
-              lastLogin: "Pending setup",
-              mfaStatus: "Verified MFA",
-              status: "active",
-              createdAt: comm.createdAt,
-            });
-          }
-        });
-
-        const combined = [...adminsList, ...synthesized, ...mappedStaff];
-        setAdmins(combined);
-      })
-      .catch((err) => {
-        console.error("Failed to load communities for admin directory:", err);
-        // Fallback to local only if backend call fails
-        const storedAdmins = localStorage.getItem("ct_community_admins");
-        const adminsList = storedAdmins ? JSON.parse(storedAdmins) : [];
-        const combined = [...adminsList, ...mappedStaff];
-        setAdmins(combined);
-      });
+    setAdmins(mappedStaff);
   }, []);
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -172,9 +121,9 @@ export default function PlatformAdminAdmins() {
         {/* Page Header */}
         <div className="paa__header">
           <div>
-            <h2 className="paa__heading">Administrator Directory</h2>
+            <h2 className="paa__heading">Staff Directory</h2>
             <p className="paa__subheading">
-              Manage system privileges and monitor access security for all community clusters active across the network.
+              Manage and monitor community staff members active across the network.
             </p>
           </div>
         </div>
@@ -218,7 +167,7 @@ export default function PlatformAdminAdmins() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search system administrators and staff by name, email, or community..."
+              placeholder="Search staff members by name, email, or community..."
             />
           </div>
         </div>
@@ -304,7 +253,7 @@ export default function PlatformAdminAdmins() {
                 ) : (
                   <tr>
                     <td colSpan={6} className="paa__td" style={{ textAlign: "center", padding: "40px" }}>
-                      No administrators or staff matching the search query were found.
+                      No staff members matching the search query were found.
                     </td>
                   </tr>
                 )}
