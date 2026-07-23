@@ -1,4 +1,4 @@
-import type { House, HouseSummary, RegisterHousePayload, AssignResidentPayload } from '../types/house'
+import type { House, HouseSummary, RegisterHousePayload, AssignResidentPayload, PropertyType } from '../types/house'
 import type { UserActivationResponse } from '../types/auth'
 import { apiUrl } from './config'
 
@@ -41,7 +41,7 @@ export async function getHouses(
       residentId,
       resident,
       status: residentId ? ('occupied' as const) : ('vacant' as const),
-      propertyType: 'single_family' as const, // default
+      propertyType: 'single_family' as PropertyType, // default
       hasMaintenanceAlert,
     };
   });

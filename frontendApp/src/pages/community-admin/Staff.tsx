@@ -20,13 +20,10 @@ interface StaffMember {
 }
 
 export default function Staff() {
-  const { user } = useAuth();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [communityId, setCommunityId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const loadStaffData = async () => {
-    setIsLoading(true);
     try {
       const cId = await getCurrentCommunityId();
       setCommunityId(cId);
@@ -44,8 +41,6 @@ export default function Staff() {
       setStaffList(mapped);
     } catch (err) {
       console.error("Failed to load staff list:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -99,16 +94,11 @@ export default function Staff() {
 
     setIsSubmitting(true);
     try {
-      if (!communityId) {
-        throw new Error("No community associated with this administrator.");
-      }
-
-      const response: UserActivationResponse = await inviteStaff(communityId, {
+      const response: UserActivationResponse = await inviteStaff(communityId || "", {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
         email: email.trim(),
-        role: "COMMUNITY_STAFF",
       });
 
       // Parse token from the activationLink to make it local origin aware

@@ -32,7 +32,6 @@ export default function ResidentPayments() {
 
   // Payment History state
   const [transactions, setTransactions] = useState<TransactionItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
 
   // UI state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -55,7 +54,6 @@ export default function ResidentPayments() {
   }
 
   const loadPaymentData = async () => {
-    setIsLoading(true)
     try {
       const levyList = await getMyBalance()
       const mappedLevies: LevyItem[] = levyList.map(l => ({
@@ -113,8 +111,6 @@ export default function ResidentPayments() {
       }
     } catch (e) {
       console.error('Failed to load resident payment data:', e)
-    } finally {
-      setIsLoading(false)
     }
   }
 

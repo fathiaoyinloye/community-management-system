@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import ResidentLayout from "../../layouts/ResidentLayout";
 import { getMyBalance } from "../../api/levy";
 import { getResidentPayments, uploadPayment } from "../../api/payment";
@@ -14,6 +15,7 @@ interface UpdateItem {
 }
 
 export default function ResidentDashboard() {
+  const navigate = useNavigate();
   const [levies, setLevies] = useState<HouseLevy[]>([]);
   const [isLoadingLevies, setIsLoadingLevies] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);

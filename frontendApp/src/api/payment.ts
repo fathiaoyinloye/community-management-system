@@ -122,7 +122,7 @@ export async function getPayments(
 
   // 3. Map raw payments to UI-enriched Payments
   const enrichedPayments: Payment[] = paymentsRaw.map((p) => {
-    const houseLevy = houseLeviesMap.get(p.houseLevyId)
+    const houseLevy = houseLeviesMap.get(p.houseLevyId) as any
     const house = houseLevy ? housesMap.get(houseLevy.houseId) : null
     const levyType = houseLevy ? levyTypesMap.get(houseLevy.levyTypeId) : null
 
