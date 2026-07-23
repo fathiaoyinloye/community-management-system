@@ -4,6 +4,7 @@ import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
 import Badge from "../../components/ui/Badge";
 import { useAuth } from "../../store/AuthContext";
 import { getHouses } from "../../api/house";
+import { getAllPayments } from "../../api/payment";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("en-NG", {
@@ -23,6 +24,30 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+interface ChartItem {
+  label: string;
+  amount: number;
+  year: number;
+  height: string;
+}
+
+// Generate past months list dynamically (e.g. Feb - Jul when current is July)
+function generatePastMonths(count = 6): ChartItem[] {
+  const list = [];
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const now = new Date();
+  for (let index = count - 1; index >= 0; index--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - index, 1);
+    list.push({
+      label: monthLabels[d.getMonth()],
+      amount: 0,
+      year: d.getFullYear(),
+      height: "0%",
+    });
+  }
+  return list;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,16 +59,18 @@ export default function Dashboard() {
     pendingMaintenance: 0,
   });
   const [recentUpdates, setRecentUpdates] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartItem[]>(() => generatePastMonths(6));
 
   useEffect(() => {
     async function loadData() {
       try {
         const { houses, summary } = await getHouses();
 
-        // Calculate revenue from verified payments in localStorage
-        const paymentsStr = localStorage.getItem("ct_payments");
-        const paymentsList = paymentsStr ? JSON.parse(paymentsStr) : [];
-        const verifiedPayments = paymentsList.filter((p: any) => p.status === "verified");
+        // Fetch verified payments from the real backend API
+        const paymentsList = await getAllPayments();
+        const verifiedPayments = paymentsList.filter(
+          (p: any) => p.status === "VERIFIED" || p.status === "verified"
+        );
         const totalRevenue = verifiedPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
 
         setStats({
@@ -52,6 +79,33 @@ export default function Dashboard() {
           totalRevenue,
           pendingMaintenance: summary.maintenanceAlertCount,
         });
+
+        const pastMonths = generatePastMonths(6);
+        const monthlyRevenues = pastMonths.map((m) => {
+          const total = verifiedPayments
+            .filter((p: any) => {
+              const dateStr = p.paymentDate || p.createdAt || p.verifiedDate;
+              if (!dateStr) return false;
+              const date = new Date(dateStr);
+              // Map 0-indexed month names to numbers
+              const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const mIndex = monthLabels.indexOf(m.label);
+              return date.getFullYear() === m.year && date.getMonth() === mIndex;
+            })
+            .reduce((acc: number, p: any) => acc + p.amount, 0);
+          return {
+            label: m.label,
+            amount: total,
+            year: m.year,
+          };
+        });
+
+        const maxRev = Math.max(...monthlyRevenues.map((r) => r.amount));
+        const computedChart = monthlyRevenues.map((r) => ({
+          ...r,
+          height: maxRev > 0 ? `${(r.amount / maxRev) * 100}%` : "0%",
+        }));
+        setChartData(computedChart);
 
         // Filter for occupied houses as resident updates
         const occupied = houses.filter((h) => h.status === "occupied");
@@ -70,6 +124,8 @@ export default function Dashboard() {
     day: "numeric",
     year: "numeric",
   });
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <CommunityAdminLayout>
@@ -149,8 +205,8 @@ export default function Dashboard() {
           <div className="db-chart-card">
             <div className="db-chart-card__header">
               <div className="db-chart-card__title-wrap">
-                <h4 className="db-chart-card__title">Levy Collection Trends</h4>
-                <p className="db-chart-card__subtitle">Monthly revenue comparison for 2026</p>
+                <h4 className="db-chart-card__title">{currentYear} Levy Collection Trends</h4>
+                <p className="db-chart-card__subtitle">Monthly revenue comparison for {currentYear}</p>
               </div>
               <div className="db-chart-card__actions">
                 <button className="db-chart-card__btn" type="button">6 Months</button>
@@ -159,55 +215,18 @@ export default function Dashboard() {
             </div>
 
             <div className="db-chart-canvas">
-              <div className="db-chart-column">
-                <div className="db-chart-bar-bg">
-                  <div
-                    className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "40%" : "0%" }}
-                  />
+              {chartData.map((data, idx) => (
+                <div key={idx} className="db-chart-column">
+                  <div className="db-chart-bar-bg">
+                    <div
+                      className="db-chart-bar-fill"
+                      style={{ height: isLoaded ? data.height : "0%" }}
+                      title={`${data.label} ${data.year}: ${formatCurrency(data.amount)}`}
+                    />
+                  </div>
+                  <span className="db-chart-label">{data.label}</span>
                 </div>
-                <span className="db-chart-label">Jun</span>
-              </div>
-
-              <div className="db-chart-column">
-                <div className="db-chart-bar-bg">
-                  <div
-                    className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "50%" : "0%" }}
-                  />
-                </div>
-                <span className="db-chart-label">Jul</span>
-              </div>
-
-              <div className="db-chart-column">
-                <div className="db-chart-bar-bg">
-                  <div
-                    className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "60%" : "0%" }}
-                  />
-                </div>
-                <span className="db-chart-label">Aug</span>
-              </div>
-
-              <div className="db-chart-column">
-                <div className="db-chart-bar-bg">
-                  <div
-                    className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "70%" : "0%" }}
-                  />
-                </div>
-                <span className="db-chart-label">Sep</span>
-              </div>
-
-              <div className="db-chart-column">
-                <div className="db-chart-bar-bg">
-                  <div
-                    className="db-chart-bar-fill"
-                    style={{ height: isLoaded ? "80%" : "0%" }}
-                  />
-                </div>
-                <span className="db-chart-label">Oct</span>
-              </div>
+              ))}
             </div>
           </div>
 

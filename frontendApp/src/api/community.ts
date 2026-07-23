@@ -48,8 +48,11 @@ export async function assignCommunityAdmin(
   return response.json() as Promise<UserActivationResponse>
 }
 
-export async function inviteStaff(payload: InviteStaffPayload): Promise<UserActivationResponse> {
-  const response = await fetch(apiUrl('/communities/staff/invite'), {
+export async function inviteStaff(
+  communityId: string,
+  payload: InviteStaffPayload,
+): Promise<UserActivationResponse> {
+  const response = await fetch(apiUrl(`/communities/${communityId}/staff`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -62,4 +65,10 @@ export async function inviteStaff(payload: InviteStaffPayload): Promise<UserActi
   }
 
   return response.json() as Promise<UserActivationResponse>
+}
+
+export async function getStaff(communityId: string): Promise<any[]> {
+  const response = await fetch(apiUrl(`/communities/${communityId}/staff`), { credentials: 'include' })
+  if (!response.ok) throw new Error('Unable to load staff.')
+  return response.json() as Promise<any[]>
 }

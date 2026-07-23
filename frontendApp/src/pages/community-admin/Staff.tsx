@@ -3,7 +3,8 @@ import CommunityAdminLayout from "../../layouts/CommunityAdminLayout";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";
 import EmptyState from "../../components/ui/EmptyState";
-import { inviteStaff } from "../../api/community";
+import { inviteStaff, getStaff } from "../../api/community";
+import { getCurrentCommunityId } from "../../api/payment";
 import type { UserActivationResponse } from "../../types/auth";
 import { useAuth } from "../../store/AuthContext";
 
@@ -16,20 +17,41 @@ interface StaffMember {
   role: string;
   status: "active" | "pending_setup";
   createdAt: string;
-  communityName?: string;
-  communityId?: string;
 }
 
 export default function Staff() {
   const { user } = useAuth();
-  const [staffList, setStaffList] = useState<StaffMember[]>(() => {
-    const stored = localStorage.getItem("ct_staff");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [communityId, setCommunityId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadStaffData = async () => {
+    setIsLoading(true);
+    try {
+      const cId = await getCurrentCommunityId();
+      setCommunityId(cId);
+      const data = await getStaff(cId);
+      const mapped: StaffMember[] = data.map((s: any) => ({
+        id: s.id,
+        firstName: s.firstName || "",
+        lastName: s.lastName || "",
+        email: s.email || "",
+        phone: s.phone || "N/A",
+        role: s.role === 'COMMUNITY_STAFF' ? 'Community Staff' : (s.role || 'Community Staff'),
+        status: s.status || "active",
+        createdAt: s.createdAt || new Date().toISOString().slice(0, 10),
+      }));
+      setStaffList(mapped);
+    } catch (err) {
+      console.error("Failed to load staff list:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem("ct_staff", JSON.stringify(staffList));
-  }, [staffList]);
+    loadStaffData();
+  }, []);
   const [search, setSearch] = useState("");
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,11 +99,16 @@ export default function Staff() {
 
     setIsSubmitting(true);
     try {
-      const response: UserActivationResponse = await inviteStaff({
+      if (!communityId) {
+        throw new Error("No community associated with this administrator.");
+      }
+
+      const response: UserActivationResponse = await inviteStaff(communityId, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
         email: email.trim(),
+        role: "COMMUNITY_STAFF",
       });
 
       // Parse token from the activationLink to make it local origin aware
@@ -96,35 +123,7 @@ export default function Staff() {
 
       const localActivationLink = `${window.location.origin}/activate-account?token=${token}&username=${encodeURIComponent(response.username)}`;
 
-      // Add to local state
-      let communityName = "CommunalTrust";
-      let communityId = "Unknown";
-      try {
-        const storedAdmins = localStorage.getItem("ct_community_admins");
-        const admins = storedAdmins ? JSON.parse(storedAdmins) : [];
-        const myAdminRecord = admins.find((a: any) => a.id === user?.id || a.email === user?.username);
-        if (myAdminRecord) {
-          communityName = myAdminRecord.communityName;
-          communityId = myAdminRecord.communityId;
-        }
-      } catch (err) {
-        console.error("Failed to lookup admin community:", err);
-      }
-
-      const newStaff: StaffMember = {
-        id: response.userId || `staff-${Date.now()}`,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        role: "Community Staff",
-        status: "pending_setup",
-        createdAt: new Date().toISOString().slice(0, 10),
-        communityName,
-        communityId,
-      };
-
-      setStaffList((prev) => [newStaff, ...prev]);
+      await loadStaffData();
 
       setActivationResult({
         username: response.username,

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import ResidentLayout from "../../layouts/ResidentLayout";
 import { getMyBalance } from "../../api/levy";
-import { uploadPayment } from "../../api/payment";
+import { getResidentPayments, uploadPayment } from "../../api/payment";
 import type { HouseLevy } from "../../types/levy";
+import Badge from "../../components/ui/Badge";
 
 interface UpdateItem {
   id: string;
@@ -63,12 +64,26 @@ export default function ResidentDashboard() {
     },
   ]);
 
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
+
   useEffect(() => {
-    getMyBalance()
-      .then(setLevies)
-      .catch(console.error)
-      .finally(() => setIsLoadingLevies(false));
+    Promise.all([
+      getMyBalance().then(setLevies).catch(console.error),
+      getResidentPayments().then(setRecentPayments).catch(console.error)
+    ]).finally(() => {
+      setIsLoadingLevies(false);
+      setIsLoadingPayments(false);
+    });
   }, []);
+
+  const formatCurrency = (val: number) => {
+    return val.toLocaleString("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      maximumFractionDigits: 0,
+    });
+  };
 
   const totalBalance = useMemo(
     () => levies.reduce((sum, item) => sum + item.balance, 0),
@@ -246,7 +261,7 @@ export default function ResidentDashboard() {
               <button
                 type="button"
                 className="rd__section-link"
-                onClick={() => showToast("Redirecting to payment history...")}
+                onClick={() => navigate("/resident/payments")}
               >
                 View History
               </button>
@@ -262,12 +277,37 @@ export default function ResidentDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="rd__txn-id">—</td>
-                    <td>Not available yet</td>
-                    <td className="rd__txn-amount">—</td>
-                    <td>—</td>
-                  </tr>
+                  {recentPayments.length > 0 ? (
+                    recentPayments.slice(0, 3).map((p) => {
+                      let badgeVariant: "success" | "warning" | "danger" = "warning";
+                      let displayStatus = "Pending Review";
+                      const s = (p.status || "").toLowerCase();
+                      if (s === "verified" || s === "success") {
+                        badgeVariant = "success";
+                        displayStatus = "Verified";
+                      } else if (s === "rejected" || s === "failed") {
+                        badgeVariant = "danger";
+                        displayStatus = "Rejected";
+                      }
+
+                      return (
+                        <tr key={p.id}>
+                          <td className="rd__txn-id">#{p.paymentReference || p.reference || p.id.slice(0, 8)}</td>
+                          <td>{new Date(p.paymentDate || p.createdAt || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
+                          <td className="rd__txn-amount">{formatCurrency(p.amount)}</td>
+                          <td>
+                            <Badge variant={badgeVariant}>{displayStatus}</Badge>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: "center", padding: "20px 0", color: "var(--color-on-surface-variant)" }}>
+                        {isLoadingPayments ? "Loading recent payments..." : "No recent payments found."}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

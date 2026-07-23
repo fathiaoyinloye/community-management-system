@@ -3,142 +3,161 @@ import type {
   PaymentSummary,
   UploadPaymentPayload,
   ReceiptResponse,
+  PaymentResponse,
+  PaymentStatus,
 } from '../types/payment'
-import type { House } from '../types/house'
 import { apiUrl } from './config'
+import { getHouses } from './house'
+import { getLevyTypes } from './levy'
+import { getCommunities } from './community'
 
-const ITEMS_PER_PAGE = 3
-
-/** Resident: upload proof of payment — stored in localStorage since there is no payment backend endpoint */
+/** Resident: upload proof of payment — POST /api/v1/payments */
 export async function uploadPayment(payload: UploadPaymentPayload): Promise<{ message: string }> {
-  // 1. Get logged-in user profile
-  const userStr = localStorage.getItem('ct_auth_user')
-  const user = userStr ? JSON.parse(userStr) : null
+  const response = await fetch(apiUrl('/payments'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      houseLevyId: payload.houseLevyId,
+      amount: payload.amount,
+      paymentReference: payload.paymentReference,
+      proofOfPaymentUrl: payload.proofOfPaymentUrl || 'https://communaltrust.s3.amazonaws.com/receipts/proof.pdf',
+    }),
+  })
 
-  // 2. Fetch houses to identify the resident's house
-  let houseNumber = 'Unknown'
-  let street = 'Unknown'
-  try {
-    const res = await fetch(apiUrl('/houses'), { credentials: 'include' })
-    if (res.ok && user) {
-      const houses = await res.json() as House[]
-      const myHouse = houses.find(h => h.residentId === user.id)
-      if (myHouse) {
-        houseNumber = myHouse.houseNumber
-        street = myHouse.street
-      }
-    }
-  } catch (err) {
-    console.error('Failed to resolve resident house for payment:', err)
+  if (!response.ok) {
+    const err = await response.json().catch(() => null)
+    throw new Error(err?.message ?? 'Unable to upload proof of payment.')
   }
-
-  // 3. Resolve levy name from localStorage
-  let levyType = 'Custom Levy'
-  try {
-    const leviesStr = localStorage.getItem('ct_levies')
-    if (leviesStr) {
-      const levies = JSON.parse(leviesStr)
-      const levy = levies.find((l: any) => l.id === payload.levyId)
-      if (levy) {
-        levyType = levy.name
-      }
-    }
-  } catch (err) {
-    console.error('Failed to resolve levy name for payment:', err)
-  }
-
-  // 4. Create payment entry
-  const payment: Payment = {
-    id: `pay-${Date.now()}`,
-    residentName: user ? `${user.firstName} ${user.lastName}` : 'Resident',
-    residentEmail: user ? `${user.username}@communaltrust.app` : 'resident@communaltrust.app',
-    houseNumber,
-    street,
-    reference: payload.reference,
-    proofUrl: payload.proofUrl || '#',
-    amount: payload.amount,
-    levyType,
-    submittedAtLabel: 'Just now',
-    status: 'pending',
-    remarks: null,
-  }
-
-  // 5. Save to localStorage
-  const storedPaymentsStr = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = storedPaymentsStr ? JSON.parse(storedPaymentsStr) : []
-  paymentsList.unshift(payment)
-  localStorage.setItem('ct_payments', JSON.stringify(paymentsList))
 
   return { message: 'Proof of payment uploaded successfully.' }
 }
 
-/** Community staff: verify a payment — stored in localStorage */
+/** Community staff: verify a payment — PUT /api/v1/payments/{id}/verify */
 export async function verifyPayment(id: string): Promise<ReceiptResponse> {
-  const stored = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = stored ? JSON.parse(stored) : []
-  const idx = paymentsList.findIndex(p => p.id === id)
-  if (idx === -1) throw new Error('Payment not found.')
+  const response = await fetch(apiUrl(`/payments/${id}/verify`), {
+    method: 'PUT',
+    credentials: 'include',
+  })
 
-  paymentsList[idx].status = 'verified'
-  localStorage.setItem('ct_payments', JSON.stringify(paymentsList))
-
-  return {
-    id: `rec-${id}`,
-    receiptNumber: `REC-${id.split('-')[1] || Date.now()}`,
-    communityName: 'CommunalTrust',
-    houseNumber: paymentsList[idx].houseNumber,
-    residentName: paymentsList[idx].residentName,
-    levyName: paymentsList[idx].levyType,
-    amount: paymentsList[idx].amount,
-    datePaid: new Date().toISOString().slice(0, 10),
+  if (!response.ok) {
+    const err = await response.json().catch(() => null)
+    throw new Error(err?.message ?? 'Unable to verify payment.')
   }
+
+  return response.json() as Promise<ReceiptResponse>
 }
 
-/** Community staff: reject a payment — stored in localStorage */
-export async function rejectPayment(id: string, remarks = ''): Promise<Payment> {
-  const stored = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = stored ? JSON.parse(stored) : []
-  const idx = paymentsList.findIndex(p => p.id === id)
-  if (idx === -1) throw new Error('Payment not found.')
+/** Community staff: reject a payment — PUT /api/v1/payments/{id}/reject */
+export async function rejectPayment(id: string, remarks = ''): Promise<PaymentResponse> {
+  const response = await fetch(apiUrl(`/payments/${id}/reject`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ remarks }),
+  })
 
-  paymentsList[idx].status = 'rejected'
-  paymentsList[idx].remarks = remarks
-  localStorage.setItem('ct_payments', JSON.stringify(paymentsList))
+  if (!response.ok) {
+    const err = await response.json().catch(() => null)
+    throw new Error(err?.message ?? 'Unable to reject payment.')
+  }
 
-  return paymentsList[idx]
+  return response.json() as Promise<PaymentResponse>
 }
 
-/** Resident or staff: download receipt */
+/** Resident: download receipt — GET /api/v1/resident/payments/{paymentId}/receipt */
 export async function getReceipt(paymentId: string): Promise<ReceiptResponse> {
-  const stored = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = stored ? JSON.parse(stored) : []
-  const payment = paymentsList.find(p => p.id === paymentId)
+  const response = await fetch(apiUrl(`/resident/payments/${paymentId}/receipt`), {
+    credentials: 'include',
+  })
 
-  if (!payment) {
-    throw new Error('Payment not found.')
+  if (!response.ok) {
+    throw new Error('Unable to load receipt.')
   }
 
-  return {
-    id: `rec-${payment.id}`,
-    receiptNumber: `REC-${payment.id.split('-')[1] || Date.now()}`,
-    communityName: 'CommunalTrust',
-    houseNumber: payment.houseNumber,
-    residentName: payment.residentName,
-    levyName: payment.levyType,
-    amount: payment.amount,
-    datePaid: new Date().toISOString().slice(0, 10),
-  }
+  return response.json() as Promise<ReceiptResponse>
 }
 
+/** Helper: Get all raw payments from the backend */
+export async function getAllPayments(): Promise<PaymentResponse[]> {
+  const response = await fetch(apiUrl('/payments'), { credentials: 'include' })
+  if (!response.ok) throw new Error('Unable to load payments.')
+  const data = await response.json()
+  if (Array.isArray(data)) return data as PaymentResponse[]
+  if (data && Array.isArray(data.content)) return data.content as PaymentResponse[]
+  return []
+}
+
+/** Helper: Get resident payments from the backend */
+export async function getResidentPayments(): Promise<PaymentResponse[]> {
+  const response = await fetch(apiUrl('/resident/payments'), { credentials: 'include' })
+  if (!response.ok) throw new Error('Unable to load resident payments.')
+  const data = await response.json()
+  if (Array.isArray(data)) return data as PaymentResponse[]
+  if (data && Array.isArray(data.content)) return data.content as PaymentResponse[]
+  return []
+}
+
+/** Community staff: get page of enriched payments */
 export async function getPayments(
   page: number,
   filter: 'all' | 'pending' | 'verified' | 'rejected',
   keyword: string,
 ): Promise<{ payments: Payment[]; total: number }> {
-  const stored = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = stored ? JSON.parse(stored) : []
+  // 1. Fetch backend raw data in parallel
+  const [housesResult, levyTypes, leviesList, paymentsRaw] = await Promise.all([
+    getHouses(),
+    getLevyTypes(),
+    fetch(apiUrl('/levies'), { credentials: 'include' }).then(r => r.ok ? r.json() : []),
+    getAllPayments(),
+  ])
 
-  const filtered = paymentsList.filter((p) => {
+  const houses = housesResult.houses
+  const houseLevies = Array.isArray(leviesList) ? leviesList : (leviesList.content || [])
+
+  // 2. Build lookup maps
+  const housesMap = new Map(houses.map(h => [h.id, h]))
+  const levyTypesMap = new Map(levyTypes.map(l => [l.id, l]))
+  const houseLeviesMap = new Map(houseLevies.map((hl: any) => [hl.id, hl]))
+
+  // 3. Map raw payments to UI-enriched Payments
+  const enrichedPayments: Payment[] = paymentsRaw.map((p) => {
+    const houseLevy = houseLeviesMap.get(p.houseLevyId)
+    const house = houseLevy ? housesMap.get(houseLevy.houseId) : null
+    const levyType = houseLevy ? levyTypesMap.get(houseLevy.levyTypeId) : null
+
+    const residentName = house?.resident
+      ? `${house.resident.firstName} ${house.resident.lastName}`
+      : 'Resident'
+    const residentEmail = house?.resident?.email || 'resident@communaltrust.app'
+    const houseNumber = house?.houseNumber || 'Unknown'
+    const street = house?.street || 'Unknown'
+    const levyTypeName = levyType?.name || 'Custom Levy'
+
+    // Status normalization
+    let status: PaymentStatus = 'pending'
+    const s = (p.status || '').toLowerCase()
+    if (s === 'verified' || s === 'success') status = 'verified'
+    else if (s === 'rejected' || s === 'failed') status = 'rejected'
+
+    return {
+      id: p.id,
+      residentName,
+      residentEmail,
+      houseNumber,
+      street,
+      reference: p.paymentReference,
+      proofUrl: '#',
+      amount: p.amount,
+      levyType: levyTypeName,
+      submittedAtLabel: p.paymentDate ? p.paymentDate.slice(0, 10) : 'Recently',
+      status,
+      remarks: p.remarks,
+    }
+  })
+
+  // 4. Apply filter and search keyword
+  const filtered = enrichedPayments.filter((p) => {
     const matchesFilter = filter === 'all' || p.status === filter
     const kw = keyword.toLowerCase()
     const matchesKeyword =
@@ -149,17 +168,18 @@ export async function getPayments(
     return matchesFilter && matchesKeyword
   })
 
+  const ITEMS_PER_PAGE = 3
   const total = filtered.length
   const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
   return { payments: paged, total }
 }
 
+/** Get payments summary dynamically */
 export async function getPaymentSummary(): Promise<PaymentSummary> {
-  const stored = localStorage.getItem('ct_payments')
-  const paymentsList: Payment[] = stored ? JSON.parse(stored) : []
+  const paymentsList = await getAllPayments()
 
-  const pending = paymentsList.filter((p) => p.status === 'pending')
-  const verified = paymentsList.filter((p) => p.status === 'verified').length
+  const pending = paymentsList.filter((p) => p.status === 'PENDING_REVIEW' || p.status === 'pending')
+  const verified = paymentsList.filter((p) => p.status === 'VERIFIED' || p.status === 'verified').length
   const total = paymentsList.length
 
   return {
@@ -169,4 +189,27 @@ export async function getPaymentSummary(): Promise<PaymentSummary> {
     autoMatchedCount: 0,
     disputedCount: 0,
   }
+}
+
+/** Helper: Get the community ID associated with the logged-in administrator/staff */
+export async function getCurrentCommunityId(): Promise<string> {
+  try {
+    const communities = await getCommunities()
+    if (communities && communities.length > 0) {
+      return communities[0].id
+    }
+  } catch (e) {
+    console.warn("Failed to get community from /communities", e)
+  }
+
+  try {
+    const { houses } = await getHouses()
+    if (houses && houses.length > 0) {
+      return houses[0].communityId
+    }
+  } catch (e) {
+    console.warn("Failed to get community from /houses", e)
+  }
+
+  return 'default-community-id'
 }

@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import ResidentLayout from '../../layouts/ResidentLayout'
+import { getMyBalance } from '../../api/levy'
+import { getResidentPayments, uploadPayment } from '../../api/payment'
 
 interface LevyItem {
   id: string
@@ -20,25 +22,17 @@ interface TransactionItem {
 
 export default function ResidentPayments() {
   // Balance and Stats state
-  const [outstandingBalance, setOutstandingBalance] = useState(1240.00)
-  const [lastPaymentAmount] = useState(850.00)
-  const [lastPaymentDate] = useState('Oct 12, 2023')
+  const [outstandingBalance, setOutstandingBalance] = useState(0)
+  const [lastPaymentAmount, setLastPaymentAmount] = useState(0)
+  const [lastPaymentDate, setLastPaymentDate] = useState('N/A')
+  const [upcomingDueDate, setUpcomingDueDate] = useState('N/A')
 
   // Levies to Pay state
-  const [levies, setLevies] = useState<LevyItem[]>([
-    { id: '1', name: 'Monthly Maintenance', period: 'October 2023 Period', amount: 850.00 },
-    { id: '2', name: 'Security Surcharge', period: 'Annual upgrade fund', amount: 240.00 },
-    { id: '3', name: 'Parking Space B12', period: 'Optional subscription', amount: 150.00, isAutoPay: true },
-  ])
+  const [levies, setLevies] = useState<LevyItem[]>([])
 
   // Payment History state
-  const [transactions, setTransactions] = useState<TransactionItem[]>([
-    { id: 't1', date: 'Oct 12, 2023', description: 'Monthly Maintenance', referenceId: '#TRX-82910', amount: 850.00, status: 'success' },
-    { id: 't2', date: 'Oct 05, 2023', description: 'Pool Access Tag', referenceId: '#TRX-82451', amount: 25.00, status: 'success' },
-    { id: 't3', date: 'Sep 30, 2023', description: 'Infrastructure Levy', referenceId: '#TRX-81002', amount: 120.00, status: 'pending' },
-    { id: 't4', date: 'Sep 15, 2023', description: 'Guest Parking Pass', referenceId: '#TRX-80512', amount: 10.00, status: 'failed' },
-    { id: 't5', date: 'Sep 12, 2023', description: 'Monthly Maintenance', referenceId: '#TRX-79883', amount: 850.00, status: 'success' },
-  ])
+  const [transactions, setTransactions] = useState<TransactionItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   // UI state
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -48,8 +42,9 @@ export default function ResidentPayments() {
 
   // Upload Form state
   const [modalAmount, setModalAmount] = useState('')
-  const [modalCategory, setModalCategory] = useState('Monthly Maintenance')
+  const [modalCategory, setModalCategory] = useState('')
   const [modalReference, setModalReference] = useState('')
+  const [selectedLevyId, setSelectedLevyId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const itemsPerPage = 5
@@ -59,8 +54,77 @@ export default function ResidentPayments() {
     setTimeout(() => setToastMessage(null), 3500)
   }
 
+  const loadPaymentData = async () => {
+    setIsLoading(true)
+    try {
+      const levyList = await getMyBalance()
+      const mappedLevies: LevyItem[] = levyList.map(l => ({
+        id: l.id,
+        name: l.levyName,
+        period: `Due ${l.dueDate}`,
+        amount: l.amount,
+        isAutoPay: false
+      }))
+      setLevies(mappedLevies)
+      const totalOut = levyList.reduce((acc, item) => acc + item.balance, 0)
+      setOutstandingBalance(totalOut)
+
+      // Calculate upcoming due date dynamically
+      const nextDueDate = levyList.length > 0
+        ? new Date(Math.min(...levyList.map(l => new Date(l.dueDate).getTime()))).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })
+        : 'N/A'
+      setUpcomingDueDate(nextDueDate)
+
+      // Fetch payment history
+      const txns = await getResidentPayments()
+      const mappedTxns: TransactionItem[] = txns.map((p: any) => {
+        let status: 'success' | 'pending' | 'failed' = 'pending'
+        const s = (p.status || '').toLowerCase()
+        if (s === 'verified' || s === 'success') status = 'success'
+        else if (s === 'rejected' || s === 'failed') status = 'failed'
+
+        return {
+          id: p.id,
+          date: new Date(p.paymentDate || p.createdAt || Date.now()).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          }),
+          description: p.levyName || p.levyType || 'Levy Payment',
+          referenceId: `#TRX-${p.paymentReference || p.reference || 'N/A'}`,
+          amount: p.amount,
+          status
+        }
+      })
+      setTransactions(mappedTxns)
+
+      // Get last verified payment
+      const verifiedTxns = mappedTxns.filter(t => t.status === 'success')
+      if (verifiedTxns.length > 0) {
+        setLastPaymentAmount(verifiedTxns[0].amount)
+        setLastPaymentDate(verifiedTxns[0].date)
+      } else if (mappedTxns.length > 0) {
+        setLastPaymentAmount(mappedTxns[0].amount)
+        setLastPaymentDate(mappedTxns[0].date)
+      }
+    } catch (e) {
+      console.error('Failed to load resident payment data:', e)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadPaymentData()
+  }, [])
+
   // Pre-fill modal details when resident clicks "Pay Now" on a specific levy
   const handlePayNow = (levy: LevyItem) => {
+    setSelectedLevyId(levy.id)
     setModalAmount(levy.amount.toFixed(2))
     setModalCategory(levy.name)
     setModalReference(`REF-${Math.floor(100000 + Math.random() * 900000)}`)
@@ -68,13 +132,18 @@ export default function ResidentPayments() {
   }
 
   const handleOpenGeneralUpload = () => {
+    setSelectedLevyId('')
     setModalAmount('')
-    setModalCategory('Monthly Maintenance')
+    setModalCategory(levies[0]?.name || '')
+    if (levies[0]) {
+      setSelectedLevyId(levies[0].id)
+      setModalAmount(levies[0].amount.toFixed(2))
+    }
     setModalReference(`REF-${Math.floor(100000 + Math.random() * 900000)}`)
     setIsModalOpen(true)
   }
 
-  const handleModalSubmit = (e: FormEvent) => {
+  const handleModalSubmit = async (e: FormEvent) => {
     e.preventDefault()
     const amount = parseFloat(modalAmount)
     if (isNaN(amount) || amount <= 0) {
@@ -82,29 +151,35 @@ export default function ResidentPayments() {
       return
     }
 
+    let targetLevyId = selectedLevyId
+    if (!targetLevyId) {
+      const found = levies.find(l => l.name === modalCategory)
+      if (found) targetLevyId = found.id
+    }
+
+    if (!targetLevyId) {
+      alert('Please select a valid levy category.')
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simulate server delay
-    setTimeout(() => {
-      const newTxn: TransactionItem = {
-        id: `t_${Date.now()}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        description: modalCategory,
-        referenceId: `#TRX-${modalReference || Math.floor(80000 + Math.random() * 20000)}`,
+    try {
+      await uploadPayment({
+        houseLevyId: targetLevyId,
         amount: amount,
-        status: 'pending'
-      }
+        paymentReference: modalReference,
+        proofOfPaymentUrl: 'https://communaltrust.s3.amazonaws.com/receipts/proof.pdf'
+      })
 
-      setTransactions(prev => [newTxn, ...prev])
-      setOutstandingBalance(prev => Math.max(0, prev - amount))
-      
-      // If payment matched a levy in the list, remove or mark it
-      setLevies(prev => prev.filter(item => item.name !== modalCategory))
-
-      setIsSubmitting(false)
       setIsModalOpen(false)
-      triggerToast(`Proof of payment (₦${amount.toFixed(2)}) submitted successfully!`)
-    }, 1200)
+      triggerToast(`Proof of payment (₦${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}) submitted successfully!`)
+      loadPaymentData()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to submit payment proof.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleToggleAutoPay = (id: string) => {
@@ -180,10 +255,10 @@ export default function ResidentPayments() {
               <span className="material-symbols-outlined">event_repeat</span>
             </div>
             <p className="res-payments__stat-label">Upcoming Due Date</p>
-            <h3 className="res-payments__stat-value">Oct 31, 2023</h3>
+            <h3 className="res-payments__stat-value">{upcomingDueDate}</h3>
             <div className="res-payments__stat-footer text-muted">
               <span className="material-symbols-outlined">calendar_today</span>
-              Next: Monthly Maintenance
+              Next: {levies[0]?.name || 'No pending levies'}
             </div>
           </div>
 
@@ -373,12 +448,22 @@ export default function ResidentPayments() {
                     <span>Levy Category</span>
                     <select
                       value={modalCategory}
-                      onChange={(e) => setModalCategory(e.target.value)}
+                      onChange={(e) => {
+                        setModalCategory(e.target.value)
+                        const found = levies.find(l => l.name === e.target.value)
+                        if (found) {
+                          setModalAmount(found.amount.toFixed(2))
+                          setSelectedLevyId(found.id)
+                        }
+                      }}
                       required
                     >
-                      <option value="Monthly Maintenance">Monthly Maintenance</option>
-                      <option value="Security Surcharge">Security Surcharge</option>
-                      <option value="Parking Space B12">Parking Space B12</option>
+                      <option value="">-- Select outstanding levy --</option>
+                      {levies.map((levy) => (
+                        <option key={levy.id} value={levy.name}>
+                          {levy.name} (₦{levy.amount.toFixed(2)})
+                        </option>
+                      ))}
                       <option value="Utility / Other">Utility / Other</option>
                     </select>
                   </label>
