@@ -15,7 +15,7 @@ export async function createLevyType(payload: CreateLevyTypePayload): Promise<Le
     frequency: payload.frequency.toUpperCase(),
   }
 
-  const response = await fetch(apiUrl('/levy-types'), {
+  const response = await fetch(apiUrl('/levies'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -30,16 +30,16 @@ export async function createLevyType(payload: CreateLevyTypePayload): Promise<Le
   return response.json() as Promise<LevyType>
 }
 
-/** Resident: get outstanding house levy balances — GET /api/v1/resident/levies */
+/** Resident: get outstanding house levy balances — GET /api/v1/levies/my-balance */
 export async function getMyBalance(): Promise<HouseLevy[]> {
-  const response = await fetch(apiUrl('/resident/levies'), { credentials: 'include' })
+  const response = await fetch(apiUrl('/levies/my-balance'), { credentials: 'include' })
   if (!response.ok) throw new Error('Unable to load levy balances.')
   return response.json() as Promise<HouseLevy[]>
 }
 
 /** Get all levy types from backend — GET /api/v1/levy-types */
 export async function getLevyTypes(): Promise<LevyType[]> {
-  const response = await fetch(apiUrl('/levy-types'), { credentials: 'include' })
+  const response = await fetch(apiUrl('/levies'), { credentials: 'include' })
   if (!response.ok) throw new Error('Unable to load levy types.')
   return response.json() as Promise<LevyType[]>
 }
@@ -85,7 +85,7 @@ export async function getScheduledAdjustments(): Promise<ScheduledAdjustment[]> 
 
 export async function updateLevyStatus(id: string, status: LevyType['status']): Promise<LevyType> {
   // Fetch existing details first to maintain them
-  const response = await fetch(apiUrl('/levy-types'), { credentials: 'include' })
+  const response = await fetch(apiUrl('/levies'), { credentials: 'include' })
   if (!response.ok) throw new Error('Unable to load levy types.')
   const list = await response.json() as LevyType[]
   const existing = list.find(l => l.id === id)
@@ -98,7 +98,7 @@ export async function updateLevyStatus(id: string, status: LevyType['status']): 
     status: status?.toUpperCase() || 'ACTIVE',
   }
 
-  const putResponse = await fetch(apiUrl(`/levy-types/${id}`), {
+  const putResponse = await fetch(apiUrl(`/levies/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

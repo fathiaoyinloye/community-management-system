@@ -65,8 +65,6 @@ export default function PlatformAdminAdmins() {
   // KPI Statistics
   const totalAdmins = admins.length;
   const activeSessions = totalAdmins > 0 ? Math.max(1, Math.round(totalAdmins * 0.25)) : 0;
-  const mfaAdmins = admins.filter((a) => a.mfaStatus === "Verified MFA").length;
-  const mfaCompliance = totalAdmins > 0 ? ((mfaAdmins / totalAdmins) * 100).toFixed(1) : "100";
 
   const handleRevoke = (id: string, name: string, role: string) => {
     if (!window.confirm(`Are you sure you want to revoke system privileges for ${name}?`)) return;
@@ -148,15 +146,7 @@ export default function PlatformAdminAdmins() {
               <h3 className="paa__stat-value">{activeSessions}</h3>
             </div>
           </div>
-          <div className="paa__stat-card">
-            <div className="paa__stat-icon paa__stat-icon--amber">
-              <span className="material-symbols-outlined">verified_user</span>
-            </div>
-            <div>
-              <p className="paa__stat-label">MFA Compliance</p>
-              <h3 className="paa__stat-value">{mfaCompliance}%</h3>
-            </div>
-          </div>
+
         </div>
 
         {/* Toolbar */}
@@ -181,7 +171,6 @@ export default function PlatformAdminAdmins() {
                   <th className="paa__th">Name</th>
                   <th className="paa__th">Assigned Community</th>
                   <th className="paa__th">Role</th>
-                  <th className="paa__th">Last Login</th>
                   <th className="paa__th">Security Status</th>
                   <th className="paa__th paa__th--right">Actions</th>
                 </tr>
@@ -208,7 +197,6 @@ export default function PlatformAdminAdmins() {
                             {admin.role}
                           </span>
                         </td>
-                        <td className="paa__td">{admin.lastLogin}</td>
                         <td className="paa__td">
                           <div className="paa__status">
                             <span
@@ -299,7 +287,7 @@ export default function PlatformAdminAdmins() {
         /* ---- Stats ---- */
         .paa__stats {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, 1fr);
           gap: var(--space-md);
         }
 

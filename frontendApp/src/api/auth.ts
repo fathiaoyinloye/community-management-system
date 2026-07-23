@@ -50,7 +50,7 @@ export async function logout(): Promise<void> {
 export async function activateAccount(
   payload: CompleteAccountSetupPayload,
 ): Promise<AccountActivatedResponse> {
-  const response = await fetch(apiUrl('/auth/complete-account-setup'), {
+  const response = await fetch(apiUrl('/auth/activate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

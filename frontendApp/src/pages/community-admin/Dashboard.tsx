@@ -56,7 +56,6 @@ export default function Dashboard() {
     totalResidents: 0,
     occupancyRate: 0,
     totalRevenue: 0,
-    pendingMaintenance: 0,
   });
   const [recentUpdates, setRecentUpdates] = useState<any[]>([]);
   const [chartData, setChartData] = useState<ChartItem[]>(() => generatePastMonths(6));
@@ -77,7 +76,6 @@ export default function Dashboard() {
           totalResidents: summary.occupiedCount,
           occupancyRate: summary.occupancyRate,
           totalRevenue,
-          pendingMaintenance: summary.maintenanceAlertCount,
         });
 
         const pastMonths = generatePastMonths(6);
@@ -185,18 +183,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="db-kpi-card db-kpi-card--error">
-            <div className="db-kpi-card__top">
-              <span className="db-kpi-card__icon db-kpi-card__icon--error">
-                <span className="material-symbols-outlined">engineering</span>
-              </span>
-              <span className="db-kpi-card__badge db-kpi-card__badge--error">Alerts</span>
-            </div>
-            <div className="db-kpi-card__bottom">
-              <p className="db-kpi-card__label">Pending Maintenance</p>
-              <h3 className="db-kpi-card__value">{stats.pendingMaintenance}</h3>
-            </div>
-          </div>
         </section>
 
         {/* Section 2: Financial Snapshot & Quick Actions */}
@@ -408,7 +394,7 @@ export default function Dashboard() {
 
         @media (min-width: 1024px) {
           .db-grid-kpi {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
           }
         }
 
@@ -429,9 +415,6 @@ export default function Dashboard() {
           box-shadow: 0 12px 24px rgba(99, 102, 241, 0.08);
         }
 
-        .db-kpi-card--error {
-          border-left: 4px solid var(--color-error);
-        }
 
         .db-kpi-card__top {
           display: flex;
@@ -450,10 +433,6 @@ export default function Dashboard() {
           justify-content: center;
         }
 
-        .db-kpi-card__icon--error {
-          background: rgba(186, 26, 26, 0.1);
-          color: var(--color-error);
-        }
 
         .db-kpi-card__badge {
           font-size: 11px;
@@ -464,10 +443,6 @@ export default function Dashboard() {
           color: #007a6f;
         }
 
-        .db-kpi-card__badge--error {
-          background: var(--color-error-container);
-          color: var(--color-on-error-container);
-        }
 
         .db-kpi-card__bottom {
           margin-top: var(--space-md);
