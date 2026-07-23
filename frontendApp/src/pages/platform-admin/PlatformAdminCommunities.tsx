@@ -3,11 +3,9 @@ import PlatformAdminLayout from "../../layouts/PlatformAdminLayout";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";
 import EmptyState from "../../components/ui/EmptyState";
-import {
-  CommunitiesProvider,
-  useCommunities,
-} from "../../store/CommunitiesContext";
+import { CommunitiesProvider, useCommunities } from "../../store/CommunitiesContext";
 import type { Community } from "../../types/community";
+import CreateCommunityModal from "../../components/CreateCommunityModal";
 
 type FilterTab = "all" | "active" | "pending_setup";
 type SortKey = "name" | "housesCount" | "createdAt" | "state";
@@ -48,6 +46,7 @@ export default function PlatformAdminCommunitiesPage() {
 function PlatformAdminCommunities() {
   const { communities, isLoading } = useCommunities();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("createdAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -148,6 +147,14 @@ function PlatformAdminCommunities() {
               View and manage every community onboarded to the platform.
             </p>
           </div>
+          <button
+            type="button"
+            className="pac__create-btn"
+            onClick={() => setIsCreateOpen(true)}
+          >
+            <span className="material-symbols-outlined">add</span>
+            Create Community
+          </button>
         </div>
 
         {/* Stat Cards */}
@@ -446,6 +453,11 @@ function PlatformAdminCommunities() {
             </div>
           </div>
         </div>
+
+        <CreateCommunityModal
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+        />
       </div>
 
       <style>{`
@@ -460,6 +472,29 @@ function PlatformAdminCommunities() {
           flex-wrap: wrap;
           gap: var(--space-md);
           margin-bottom: var(--space-md);
+        }
+
+        .pac__create-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 18px;
+          background: var(--color-primary);
+          color: #ffffff;
+          border-radius: var(--radius-xl);
+          font-size: var(--text-label-md);
+          font-weight: 700;
+          transition: background-color 0.2s ease;
+          border: none;
+          cursor: pointer;
+        }
+
+        .pac__create-btn:hover {
+          background: #1e293b;
+        }
+
+        .pac__create-btn .material-symbols-outlined {
+          font-size: 20px;
         }
 
         .pac__heading {
